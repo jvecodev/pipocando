@@ -16,6 +16,7 @@ import { styled } from '@mui/material/styles';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
+import CheckIcon from '@mui/icons-material/Check';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -59,15 +60,16 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
-export default function SignUp(props: { disableCustomTheme?: boolean }) {
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-  const [nameError, setNameError] = React.useState(false);
-  const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+export default function SignUp(props: Record<string, unknown>) {
+  const [emailError, setEmailError] = React.useState<boolean>(false);
+  const [emailErrorMessage, setEmailErrorMessage] = React.useState<string>('');
+  const [passwordError, setPasswordError] = React.useState<boolean>(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState<string>('');
+  const [nameError, setNameError] = React.useState<boolean>(false);
+  const [nameErrorMessage, setNameErrorMessage] = React.useState<string>('');
+  const [passwordValid, setPasswordValid] = React.useState<boolean>(false);
 
-  const validateInputs = () => {
+  const validateInputs = (): boolean => {
     const email = document.getElementById('email') as HTMLInputElement;
     const password = document.getElementById('password') as HTMLInputElement;
     const name = document.getElementById('name') as HTMLInputElement;
@@ -76,25 +78,25 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
 
     if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address.');
+      setEmailErrorMessage('Por favor, insira um email válido.');
       isValid = false;
     } else {
       setEmailError(false);
       setEmailErrorMessage('');
     }
 
-    if (!password.value || password.value.length < 6) {
+    if (!password.value || password.value.length < 6 || /\s/.test(password.value)) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
+      setPasswordErrorMessage('A senha precisa ter no mínimo 6 caracteres.');
       isValid = false;
     } else {
       setPasswordError(false);
       setPasswordErrorMessage('');
     }
 
-    if (!name.value || name.value.length < 1) {
+    if (!name.value || name.value.length < 4 || !/^[A-Za-zÀ-ÖØ-öø-ÿ]+ [A-Za-zÀ-ÖØ-öø-ÿ]+$/.test(name.value)) {
       setNameError(true);
-      setNameErrorMessage('Name is required.');
+      setNameErrorMessage('O nome deve conter apenas letras e pelo menos um espaço.');
       isValid = false;
     } else {
       setNameError(false);
@@ -104,7 +106,27 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     return isValid;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleNameInput = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = event.target.value;
+    if (/\d/.test(value)) {
+      setNameError(true);
+      setNameErrorMessage('Caracter inválido.');
+    } else {
+      setNameError(false);
+      setNameErrorMessage('');
+    }
+  };
+
+  const handlePasswordInput = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = event.target.value;
+    if (value.length >= 6) {
+      setPasswordValid(true); // Requisito atendido
+    } else {
+      setPasswordValid(false); // Requisito não atendido
+    }
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     if (nameError || emailError || passwordError) {
       event.preventDefault();
       return;
@@ -149,6 +171,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 error={nameError}
                 helperText={nameErrorMessage}
                 color={nameError ? 'error' : 'primary'}
+                onChange={handleNameInput}
               />
             </FormControl>
             <FormControl>
@@ -180,7 +203,21 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 error={passwordError}
                 helperText={passwordErrorMessage}
                 color={passwordError ? 'error' : 'primary'}
+                onChange={handlePasswordInput}
               />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginTop: '0.5rem',
+                  color: passwordValid ? 'green' : 'text.secondary',
+                }}
+              >
+                <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                  • A senha deve ter pelo menos 6 caracteres.
+                </Typography>
+                {passwordValid && <CheckIcon fontSize="small" />}
+              </Box>
             </FormControl>
             <FormControlLabel
               control={<Checkbox value="allowExtraEmails" color="primary" />}
