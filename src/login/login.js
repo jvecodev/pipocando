@@ -16,7 +16,7 @@ import { styled } from '@mui/material/styles';
 import ForgotPassword from './components/ForgotPassword';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
+import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons'; //trocar por o logo do pipocando
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -95,7 +95,7 @@ export default function SignIn(props) {
 
     if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address.');
+      setEmailErrorMessage('Por favor, insira um e-mail válido.');
       isValid = false;
     } else {
       setEmailError(false);
@@ -104,7 +104,7 @@ export default function SignIn(props) {
 
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
+      setPasswordErrorMessage('A senha precisa ter no mínimo 6 caracteres.');
       isValid = false;
     } else {
       setPasswordError(false);
@@ -126,7 +126,7 @@ export default function SignIn(props) {
             variant="h4"
             sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
           >
-            Sign in
+            Login
           </Typography>
           <Box
             component="form"
@@ -147,7 +147,7 @@ export default function SignIn(props) {
                 id="email"
                 type="email"
                 name="email"
-                placeholder="your@email.com"
+                placeholder="seu.email@email.com"
                 autoComplete="email"
                 autoFocus
                 required
@@ -157,7 +157,7 @@ export default function SignIn(props) {
               />
             </FormControl>
             <FormControl>
-              <FormLabel htmlFor="password">Password</FormLabel>
+              <FormLabel htmlFor="password">Senha</FormLabel>
               <TextField
                 error={passwordError}
                 helperText={passwordErrorMessage}
@@ -175,7 +175,7 @@ export default function SignIn(props) {
             </FormControl>
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
+              label="Lembrar deste dispositivo"
             />
             <ForgotPassword open={open} handleClose={handleClose} />
             <Button
@@ -184,7 +184,7 @@ export default function SignIn(props) {
               variant="contained"
               onClick={validateInputs}
             >
-              Sign in
+              Login
             </Button>
             <Link
               component="button"
@@ -193,7 +193,7 @@ export default function SignIn(props) {
               variant="body2"
               sx={{ alignSelf: 'center' }}
             >
-              Forgot your password?
+              Esqueceu a senha?
             </Link>
           </Box>
           <Divider>or</Divider>
@@ -201,27 +201,27 @@ export default function SignIn(props) {
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => alert('Sign in with Google')}
+              onClick={() => alert('Logue com o Google')}
               startIcon={<GoogleIcon />}
             >
-              Sign in with Google
+              Logue com o Google
             </Button>
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => alert('Sign in with Facebook')}
+              onClick={() => alert('Logue com o facebook')}
               startIcon={<FacebookIcon />}
             >
-              Sign in with Facebook
+              Logue com o facebook
             </Button>
             <Typography sx={{ textAlign: 'center' }}>
-              Don&apos;t have an account?{' '}
+              Não tem uma conta? {' '}
               <Link
                 href="/material-ui/getting-started/templates/sign-in/"
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >
-                Sign up
+                Cadastro
               </Link>
             </Typography>
           </Box>

@@ -28,13 +28,12 @@ export default function ForgotPassword({ open, handleClose }: ForgotPasswordProp
         },
       }}
     >
-      <DialogTitle>Reset password</DialogTitle>
+      <DialogTitle>Reset de senha</DialogTitle>
       <DialogContent
         sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}
       >
         <DialogContentText>
-          Enter your account&apos;s email address, and we&apos;ll send you a link to
-          reset your password.
+          Insira o email da sua conta, e nós enviaremos um link para reset de senha
         </DialogContentText>
         <OutlinedInput
           autoFocus
