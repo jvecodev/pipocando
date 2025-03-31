@@ -22,6 +22,3 @@ Bem-vindo ao Pipocando, um fórum de filmes onde os usuários podem discutir sob
 ## Licença
 
 Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-
-
