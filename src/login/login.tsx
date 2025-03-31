@@ -60,22 +60,22 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
-export default function SignIn(props: { disableCustomTheme?: boolean }) {
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-  const [open, setOpen] = React.useState(false);
+export default function SignIn(props: Record<string, unknown>) {
+  const [emailError, setEmailError] = React.useState<boolean>(false);
+  const [emailErrorMessage, setEmailErrorMessage] = React.useState<string>('');
+  const [passwordError, setPasswordError] = React.useState<boolean>(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState<string>('');
+  const [open, setOpen] = React.useState<boolean>(false);
 
-  const handleClickOpen = () => {
+  const handleClickOpen = (): void => {
     setOpen(true);
   };
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     setOpen(false);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     if (emailError || passwordError) {
       event.preventDefault();
       return;
@@ -87,7 +87,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     });
   };
 
-  const validateInputs = () => {
+  const validateInputs = (): boolean => {
     const email = document.getElementById('email') as HTMLInputElement;
     const password = document.getElementById('password') as HTMLInputElement;
 
