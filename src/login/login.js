@@ -196,7 +196,7 @@ export default function SignIn(props) {
               Esqueceu a senha?
             </Link>
           </Box>
-          <Divider>or</Divider>
+          <Divider>OU</Divider>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Button
               fullWidth
