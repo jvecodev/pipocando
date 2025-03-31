@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import SignUp from "./sign-up/SignUp";
+
+import Blog from "./blog/Blog";
+
 
 function App() {
 
   return (
     <>
-      <SignUp />
+      <Blog />
     </>
   );
 }
