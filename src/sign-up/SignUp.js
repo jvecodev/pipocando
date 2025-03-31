@@ -16,6 +16,7 @@ import { styled } from '@mui/material/styles';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
+import CheckIcon from '@mui/icons-material/Check'; // Importar o ícone de "check" do Material-UI
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -66,6 +67,7 @@ export default function SignUp(props) {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [nameError, setNameError] = React.useState(false);
   const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+  const [passwordValid, setPasswordValid] = React.useState(false);
 
   const validateInputs = () => {
     const email = document.getElementById('email');
@@ -76,25 +78,25 @@ export default function SignUp(props) {
 
     if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address.');
+      setEmailErrorMessage('Por favor, insira um email válido.');
       isValid = false;
     } else {
       setEmailError(false);
       setEmailErrorMessage('');
     }
 
-    if (!password.value || password.value.length < 6) {
+    if (!password.value || password.value.length < 6 || /\s/.test(password.value)) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
+      setPasswordErrorMessage('A senha precisa ter no mínimo 6 caracteres.');
       isValid = false;
     } else {
       setPasswordError(false);
       setPasswordErrorMessage('');
     }
 
-    if (!name.value || name.value.length < 1) {
+    if (!name.value || name.value.length < 4 || !/^[A-Za-zÀ-ÖØ-öø-ÿ]+ [A-Za-zÀ-ÖØ-öø-ÿ]+$/.test(name.value)) {
       setNameError(true);
-      setNameErrorMessage('Name is required.');
+      setNameErrorMessage('O nome deve conter apenas letras e pelo menos um espaço.');
       isValid = false;
     } else {
       setNameError(false);
@@ -102,6 +104,26 @@ export default function SignUp(props) {
     }
 
     return isValid;
+  };
+
+  const handleNameInput = (event) => {
+    const value = event.target.value;
+    if (/\d/.test(value)) {
+      setNameError(true);
+      setNameErrorMessage('Caracter inválido.');
+    } else {
+      setNameError(false);
+      setNameErrorMessage('');
+    }
+  };
+
+  const handlePasswordInput = (event) => {
+    const value = event.target.value;
+    if (value.length >= 6) {
+      setPasswordValid(true); // Requisito atendido
+    } else {
+      setPasswordValid(false); // Requisito não atendido
+    }
   };
 
   const handleSubmit = (event) => {
@@ -149,6 +171,7 @@ export default function SignUp(props) {
                 error={nameError}
                 helperText={nameErrorMessage}
                 color={nameError ? 'error' : 'primary'}
+                onChange={handleNameInput}
               />
             </FormControl>
             <FormControl>
@@ -180,7 +203,21 @@ export default function SignUp(props) {
                 error={passwordError}
                 helperText={passwordErrorMessage}
                 color={passwordError ? 'error' : 'primary'}
+                onChange={handlePasswordInput} // Adicionado evento para monitorar a entrada
               />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginTop: '0.5rem',
+                  color: passwordValid ? 'green' : 'text.secondary', // Verde se válido
+                }}
+              >
+                <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                  • A senha deve ter pelo menos 6 caracteres.
+                </Typography>
+                {passwordValid && <CheckIcon fontSize="small" />} {/* Ícone de check */}
+              </Box>
             </FormControl>
             <FormControlLabel
               control={<Checkbox value="allowExtraEmails" color="primary" />}
