@@ -1,5 +1,9 @@
 export default function SitemarkIcon() {
   return (
-    <span>Pipocando Logo</span>
-  );
+    <img 
+      src="/pipocando.png"
+      alt="Pipocando Logo" 
+      style={{ width: '120px', height: 'auto' }} 
+    />
+  );  
 }
