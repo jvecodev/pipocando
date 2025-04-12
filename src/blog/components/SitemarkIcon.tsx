@@ -1,7 +1,7 @@
 export default function SitemarkIcon() {
   return (
     <img 
-      src="/pipocando.png"
+      src="assets/img/pipocando.png"
       alt="Pipocando Logo" 
       style={{ width: '120px', height: 'auto' }} 
     />
