@@ -41,6 +41,7 @@ export const brand = {
   700: 'hsl(210, 100%, 35%)',
   800: 'hsl(210, 100%, 16%)',
   900: 'hsl(210, 100%, 21%)',
+  
 };
 
 export const gray = {
