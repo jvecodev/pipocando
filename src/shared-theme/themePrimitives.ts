@@ -1,4 +1,5 @@
 import { createTheme, alpha, PaletteMode, Shadows } from "@mui/material/styles";
+import { dark } from "@mui/material/styles/createPalette";
 
 declare module "@mui/material/Paper" {
   interface PaperPropsVariantOverrides {
@@ -53,7 +54,7 @@ export const gray = {
   600: "hsl(220, 20%, 35%)",
   700: "hsl(220, 20%, 25%)",
   800: "hsl(220, 30%, 6%)",
-  900: "hsl(220, 35%, 3%)",
+  900: "hsl(0, 0.00%, 0.00%)",
 };
 
 export const green = {
@@ -90,7 +91,7 @@ export const red = {
   400: "hsl(0, 90%, 40%)",
   500: "hsl(0, 90%, 30%)",
   600: "hsl(0, 91%, 25%)",
-  700: "hsl(0, 94%, 18%)",
+  700: "#800020",
   800: "hsl(0, 95%, 12%)",
   900: "hsl(0, 93%, 6%)",
 };
@@ -127,6 +128,11 @@ export const getDesignTokens = (mode: PaletteMode) => {
           main: brand[700],
           dark: brand[900],
         }),
+      },
+      brand:{
+        red: red[700],
+        orange: "#D28500",
+
       },
       warning: {
         light: orange[300],
@@ -166,8 +172,8 @@ export const getDesignTokens = (mode: PaletteMode) => {
         default: "hsl(0, 0%, 99%)",
         paper: "hsl(220, 35%, 97%)",
         ...(mode === "dark" && {
-          default: gray[900],
-          paper: "hsl(220, 30%, 7%)",
+          default: brand[900],
+          paper: "hsl(220, 34.40%, 12.00%)",
         }),
       },
       text: {
@@ -247,6 +253,10 @@ export const getDesignTokens = (mode: PaletteMode) => {
 export const colorSchemes = {
   light: {
     palette: {
+      brand: {
+       main: red[700],
+       light: orange[700],
+      },
       primary: {
         light: brand[200],
         main: brand[400],
@@ -256,7 +266,7 @@ export const colorSchemes = {
       info: {
         light: brand[100],
         main: brand[300],
-        dark: brand[600],
+        dark: gray[600],
         contrastText: gray[50],
       },
       warning: {

@@ -3,8 +3,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Divider from "@mui/material/Divider";
 import AppTheme from "../../shared-theme/AppTheme";
 import Hero from "./components/Hero";
-import Highlights from "./components/Highlights";
-import Pricing from "./components/Pricing";
+// import Highlights from "./components/Highlights";
 import Features from "./components/Features";
 import FAQ from "./components/FAQ";
 import Footer from "../../organisms/footer/Footer";
@@ -19,14 +18,13 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
       <CssBaseline enableColorScheme />
       <Header />
       <Hero />
-      <Box sx={{ paddingTop: "calc(var(--template-frame-height, 0px) + 120px)" }}>
-        <Container maxWidth="lg">
+      <Box >
+        <Container maxWidth="lg" sx={{ py: { xs: 8, sm: 16 } }}>
         <Features />
         <Divider />
         <Divider />
-        <Highlights />
+        {/* <Highlights /> */}
         <Divider />
-        <Pricing />
         <Divider />
         <FAQ />
         <Divider />
