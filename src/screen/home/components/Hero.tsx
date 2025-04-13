@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import InputLabel from '@mui/material/InputLabel';
@@ -9,6 +8,8 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import visuallyHidden from '@mui/utils/visuallyHidden';
 import { styled } from '@mui/material/styles';
+import { colorSchemes } from '../../../shared-theme/themePrimitives';
+
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -21,15 +22,16 @@ const StyledBox = styled('div')(({ theme }) => ({
   border: '1px solid',
   borderColor: theme.palette.grey[200],
   boxShadow: '0 0 12px 8px hsla(220, 25%, 80%, 0.2)',
-  backgroundImage: `url(${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/screenshots/material-ui/getting-started/templates/dashboard.jpg)`,
+  backgroundImage: `url('/assets/img/main-screen.jpg')`,
   backgroundSize: 'cover',
   [theme.breakpoints.up('sm')]: {
     marginTop: theme.spacing(10),
-    height: 700,
+    height: 500,
   },
   ...theme.applyStyles('dark', {
     boxShadow: '0 0 24px 12px hsla(210, 100%, 25%, 0.2)',
-    backgroundImage: `url(${process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'}/static/screenshots/material-ui/getting-started/templates/dashboard-dark.jpg)`,
+    backgroundImage: `url('/assets/img/main-screen.jpg')`,
+
     outlineColor: 'hsla(220, 20%, 42%, 0.1)',
     borderColor: theme.palette.grey[700],
   }),
@@ -37,20 +39,7 @@ const StyledBox = styled('div')(({ theme }) => ({
 
 export default function Hero() {
   return (
-    <Box
-      id="hero"
-      sx={(theme) => ({
-        width: '100%',
-        backgroundRepeat: 'no-repeat',
-
-        backgroundImage:
-          'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 90%), transparent)',
-        ...theme.applyStyles('dark', {
-          backgroundImage:
-            'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)',
-        }),
-      })}
-    >
+   
       <Container
         sx={{
           display: 'flex',
@@ -67,27 +56,19 @@ export default function Hero() {
         >
           <Typography
             variant="h1"
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              alignItems: 'center',
-              fontSize: 'clamp(3rem, 10vw, 3.5rem)',
-            }}
-          >
-            Our&nbsp;latest&nbsp;
-            <Typography
-              component="span"
-              variant="h1"
+            
               sx={(theme) => ({
-                fontSize: 'inherit',
-                color: 'primary.main',
+              fontSize: 'clamp(3rem, 10vw, 3.5rem)',
+              display: 'flex',
+              alignItems: 'center',
+              color: colorSchemes.light.palette.warning.main,
                 ...theme.applyStyles('dark', {
-                  color: 'primary.light',
+                  color: 'white',
                 }),
               })}
-            >
-              products
-            </Typography>
+    
+          >
+            Pipocando
           </Typography>
           <Typography
             sx={{
@@ -96,9 +77,7 @@ export default function Hero() {
               width: { sm: '100%', md: '80%' },
             }}
           >
-            Explore our cutting-edge dashboard, delivering high-quality solutions
-            tailored to your needs. Elevate your experience with top-tier features
-            and services.
+            Bem-vindo ao Pipocando, um fórum de filmes onde os usuários podem discutir sobre os lançamentos, comentar suas opiniões, e compartilhar recomendações.
           </Typography>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
@@ -147,6 +126,5 @@ export default function Hero() {
         </Stack>
         <StyledBox id="image" />
       </Container>
-    </Box>
   );
 }

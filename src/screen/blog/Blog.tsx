@@ -4,17 +4,19 @@ import Content from './components/Content';
 import Header from '../../organisms/header/Header';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
+import Footer from '../../organisms/footer/Footer';
 
 export default function Blog(props: { disableCustomTheme?: boolean }) {
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
-      <Header />
+      <Header/>
       <Box sx={{ paddingTop: 'calc(var(--template-frame-height, 0px) + 120px)' }}>
         <Container maxWidth="lg">
           <Content />
         </Container>
       </Box>
+        <Footer />
     </AppTheme>
   );
 }

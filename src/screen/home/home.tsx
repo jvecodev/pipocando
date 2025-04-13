@@ -2,29 +2,27 @@ import * as React from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Divider from "@mui/material/Divider";
 import AppTheme from "../../shared-theme/AppTheme";
-import AppAppBar from "./components/AppAppBar";
 import Hero from "./components/Hero";
-import LogoCollection from "./components/LogoCollection";
 import Highlights from "./components/Highlights";
 import Pricing from "./components/Pricing";
 import Features from "./components/Features";
-import Testimonials from "./components/Testimonials";
 import FAQ from "./components/FAQ";
 import Footer from "../../organisms/footer/Footer";
+import Header from "../../organisms/header/Header";
+import Box from '@mui/material/Box';
+import Container from "@mui/material/Container";
 
 
 export default function Home(props: { disableCustomTheme?: boolean }) {
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
-
-      <AppAppBar />
+      <Header />
       <Hero />
-      <div>
-        <LogoCollection />
+      <Box sx={{ paddingTop: "calc(var(--template-frame-height, 0px) + 120px)" }}>
+        <Container maxWidth="lg">
         <Features />
         <Divider />
-        <Testimonials />
         <Divider />
         <Highlights />
         <Divider />
@@ -33,7 +31,8 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
         <FAQ />
         <Divider />
         <Footer />
-      </div>
+        </Container>
+      </Box>
     </AppTheme>
   );
 }
