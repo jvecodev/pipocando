@@ -14,10 +14,10 @@ import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import ForgotPassword from './ForgotPassword';
-import AppTheme from '../shared-theme/AppTheme';
-import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './CustomIcons';
-import { login } from '../services/authService';
+import AppTheme from '../../shared-theme/AppTheme';
+import ColorModeSelect from '../../shared-theme/ColorModeSelect';
+import { login } from '../../services/authService';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
