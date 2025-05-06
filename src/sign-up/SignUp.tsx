@@ -17,6 +17,7 @@ import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
 import CheckIcon from '@mui/icons-material/Check';
+import { register } from '../services/registerService';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -126,18 +127,32 @@ export default function SignUp(props: Record<string, unknown>) {
     }
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
-    if (nameError || emailError || passwordError) {
-      event.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    
+    if (!validateInputs()) { 
       return;
     }
+  
+    if (nameError || emailError || passwordError) {
+      return;
+    }
+  
     const data = new FormData(event.currentTarget);
-    console.log({
-      name: data.get('name'),
-      lastName: data.get('lastName'),
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const fullName = data.get('name') as string;
+    
+    const registerData = {
+      name: fullName as string,
+      email: data.get('email') as string,
+      password: data.get('password') as string
+    };
+  
+    try {
+      const response = await register(registerData);
+      console.log('Registration successful:', response);
+    } catch (error) {
+      console.error('Registration failed:', error);
+    }
   };
 
   return (
