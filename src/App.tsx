@@ -1,18 +1,32 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Home from "./screen/home/home";
-import Blog from "./screen/blog/Blog";
+import Blog from "./features/blog/Blog";
+import SignUp from "./features/sign-up/SignUp";
+import Login from "./features/login/Login";
+import MainLayout from "./layout/MainLayout";
 
-export default function App() {
+function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/blog" element={<Blog />} />
+        {/* Rotas sem Header */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+
+        {/* Rotas com Header (usando MainLayout) */}
+        <Route
+          path="/blog"
+          element={
+            <MainLayout>
+              <Blog />
+            </MainLayout>
+          }
+        />
+        {/* Adicione outras rotas aqui */}
       </Routes>
     </Router>
   );
 }
 
-
+export default App;
