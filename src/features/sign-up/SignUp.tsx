@@ -237,7 +237,6 @@ export default function SignUp(props: Record<string, unknown>) {
               fullWidth
               variant="contained"
               sx={{
-                color: 'black', 
                 '&:hover': {
                   backgroundColor: 'hsl(49, 72.90%, 65.30%)'
                 }

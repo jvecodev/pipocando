@@ -93,7 +93,7 @@ export default function SignIn(props: Record<string, unknown>) {
       console.log(error);
     }
   };
-  
+
   const validateInputs = (): boolean => {
     const email = document.getElementById('email') as HTMLInputElement;
     const password = document.getElementById('password') as HTMLInputElement;
@@ -189,7 +189,6 @@ export default function SignIn(props: Record<string, unknown>) {
               fullWidth
               variant="contained"
               sx={{
-                color: 'black', 
                 '&:hover': {
                   backgroundColor: 'hsl(49, 72.90%, 65.30%)'
                 }
