@@ -88,6 +88,7 @@ export default function SignIn(props: Record<string, unknown>) {
 
     try {
       const response = await login({ email, password });
+      localStorage.setItem('token', response.token);
     } catch (error: any) {
       console.log(error);
     }
