@@ -1,7 +1,7 @@
 import CssBaseline from '@mui/material/CssBaseline';
-import AppTheme from '../shared-theme/AppTheme';
+import AppTheme from '../../shared-theme/AppTheme';
 import Content from './Content';
-import Header from './Header';
+import Header from '../../layout/Header';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 

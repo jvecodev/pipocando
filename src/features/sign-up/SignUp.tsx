@@ -13,11 +13,10 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
-import AppTheme from '../shared-theme/AppTheme';
-import ColorModeSelect from '../shared-theme/ColorModeSelect';
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
+import AppTheme from '../../shared-theme/AppTheme';
+import ColorModeSelect from '../../shared-theme/ColorModeSelect';
 import CheckIcon from '@mui/icons-material/Check';
-import { register } from '../services/registerService';
+import { register } from '../../services/registerService';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -161,7 +160,6 @@ export default function SignUp(props: Record<string, unknown>) {
       <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
       <SignUpContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
-          <SitemarkIcon />
           <Typography
             component="h1"
             variant="h4"
@@ -255,7 +253,6 @@ export default function SignUp(props: Record<string, unknown>) {
               fullWidth
               variant="outlined"
               onClick={() => alert('Cadastre-se com o Google')}
-              startIcon={<GoogleIcon />}
             >
               Cadastre-se com o Google
             </Button>
@@ -263,7 +260,6 @@ export default function SignUp(props: Record<string, unknown>) {
               fullWidth
               variant="outlined"
               onClick={() => alert('Cadastre-se com o Facebook')}
-              startIcon={<FacebookIcon />}
             >
               Cadastre-se com o Facebook
             </Button>
