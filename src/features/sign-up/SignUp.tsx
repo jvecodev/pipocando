@@ -232,10 +232,6 @@ export default function SignUp(props: Record<string, unknown>) {
                 {passwordValid && <CheckIcon fontSize="small" />}
               </Box>
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="allowExtraEmails" color="primary" />}
-              label="Eu quero receber atualizações nesse email."
-            />
             <Button
               type="submit"
               fullWidth
@@ -249,20 +245,6 @@ export default function SignUp(props: Record<string, unknown>) {
             <Typography sx={{ color: 'text.secondary' }}>OU</Typography>
           </Divider>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert('Cadastre-se com o Google')}
-            >
-              Cadastre-se com o Google
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert('Cadastre-se com o Facebook')}
-            >
-              Cadastre-se com o Facebook
-            </Button>
             <Typography sx={{ textAlign: 'center' }}>
               Já tem uma conta?{' '}
               <Link
