@@ -204,24 +204,10 @@ export default function SignIn(props: Record<string, unknown>) {
           </Box>
           <Divider>OU</Divider>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert('Logue com o Google')}
-            >
-              Logue com o Google
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert('Logue com o facebook')}
-            >
-              Logue com o facebook
-            </Button>
             <Typography sx={{ textAlign: 'center' }}>
               Não tem uma conta? {' '}
               <Link
-                href="/material-ui/getting-started/templates/sign-in/"
+                href="../signup"
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >
