@@ -31,7 +31,7 @@ function Header() {
       enableColorOnDark
       sx={{
         boxShadow: 0,
-        bgcolor: 'transparent',
+        bgcolor: 'background.default',
         backgroundImage: 'none',
         mt: 'calc(var(--template-frame-height, 0px) + 28px)',
       }}
@@ -66,10 +66,20 @@ function Header() {
               alignItems: 'center',
             }}
           >
-            <Button color="primary" variant="text" size="small">
+            <Button 
+              color="primary" 
+              variant="text" 
+              size="small" 
+              href="../login"
+              >
               Entrar
             </Button>
-            <Button color="primary" variant="contained" size="small">
+            <Button
+              color="primary"
+              variant="contained"
+              size="small"
+              href="../signup"
+            >
               Cadastrar
             </Button>
             <ColorModeIconDropdown />
