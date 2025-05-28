@@ -2,9 +2,9 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import AppTheme from '../../shared-theme/AppTheme';
 import Content from './Content';
-import Header from '../../layout/Header';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
+import Header from '../../organisms/header/Header';
 
 export default function Blog(props: { disableCustomTheme?: boolean }) {
   return (
