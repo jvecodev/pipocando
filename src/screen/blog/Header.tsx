@@ -8,8 +8,8 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
 import MenuIcon from '@mui/icons-material/Menu';
-import ColorModeIconDropdown from '../shared-theme/ColorModeIconDropdown';
-// import Sitemark from './SitemarkIcon';
+// import ColorModeIconDropdown from '../shared-theme/ColorModeIconDropdown';
+// import Sitemark from '../features/blog/SitemarkIcon';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -73,11 +73,11 @@ function Header() {
             <Button color="primary" variant="contained" size="small">
               Cadastrar
             </Button>
-            <ColorModeIconDropdown />
+            {/* <ColorModeIconDropdown /> */}
           </Box>
           
           <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
-            <ColorModeIconDropdown />
+            {/* <ColorModeIconDropdown /> */}
             <IconButton aria-label="Menu button">
               <MenuIcon />
             </IconButton>
@@ -87,3 +87,5 @@ function Header() {
     </AppBar>
   );
 }
+
+export default Header;

@@ -11,20 +11,7 @@ export default function Blog(props: { disableCustomTheme?: boolean }) {
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <Header />
-      <Box 
-        sx={(theme) => ({
-          pt: { xs: 14, sm: 20 }, 
-          py: { xs: 8, sm: 16 },
-          width: "100%",
-          backgroundRepeat: "no-repeat",
-          backgroundImage:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(211, 100.00%, 83.10%), transparent)",
-          ...theme.applyStyles("dark", {
-            backgroundImage:
-              "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
-          }),
-        })}
-      >
+      <Box sx={{ paddingTop: 'calc(var(--template-frame-height, 0px) + 120px)' }}>
         <Container maxWidth="lg">
           <Content />
         </Container>
