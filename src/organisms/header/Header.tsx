@@ -91,19 +91,29 @@ function Header() {
                 FAQ
               </Button>
             </Box>
-          </Box>
-
-          <Box
+          </Box>          <Box
             sx={{
               display: { xs: "none", md: "flex" },
               gap: 1,
               alignItems: "center",
             }}
           >
-            <Button color="primary" variant="text" size="small">
+            <Button 
+              component={Link}
+              to="/login"
+              color="primary" 
+              variant="text" 
+              size="small"
+            >
               Entrar
             </Button>
-            <Button color="primary" variant="contained" size="small">
+            <Button 
+              component={Link}
+              to="/signup"
+              color="primary" 
+              variant="contained" 
+              size="small"
+            >
               Cadastrar
             </Button>
             <ColorModeIconDropdown />
