@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -39,8 +38,8 @@ const Card = styled(MuiCard)(({ theme }) => ({
 }));
 
 const SignInContainer = styled(Stack)(({ theme }) => ({
-  height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
-  minHeight: '100%',
+  minHeight: '100vh',
+  overflowY: 'auto',
   padding: theme.spacing(2),
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(4),
@@ -56,7 +55,7 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
     backgroundRepeat: 'no-repeat',
     ...theme.applyStyles('dark', {
       backgroundImage:
-        'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
+        'radial-gradient(at 50% 50%, hsla(0, 70.20%, 36.90%, 0.50), hsl(0, 61.60%, 14.30%))',
     }),
   },
 }));
@@ -89,11 +88,12 @@ export default function SignIn(props: Record<string, unknown>) {
 
     try {
       const response = await login({ email, password });
+      localStorage.setItem('token', response.token);
     } catch (error: any) {
       console.log(error);
     }
   };
-  
+
   const validateInputs = (): boolean => {
     const email = document.getElementById('email') as HTMLInputElement;
     const password = document.getElementById('password') as HTMLInputElement;
@@ -188,6 +188,11 @@ export default function SignIn(props: Record<string, unknown>) {
               type="submit"
               fullWidth
               variant="contained"
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'hsl(49, 72.90%, 65.30%)'
+                }
+              }}
               onClick={validateInputs}
             >
               Login
@@ -204,24 +209,10 @@ export default function SignIn(props: Record<string, unknown>) {
           </Box>
           <Divider>OU</Divider>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert('Logue com o Google')}
-            >
-              Logue com o Google
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert('Logue com o facebook')}
-            >
-              Logue com o facebook
-            </Button>
             <Typography sx={{ textAlign: 'center' }}>
               Não tem uma conta? {' '}
               <Link
-                href="/material-ui/getting-started/templates/sign-in/"
+                href="../signup"
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >

@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -39,9 +38,9 @@ const Card = styled(MuiCard)(({ theme }) => ({
 }));
 
 const SignUpContainer = styled(Stack)(({ theme }) => ({
-  height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
-  minHeight: '100%',
+  minHeight: '100vh',
   padding: theme.spacing(2),
+  overflow: 'auto',
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(4),
   },
@@ -56,7 +55,7 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
     backgroundRepeat: 'no-repeat',
     ...theme.applyStyles('dark', {
       backgroundImage:
-        'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
+        'radial-gradient(at 50% 50%, hsla(0, 70.20%, 36.90%, 0.50), hsl(0, 61.60%, 14.30%))',
     }),
   },
 }));
@@ -233,14 +232,15 @@ export default function SignUp(props: Record<string, unknown>) {
                 {passwordValid && <CheckIcon fontSize="small" />}
               </Box>
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="allowExtraEmails" color="primary" />}
-              label="Eu quero receber atualizações nesse email."
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'hsl(49, 72.90%, 65.30%)'
+                }
+              }}
               onClick={validateInputs}
             >
               Cadastro
@@ -250,24 +250,10 @@ export default function SignUp(props: Record<string, unknown>) {
             <Typography sx={{ color: 'text.secondary' }}>OU</Typography>
           </Divider>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert('Cadastre-se com o Google')}
-            >
-              Cadastre-se com o Google
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert('Cadastre-se com o Facebook')}
-            >
-              Cadastre-se com o Facebook
-            </Button>
             <Typography sx={{ textAlign: 'center' }}>
               Já tem uma conta?{' '}
               <Link
-                href="/material-ui/getting-started/templates/sign-in/"
+                href="../login"
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >

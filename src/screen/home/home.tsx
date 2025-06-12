@@ -23,7 +23,6 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
         <Features />
         <Divider />
         <Divider />
-        {/* <Highlights /> */}
         <Divider />
         <Divider />
         <FAQ />

@@ -69,20 +69,9 @@ export default function Hero() {
           useFlexGap
           sx={{ alignItems: "center", width: { xs: "100%", sm: "70%" } }}
         >
-          <Typography
-            variant="h1"
-            sx={(theme) => ({
-              fontSize: "clamp(3rem, 10vw, 3.5rem)",
-              display: "flex",
-              alignItems: "center",
-              color: colorSchemes.light.palette.warning.main,
-              ...theme.applyStyles("dark", {
-                color: "white",
-              }),
-            })}
-          >
-            Pipocando
-          </Typography>
+          <Typography variant="h1" gutterBottom>
+          Pipocando
+        </Typography>
           <Typography
             sx={{
               textAlign: "center",
