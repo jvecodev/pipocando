@@ -5,10 +5,8 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 import { styled } from "@mui/material/styles";
-import { colorSchemes } from "../../../shared-theme/themePrimitives";
-import { Box,  } from "@mui/material";
-import Terms from "../../../organisms/terms/terms";
-
+import { Box } from "@mui/material";
+import Terms from "../../organisms/terms/terms";
 
 const StyledBox = styled("div")(({ theme }) => ({
   alignSelf: "center",

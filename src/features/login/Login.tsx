@@ -18,6 +18,8 @@ import AppTheme from '../../shared-theme/AppTheme';
 import ColorModeSelect from '../../shared-theme/ColorModeSelect';
 import { login } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { PerfilType, PerfilTypeEnum } from '../../types/PerfilType';
+import { useUser } from '../../context/UserContext';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -68,6 +70,7 @@ export default function SignIn(props: Record<string, unknown>) {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState<string>('');
   const [open, setOpen] = React.useState<boolean>(false);
   const navigate = useNavigate();
+  const { setUser } = useUser();
 
   const handleClickOpen = (): void => {
     setOpen(true);
@@ -90,10 +93,21 @@ export default function SignIn(props: Record<string, unknown>) {
 
     try {
       const response = await login({ email, password });
+      console.log('Login realizado com sucesso:', {
+        token: response.token,
+        name: response.name,
+        role: response.role,
+      });
       localStorage.setItem('token', response.token);
       if (response.name) {
         localStorage.setItem('username', response.name);
       }
+      setUser({
+        id: '',
+        name: response.name,
+        email: email,
+        perfil: response.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
+      });
       navigate('/');
     } catch (error: any) {
       console.log(error);

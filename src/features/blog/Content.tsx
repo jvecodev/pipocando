@@ -1,194 +1,165 @@
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
-import AvatarGroup from '@mui/material/AvatarGroup';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import FormControl from '@mui/material/FormControl';
 import Grid from '@mui/material/Grid2';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import RssFeedRoundedIcon from '@mui/icons-material/RssFeedRounded';
+import AddIcon from '@mui/icons-material/Add';
+import { createPost, deletePost, searchPosts, updatePost } from '../../services/blogService';
+import { BlogType } from '../../types/BlogRequestResponse';
+import { useUser } from '../../context/UserContext';
+import { PerfilTypeEnum } from '../../types/PerfilType';
+import StandardModal from '../../organisms/dialog/StandardModal';
+import DeleteConfirmationModal from '../../organisms/dialog/DeleteConfirmationModal';
+import { CategoriaPostEnum, Movie, Serie } from '../../types/CategoriaPostEnum';
+import { fetchMovies, fetchSeries } from '../../services/mediaService';
+import PostForm from './PostForm';
+import BlogCardItem from './BlogCardItem';
 
-const cardData = [
-  {
-    img: 'https://picsum.photos/800/450?random=1',
-    tag: 'Filmes',
-    title: 'As tranças de um careca',
-    description:
-      'Descricação do filme as tranças de um careca que tem cabelos longos e olhos azuis.',
-    authors: [
-      { name: 'Eduardo Fabri', avatar: '/static/images/avatar/1.jpg' },
-      { name: 'João Pedro', avatar: '/static/images/avatar/2.jpg' },
-    ],
-  },
-  {
-    img: 'https://picsum.photos/800/450?random=2',
-    tag: 'Séries',
-    title: 'Carros 3',
-    description:
-      'Carros 3 é um filme de animação de 2017 produzido pela Pixar Animation Studios e lançado pela Walt Disney Pictures. É a sequência de Carros 2, de 2011, e o terceiro filme da franquia Carros.',
-    authors: [{ name: 'João Correa', avatar: '/static/images/avatar/6.jpg' }],
-  },
-  {
-    img: 'https://picsum.photos/800/450?random=3',
-    tag: 'Filmes',
-    title: 'O que é isso?',
-    description:
-      'O que é isso? é um filme de comédia de 2021 dirigido por Fernando Meirelles e estrelado por Selton Mello e Seu Jorge. O filme foi lançado em 2021 e é uma adaptação do livro homônimo de Fernando Meirelles.',
-    authors: [{ name: 'João Pedro', avatar: '/static/images/avatar/7.jpg' }],
-  },
-  {
-    img: 'https://picsum.photos/800/450?random=4',
-    tag: 'Filmes',
-    title: "Homem Aranha: Sem Volta Para Casa",
-    description:
-      "Homem-Aranha: Sem Volta Para Casa é um futuro filme americano de super-herói baseado no personagem Homem-Aranha da Marvel Comics, co-produzido pela Columbia Pictures e Marvel Studios e distribuído pela Sony Pictures Releasing.",
-    authors: [{ name: 'Cindy Baker', avatar: '/static/images/avatar/3.jpg' }],
-  },
-  {
-    img: 'https://picsum.photos/800/450?random=45',
-    tag: 'Series',
-    title: 'The Witcher',
-    description:
-      "The Witcher é uma série de televisão de drama de fantasia criada por Lauren Schmidt Hissrich para a Netflix. É baseada na série de livros de mesmo nome de Andrzej Sapkowski.",
-    authors: [
-      { name: 'Agnes Silva', avatar: '/static/images/avatar/4.jpg' },
-      { name: 'Anderson Silva', avatar: '/static/images/avatar/5.jpg' },
-    ],
-  },
-  {
-    img: 'https://picsum.photos/800/450?random=6',
-    tag: 'Filmes',
-    title: 'Tony Hawk’s Pro Skater 2',
-    description:
-      'Tony Hawk’s Pro Skater 2 é um filme de skateboarding dos anos 2000, lançado para PlayStation, Nintendo 64, Dreamcast e Game (na verdade é um jogo)',
-    authors: [{ name: 'Travis Scott', avatar: '/static/images/avatar/2.jpg' }],
-  },
+const CATEGORIES = [
+  { label: 'Todas as categorias', value: 'all' },
+  { label: 'Filmes', value: 'Filmes' },
+  { label: 'Séries', value: 'Séries' },
 ];
 
-const SyledCard = styled(Card)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  padding: 0,
-  height: '100%',
-  backgroundColor: theme.palette.background.paper,
-  '&:hover': {
-    backgroundColor: 'transparent',
-    cursor: 'pointer',
-  },
-  '&:focus-visible': {
-    outline: '3px solid',
-    outlineColor: 'hsla(210, 98%, 48%, 0.5)',
-    outlineOffset: '2px',
-  },
-}));
-
-const SyledCardContent = styled(CardContent)({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  padding: 16,
-  flexGrow: 1,
-  '&:last-child': {
-    paddingBottom: 16,
-  },
-});
-
-const StyledTypography = styled(Typography)({
-  display: '-webkit-box',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-});
-
-function Author({ authors }: { authors: { name: string; avatar: string }[] }) {
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 2,
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px',
-      }}
-    >
-      <Box
-        sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}
-      >
-        <AvatarGroup max={3}>
-          {authors.map((author, index) => (
-            <Avatar
-              key={index}
-              alt={author.name}
-              src={author.avatar}
-              sx={{ width: 24, height: 24 }}
-            />
-          ))}
-        </AvatarGroup>
-        <Typography variant="caption">
-          {authors.map((author) => author.name).join(', ')}
-        </Typography>
-      </Box>
-      <Typography variant="caption">07/02/2025</Typography>
-    </Box>
-  );
-}
-
-export function Search() {
-  return (
-    <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
-      <OutlinedInput
-        size="small"
-        id="search"
-        placeholder="Pesquisar..."
-        sx={{ flexGrow: 1 }}
-        startAdornment={
-          <InputAdornment position="start" sx={{ color: 'text.primary' }}>
-            <SearchRoundedIcon fontSize="small" />
-          </InputAdornment>
-        }
-        inputProps={{
-          'aria-label': 'search',
-        }}
-      />
-    </FormControl>
-  );
-}
-
 export default function Content() {
-  const [focusedCardIndex, setFocusedCardIndex] = React.useState<number | null>(
-    null,
+  const [posts, setPosts] = React.useState<BlogType[]>([]);
+  const [focusedCardIndex, setFocusedCardIndex] = React.useState<number | null>(null);
+  const { user, setUser } = useUser();
+  const [category, setCategory] = React.useState<string>('all');
+  const [search, setSearch] = React.useState<string>('');
+  const [modal, setModal] = React.useState<{
+    open: boolean;
+    type: 'create' | 'edit' | 'delete' | null;
+    post?: BlogType | null;
+  }>({ open: false, type: null, post: null });
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const [postToDelete, setPostToDelete] = React.useState<BlogType | null>(null);
+  const [movies, setMovies] = React.useState<Movie[]>([]);
+  const [series, setSeries] = React.useState<Serie[]>([]);
+
+  const fetchPosts = React.useCallback(() => {
+    searchPosts({
+      title: search.trim() ? search : undefined,
+      category,
+    })
+      .then(data => setPosts(data))
+      .catch(e => {
+        setPosts([]);
+        console.error('Erro ao buscar posts:', e);
+      });
+  }, [search, category]);
+
+  React.useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  React.useEffect(() => {
+    if (modal.open && (modal.type === 'create' || modal.type === 'edit')) {
+      if (modal.post?.category === CategoriaPostEnum.FILME) {
+        fetchMovies().then(setMovies);
+      } else if (modal.post?.category === CategoriaPostEnum.SERIE) {
+        fetchSeries().then(setSeries);
+      }
+    }
+  }, [modal.open, modal.type, modal.post?.category]);
+
+  const handleFocus = (index: number) => setFocusedCardIndex(index);
+  const handleBlur = () => setFocusedCardIndex(null);
+  const handleCategory = (cat: string) => setCategory(cat);
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
+  const handleOpenModal = (type: 'create' | 'edit' | 'delete', post?: BlogType) => {
+    if (type === 'delete' && post) {
+      setPostToDelete(post);
+      setDeleteModalOpen(true);
+    } else {
+      setModal({ open: true, type, post });
+    }
+  };
+  const handleCloseModal = () => {
+    setModal({ open: false, type: null, post: null });
+    setDeleteModalOpen(false);
+    setPostToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (postToDelete?.id) {
+      try {
+        await deletePost(Number(postToDelete.id));
+        fetchPosts();
+      } catch (e) {
+        alert('Erro ao deletar publicação');
+      }
+    }
+    handleCloseModal(); // Fecha ambas as modais e reseta estados
+  };
+
+  const handleConfirmModal = async () => {
+    try {
+      if (modal.type === 'create') {
+        if (!modal.post?.title || !modal.post?.content || !user?.id) throw new Error('Preencha os campos obrigatórios');
+        await createPost({
+          title: modal.post.title,
+          content: modal.post.content,
+          userId: Number(user.id),
+          movieId: modal.post.movieId ? Number(modal.post.movieId) : undefined,
+          serieId: modal.post.serieId ? Number(modal.post.serieId) : undefined,
+        });
+        fetchPosts();
+      } else if (modal.type === 'edit' && modal.post?.id) {
+        await updatePost(Number(modal.post.id), modal.post);
+        fetchPosts();
+      }
+    } catch (e) {
+      alert('Erro ao processar ação');
+    }
+    handleCloseModal();
+  };
+
+  const renderCategoryChips = () => (
+    CATEGORIES.map(cat => (
+      <Chip
+        key={cat.value}
+        onClick={() => handleCategory(cat.value)}
+        size="medium"
+        label={category === cat.value ? `● ${cat.label}` : cat.label}
+        sx={theme => ({
+          backgroundColor: category === cat.value ? theme.palette.primary.main + 'CC' : 'transparent',
+          color: category === cat.value ? theme.palette.primary.contrastText : 'inherit',
+          border: 'none',
+          fontWeight: category === cat.value ? 700 : 400,
+          transition: 'background 0.2s',
+        })}
+      />
+    ))
   );
-
-  const handleFocus = (index: number) => {
-    setFocusedCardIndex(index);
-  };
-
-  const handleBlur = () => {
-    setFocusedCardIndex(null);
-  };
-
-  const handleClick = () => {
-    console.info('You clicked the filter chip.');
-  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div>
-        <Typography variant="h1" gutterBottom>
-          Blog
-        </Typography>
-        <Typography>Confira as últimas publicações do Pipocando</Typography>
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <Typography variant="h1" gutterBottom>
+            Blog
+          </Typography>
+          <Typography>Confira as últimas publicações do Pipocando</Typography>
+        </div>
+        {user?.perfil === PerfilTypeEnum.ADMIN && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenModal('create')}
+          >
+            Criar Nova
+          </Button>
+        )}
+      </Box>
       <Box
         sx={{
           display: { xs: 'flex', sm: 'none' },
@@ -198,7 +169,24 @@ export default function Content() {
           overflow: 'auto',
         }}
       >
-        <Search />
+        <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
+          <OutlinedInput
+            size="small"
+            id="search"
+            placeholder="Pesquisar..."
+            sx={{ flexGrow: 1 }}
+            value={search}
+            onChange={handleSearch}
+            startAdornment={
+              <InputAdornment position="start" sx={{ color: 'text.primary' }}>
+                <SearchRoundedIcon fontSize="small" />
+              </InputAdornment>
+            }
+            inputProps={{
+              'aria-label': 'search',
+            }}
+          />
+        </FormControl>
         <IconButton size="small" aria-label="RSS feed">
           <RssFeedRoundedIcon />
         </IconButton>
@@ -222,25 +210,7 @@ export default function Content() {
             overflow: 'auto',
           }}
         >
-          <Chip onClick={handleClick} size="medium" label="Todas as categorias" />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Filmes"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Séries"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
+          {renderCategoryChips()}
         </Box>
         <Box
           sx={{
@@ -251,216 +221,63 @@ export default function Content() {
             overflow: 'auto',
           }}
         >
-          <Search />
+          <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
+            <OutlinedInput
+              size="small"
+              id="search"
+              placeholder="Pesquisar..."
+              sx={{ flexGrow: 1 }}
+              value={search}
+              onChange={handleSearch}
+              startAdornment={
+                <InputAdornment position="start" sx={{ color: 'text.primary' }}>
+                  <SearchRoundedIcon fontSize="small" />
+                </InputAdornment>
+              }
+              inputProps={{
+                'aria-label': 'search',
+              }}
+            />
+          </FormControl>
           <IconButton size="small" aria-label="RSS feed">
             <RssFeedRoundedIcon />
           </IconButton>
         </Box>
       </Box>
       <Grid container spacing={2} columns={12}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SyledCard
-            variant="outlined"
-            onFocus={() => handleFocus(0)}
-            onBlur={handleBlur}
-            tabIndex={0}
-            className={focusedCardIndex === 0 ? 'Mui-focused' : ''}
-          >
-            <CardMedia
-              component="img"
-              alt="green iguana"
-              image={cardData[0].img}
-              sx={{
-                aspectRatio: '16 / 9',
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-              }}
-            />
-            <SyledCardContent>
-              <Typography gutterBottom variant="caption" component="div">
-                {cardData[0].tag}
-              </Typography>
-              <Typography gutterBottom variant="h6" component="div">
-                {cardData[0].title}
-              </Typography>
-              <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {cardData[0].description}
-              </StyledTypography>
-            </SyledCardContent>
-            <Author authors={cardData[0].authors} />
-          </SyledCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SyledCard
-            variant="outlined"
-            onFocus={() => handleFocus(1)}
-            onBlur={handleBlur}
-            tabIndex={0}
-            className={focusedCardIndex === 1 ? 'Mui-focused' : ''}
-          >
-            <CardMedia
-              component="img"
-              alt="green iguana"
-              image={cardData[1].img}
-              aspect-ratio="16 / 9"
-              sx={{
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-              }}
-            />
-            <SyledCardContent>
-              <Typography gutterBottom variant="caption" component="div">
-                {cardData[1].tag}
-              </Typography>
-              <Typography gutterBottom variant="h6" component="div">
-                {cardData[1].title}
-              </Typography>
-              <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {cardData[1].description}
-              </StyledTypography>
-            </SyledCardContent>
-            <Author authors={cardData[1].authors} />
-          </SyledCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <SyledCard
-            variant="outlined"
-            onFocus={() => handleFocus(2)}
-            onBlur={handleBlur}
-            tabIndex={0}
-            className={focusedCardIndex === 2 ? 'Mui-focused' : ''}
-            sx={{ height: '100%' }}
-          >
-            <CardMedia
-              component="img"
-              alt="green iguana"
-              image={cardData[2].img}
-              sx={{
-                height: { sm: 'auto', md: '50%' },
-                aspectRatio: { sm: '16 / 9', md: '' },
-              }}
-            />
-            <SyledCardContent>
-              <Typography gutterBottom variant="caption" component="div">
-                {cardData[2].tag}
-              </Typography>
-              <Typography gutterBottom variant="h6" component="div">
-                {cardData[2].title}
-              </Typography>
-              <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {cardData[2].description}
-              </StyledTypography>
-            </SyledCardContent>
-            <Author authors={cardData[2].authors} />
-          </SyledCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Box
-            sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}
-          >
-            <SyledCard
-              variant="outlined"
-              onFocus={() => handleFocus(3)}
+        {Array.isArray(posts) && posts.map((post, idx) => (
+          <Grid key={post.id || idx} size={{ xs: 12, md: 6, lg: 4 }}>
+            <BlogCardItem
+              post={post}
+              user={user}
+              onEdit={() => handleOpenModal('edit', post)}
+              onDelete={() => handleOpenModal('delete', post)}
+              onFocus={() => handleFocus(idx)}
               onBlur={handleBlur}
-              tabIndex={0}
-              className={focusedCardIndex === 3 ? 'Mui-focused' : ''}
-              sx={{ height: '100%' }}
-            >
-              <SyledCardContent
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                }}
-              >
-                <div>
-                  <Typography gutterBottom variant="caption" component="div">
-                    {cardData[3].tag}
-                  </Typography>
-                  <Typography gutterBottom variant="h6" component="div">
-                    {cardData[3].title}
-                  </Typography>
-                  <StyledTypography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    {cardData[3].description}
-                  </StyledTypography>
-                </div>
-              </SyledCardContent>
-              <Author authors={cardData[3].authors} />
-            </SyledCard>
-            <SyledCard
-              variant="outlined"
-              onFocus={() => handleFocus(4)}
-              onBlur={handleBlur}
-              tabIndex={0}
-              className={focusedCardIndex === 4 ? 'Mui-focused' : ''}
-              sx={{ height: '100%' }}
-            >
-              <SyledCardContent
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                }}
-              >
-                <div>
-                  <Typography gutterBottom variant="caption" component="div">
-                    {cardData[4].tag}
-                  </Typography>
-                  <Typography gutterBottom variant="h6" component="div">
-                    {cardData[4].title}
-                  </Typography>
-                  <StyledTypography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    {cardData[4].description}
-                  </StyledTypography>
-                </div>
-              </SyledCardContent>
-              <Author authors={cardData[4].authors} />
-            </SyledCard>
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <SyledCard
-            variant="outlined"
-            onFocus={() => handleFocus(5)}
-            onBlur={handleBlur}
-            tabIndex={0}
-            className={focusedCardIndex === 5 ? 'Mui-focused' : ''}
-            sx={{ height: '100%' }}
-          >
-            <CardMedia
-              component="img"
-              alt="green iguana"
-              image={cardData[5].img}
-              sx={{
-                height: { sm: 'auto', md: '50%' },
-                aspectRatio: { sm: '16 / 9', md: '' },
-              }}
+              isFocused={focusedCardIndex === idx}
             />
-            <SyledCardContent>
-              <Typography gutterBottom variant="caption" component="div">
-                {cardData[5].tag}
-              </Typography>
-              <Typography gutterBottom variant="h6" component="div">
-                {cardData[5].title}
-              </Typography>
-              <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {cardData[5].description}
-              </StyledTypography>
-            </SyledCardContent>
-            <Author authors={cardData[5].authors} />
-          </SyledCard>
-        </Grid>
+          </Grid>
+        ))}
       </Grid>
+      <StandardModal
+        open={modal.open && modal.type !== 'delete'}
+        title={modal.type === 'create' ? 'Criar Publicação' : 'Editar Publicação'}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmModal}
+        confirmText='Salvar'
+        cancelText="Cancelar"
+      >
+        <PostForm modal={modal} setModal={setModal} movies={movies} series={series} />
+      </StandardModal>
+
+      <DeleteConfirmationModal
+        open={deleteModalOpen}
+        onClose={handleCloseModal} // Reutiliza handleCloseModal para fechar e resetar
+        onConfirm={handleDeleteConfirm}
+        itemName={postToDelete?.title}
+        title="Deletar Publicação"
+        message={`Tem certeza que deseja deletar a publicação "${postToDelete?.title || 'esta publicação'}"?`}
+      />
     </Box>
   );
 }
