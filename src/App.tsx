@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Blog from "./features/blog/Blog";
 import SignUp from "./features/sign-up/SignUp";
 import Login from "./features/login/Login";
-import Home from "./screen/home/home";
+import Home from "./features/home/Home";
 
 function App() {
   return (
@@ -15,7 +15,8 @@ function App() {
         
         {/* Rotas sem Header */}
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />        <Route
+        <Route path="/signup" element={<SignUp />} />        
+        <Route
           path="/blog"
           element={<Blog />}
         />
