@@ -17,6 +17,7 @@ import ForgotPassword from './ForgotPassword';
 import AppTheme from '../../shared-theme/AppTheme';
 import ColorModeSelect from '../../shared-theme/ColorModeSelect';
 import { login } from '../../services/authService';
+import { useNavigate } from 'react-router-dom';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -66,6 +67,7 @@ export default function SignIn(props: Record<string, unknown>) {
   const [passwordError, setPasswordError] = React.useState<boolean>(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState<string>('');
   const [open, setOpen] = React.useState<boolean>(false);
+  const navigate = useNavigate();
 
   const handleClickOpen = (): void => {
     setOpen(true);
@@ -89,6 +91,10 @@ export default function SignIn(props: Record<string, unknown>) {
     try {
       const response = await login({ email, password });
       localStorage.setItem('token', response.token);
+      if (response.name) {
+        localStorage.setItem('username', response.name);
+      }
+      navigate('/');
     } catch (error: any) {
       console.log(error);
     }
@@ -195,17 +201,8 @@ export default function SignIn(props: Record<string, unknown>) {
               }}
               onClick={validateInputs}
             >
-              Login
+              Entrar
             </Button>
-            <Link
-              component="button"
-              type="button"
-              onClick={handleClickOpen}
-              variant="body2"
-              sx={{ alignSelf: 'center' }}
-            >
-              Esqueceu a senha?
-            </Link>
           </Box>
           <Divider>OU</Divider>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -216,7 +213,7 @@ export default function SignIn(props: Record<string, unknown>) {
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >
-                Cadastro
+                Fazer cadastro
               </Link>
             </Typography>
           </Box>

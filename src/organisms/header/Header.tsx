@@ -10,6 +10,11 @@ import MenuIcon from "@mui/icons-material/Menu";
 import ColorModeIconDropdown from "../../shared-theme/ColorModeIconDropdown";
 import Sitemark from "../siteMarkIcon/SitemarkIcon";
 import { Link } from "react-router-dom";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import Logout from '@mui/icons-material/Logout';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
@@ -26,6 +31,28 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 function Header() {
+  const [userName, setUserName] = React.useState<string | null>(null);
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  React.useEffect(() => {
+    setUserName(localStorage.getItem('username'));
+  }, []);
+
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setUserName(null);
+    handleClose();
+    window.location.reload();
+  };
+
   return (
     <AppBar
       position="fixed"
@@ -91,31 +118,75 @@ function Header() {
                 FAQ
               </Button>
             </Box>
-          </Box>          <Box
+          </Box>
+          <Box
             sx={{
               display: { xs: "none", md: "flex" },
               gap: 1,
               alignItems: "center",
             }}
           >
-            <Button 
-              component={Link}
-              to="/login"
-              color="primary" 
-              variant="text" 
-              size="small"
-            >
-              Entrar
-            </Button>
-            <Button 
-              component={Link}
-              to="/signup"
-              color="primary" 
-              variant="contained" 
-              size="small"
-            >
-              Cadastrar
-            </Button>
+            {userName ? (
+              <>
+                <Button
+                  color="primary"
+                  variant="text"
+                  size="small"
+                  onClick={handleMenu}
+                  sx={(theme) => ({
+                    fontWeight: 700,
+                    color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+                    background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                    borderRadius: 2,
+                    px: 2,
+                    textTransform: 'none',
+                  })}
+                >
+                  {userName}
+                </Button>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={open}
+                  onClose={handleClose}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                >
+                  <MenuItem component={Link} to="/perfil" onClick={handleClose}>
+                    <ListItemIcon>
+                      <AccountCircle fontSize="small" />
+                    </ListItemIcon>
+                    Meu Perfil
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout}>
+                    <ListItemIcon>
+                      <Logout fontSize="small" />
+                    </ListItemIcon>
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <>
+                <Button 
+                  component={Link}
+                  to="/login"
+                  color="primary" 
+                  variant="text" 
+                  size="small"
+                >
+                  Entrar
+                </Button>
+                <Button 
+                  component={Link}
+                  to="/signup"
+                  color="primary" 
+                  variant="contained" 
+                  size="small"
+                >
+                  Cadastrar
+                </Button>
+              </>
+            )}
             <ColorModeIconDropdown />
           </Box>
 
