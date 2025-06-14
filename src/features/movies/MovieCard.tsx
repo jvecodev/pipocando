@@ -86,73 +86,109 @@ const MovieCard: React.FC<MovieCardProps> = ({
         setTrailer(foundTrailer);
         setTrailerOpen(true);
       } else {
-        // Se não encontrar trailer, abrir busca no YouTube
         window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' trailer oficial')}`, '_blank');
       }
     } catch (error) {
       console.error('Erro ao buscar trailer:', error);
-      // Fallback para busca no YouTube
       window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' trailer oficial')}`, '_blank');
     }
   };
 
-  const hasStreamingOptions = watchProviders?.flatrate && watchProviders.flatrate.length > 0;
-
-  const renderStreamingProviders = () => {
+  const hasStreamingOptions = watchProviders?.flatrate && watchProviders.flatrate.length > 0;  const renderStreamingProviders = () => {
     if (!watchProviders?.flatrate || watchProviders.flatrate.length === 0) return null;
 
     return (
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 3 }}>
         <Typography variant="body2" color="text.secondary" gutterBottom>
           Disponível em:
         </Typography>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {watchProviders.flatrate.slice(0, 3).map((provider) => (
-            <Chip
-              key={provider.provider_id}
-              label={provider.provider_name}
-              size="small"
-              color="success"
-              variant="outlined"
-              sx={{ 
-                fontSize: '0.75rem',
-                fontWeight: 'bold'
-              }}
-            />
-          ))}
-        </Stack>
+        <Box
+          sx={{
+            py: 0.5,
+            maxHeight: '70px',
+            overflow: 'auto',
+            scrollbarWidth: 'thin',
+            '&::-webkit-scrollbar': {
+              width: '6px',
+              height: '6px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'rgba(0,0,0,0.1)',
+              borderRadius: '10px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'rgba(0,0,0,0.2)',
+              borderRadius: '10px',
+            },
+          }}
+        >
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            {watchProviders.flatrate.map((provider) => (
+              <Chip
+                key={provider.provider_id}
+                label={provider.provider_name}
+                size="small"
+                color="success"
+                variant="outlined"
+                sx={{ 
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  my: 0.3
+                }}
+              />
+            ))}
+          </Stack>
+        </Box>
       </Box>
     );
-  };
-
-  const renderPurchaseOptions = () => {
+  };  const renderPurchaseOptions = () => {
     const year = getYear(movie.release_date);
     
     return (
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 3 }}>
         <Typography variant="body2" color="text.secondary" gutterBottom>
           {hasStreamingOptions ? 'Ou compre/alugue:' : 'Onde assistir:'}
         </Typography>
-        <Stack spacing={1}>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<ShoppingCart />}
-            onClick={() => window.open(tmdbService.getGooglePlayMovieUrl(movie.title, year), '_blank')}
-            sx={{ justifyContent: 'flex-start' }}
-          >
-            Alugar na Google Play
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<YouTube />}
-            onClick={() => window.open(tmdbService.getYouTubeMovieUrl(movie.title, year), '_blank')}
-            sx={{ justifyContent: 'flex-start' }}
-          >
-            Comprar no YouTube
-          </Button>
-        </Stack>
+        <Box
+          sx={{
+            py: 0.5,
+            maxHeight: '100px',
+            overflow: 'auto',
+            scrollbarWidth: 'thin',
+            '&::-webkit-scrollbar': {
+              width: '6px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'rgba(0,0,0,0.1)',
+              borderRadius: '10px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'rgba(0,0,0,0.2)',
+              borderRadius: '10px',
+            },
+          }}
+        >
+          <Stack spacing={1.5}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<ShoppingCart />}
+              onClick={() => window.open(tmdbService.getGooglePlayMovieUrl(movie.title, year), '_blank')}
+              sx={{ justifyContent: 'flex-start' }}
+            >
+              Alugar na Google Play
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<YouTube />}
+              onClick={() => window.open(tmdbService.getYouTubeMovieUrl(movie.title, year), '_blank')}
+              sx={{ justifyContent: 'flex-start' }}
+            >
+              Comprar no YouTube
+            </Button>
+          </Stack>
+        </Box>
       </Box>
     );
   };
@@ -233,34 +269,43 @@ const MovieCard: React.FC<MovieCardProps> = ({
               </IconButton>
             </Tooltip>
           </Box>
-        </Box>
-
-        <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
+        </Box>        <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3 }}>
           <Typography variant="h6" component="h3" gutterBottom>
             {movie.title}
           </Typography>
           
           <Typography variant="body2" color="text.secondary" gutterBottom>
             {formatDate(movie.release_date)}
-          </Typography>
-
-          <Typography
-            variant="body2"
-            color="text.secondary"
+          </Typography>          <Box
             sx={{
               flexGrow: 1,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              mb: 2,
+              mb: 2.5,
+              px: 0.5,
+              height: '120px',
+              overflow: 'auto',
+              scrollbarWidth: 'thin',
+              '&::-webkit-scrollbar': {
+                width: '6px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                borderRadius: '10px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: 'rgba(0,0,0,0.2)',
+                borderRadius: '10px',
+              },
             }}
           >
-            {movie.overview || 'Sem descrição disponível.'}
-          </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              {movie.overview || 'Sem descrição disponível.'}
+            </Typography>
+          </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 2.5 }} />
 
           {renderStreamingProviders()}
           
