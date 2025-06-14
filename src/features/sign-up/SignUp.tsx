@@ -243,7 +243,7 @@ export default function SignUp(props: Record<string, unknown>) {
               }}
               onClick={validateInputs}
             >
-              Cadastro
+              Cadastrar
             </Button>
           </Box>
           <Divider>
@@ -257,7 +257,7 @@ export default function SignUp(props: Record<string, unknown>) {
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >
-                Login
+                Fazer login
               </Link>
             </Typography>
           </Box>
