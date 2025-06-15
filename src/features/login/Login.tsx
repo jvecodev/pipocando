@@ -100,16 +100,13 @@ export default function SignIn(props: Record<string, unknown>) {
       // Salvar o token no localStorage
       localStorage.setItem('token', response.token);
       
-      // Usamos type assertion para acessar a propriedade id
-      type ExtendedResponse = LoginResponse & { id: string | number };
-      const loginData = response as ExtendedResponse;
-      
-      // Criar objeto de usuário
+      // Atualizar dados do usuário
       const userData = {
-        id: loginData.id,
-        name: loginData.name,
+        id: Number(response.userId), // Convert to number to match User interface
+        name: response.userName,
         email: email,
-        perfil: loginData.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
+        perfil: response.role === 'ADMIN' ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
+        role: response.role
       };
       
       // Definir no contexto

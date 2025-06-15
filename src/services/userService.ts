@@ -5,29 +5,36 @@ import { User } from "../context/UserContext";
 const API_URL = environment.API_URL;
 
 interface ProfileUpdateData {
-  id: string | number; // Voltando para aceitar string ou number
+  id: number; // Changed to number to match INT in database
   name: string;
   email: string;
   currentPassword?: string;
   newPassword?: string;
 }
 
-// Função para obter o token do localStorage
+// Function to get the auth token from localStorage
 const getAuthToken = () => {
   return localStorage.getItem("token");
 };
 
+// Function to get the user ID from localStorage
+const getUserId = () => {
+  return localStorage.getItem("userId");
+};
+
 export const updateUserProfile = async (userData: ProfileUpdateData) => {
   try {
-    // Validação básica do ID
-    if (!userData.id) {
+    // Get user ID from localStorage if not provided
+    const userId = userData.id || getUserId();
+    
+    if (!userId) {
       console.error("ID do usuário não fornecido para atualização de perfil");
       throw new Error("ID do usuário é necessário para atualização do perfil");
     }
 
-    console.log("Atualizando perfil para o usuário com ID:", userData.id);
+    console.log("Atualizando perfil para o usuário com ID:", userId);
 
-    // Preparar os dados a serem enviados
+    // Prepare the data to be sent
     const dataToSend = {
       name: userData.name,
       email: userData.email,
@@ -35,16 +42,16 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
       newPassword: userData.newPassword || undefined,
     };
 
-    // Remover campos indefinidos
+    // Remove undefined fields
     Object.keys(dataToSend).forEach((key) => {
       if (dataToSend[key as keyof typeof dataToSend] === undefined) {
         delete dataToSend[key as keyof typeof dataToSend];
       }
     });
 
-    // Fazer a requisição para a API
+    // Make request to the API
     const response = await axios.put(
-      `${API_URL}/v1/user/${userData.id}/profile`,
+      `${API_URL}/v1/user/${userId}`,
       dataToSend,
       {
         headers: {
@@ -61,7 +68,7 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
 
     if (axios.isAxiosError(error)) {
       if (error.response) {
-        // O servidor respondeu com um status de erro
+        // Server responded with an error status
         console.error("Resposta de erro do servidor:", error.response.data);
 
         if (error.response.status === 401) {
@@ -76,7 +83,7 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
           error.response.data.message || "Erro ao atualizar o perfil"
         );
       } else if (error.request) {
-        // A requisição foi feita mas não houve resposta
+        // The request was made but no response was received
         console.error("Nenhuma resposta recebida:", error.request);
         throw new Error(
           "Servidor não respondeu. Verifique sua conexão de internet."
@@ -84,18 +91,21 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
       }
     }
 
-    // Para outros tipos de erro
+    // For other types of errors
     throw new Error("Ocorreu um erro inesperado ao atualizar o perfil.");
   }
 };
 
-export const getUserProfile = async (userId: string | number) => {
+export const getUserProfile = async (userId?: string | number) => {
   try {
-    if (!userId) {
+    // Use the provided userId or get it from localStorage
+    const id = userId || getUserId();
+    
+    if (!id) {
       throw new Error("ID do usuário é necessário para obter o perfil");
     }
-
-    const response = await axios.get(`${API_URL}/v1/user/${userId}`, {
+    
+    const response = await axios.get(`${API_URL}/v1/user/${id}`, {
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
       },

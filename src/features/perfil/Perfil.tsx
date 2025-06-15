@@ -202,9 +202,8 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
         setSuccess(false);
 
         try {
-            // Preparar dados para envio (omitir confirmPassword)
             const dataToUpdate = {
-                id: formData.id,
+                id: user?.id ? Number(user.id) : 0, // Ensure id is a number
                 name: formData.name,
                 email: formData.email,
                 currentPassword: formData.currentPassword || undefined,
@@ -227,6 +226,14 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                     name: response.name || user.name,
                     email: response.email || user.email
                 });
+                
+                // Update localStorage
+                const updatedUserData = {
+                    ...user,
+                    name: formData.name,
+                    email: formData.email,
+                };
+                localStorage.setItem('user', JSON.stringify(updatedUserData));
             }
 
             setSuccess(true);
@@ -311,11 +318,13 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                     }}
                                 />
                                 <Typography
-                                    variant="body2"
-                                    fontWeight={500}
+                                    component="span"
+                                    variant="body1"
                                     color="text.primary"
                                 >
                                     {user?.perfil === 'ADMIN' ? 'Administrador' : 'Usuário'}
+                                    {/* Alternative way if using role property */}
+                                    {/* {user?.role === 'ADMIN' ? 'Administrador' : 'Usuário'} */}
                                 </Typography>
                             </Box>
                         </Box>

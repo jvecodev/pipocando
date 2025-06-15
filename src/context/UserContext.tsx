@@ -3,10 +3,13 @@ import { PerfilTypeEnum } from '../types/PerfilType';
 
 // Definir a interface para o usuário
 export interface User {
-  id?: string | number; // Voltando para aceitar string ou number
-  name?: string;
+  id?: number;
+  name: string;
   email: string;
-  perfil?: string;
+  role?: string;
+  active?: boolean;
+  perfil?: PerfilTypeEnum; // Added perfil property
+  // Add other fields as needed
 }
 
 // Definir a interface para o contexto
