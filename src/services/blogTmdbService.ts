@@ -1,5 +1,5 @@
 import tmdbService, { Movie, TVShow } from './tmdbService';
-import { BlogType, PostTypeEnum } from '../types/BlogRequestResponse';
+import { BlogType } from '../types/BlogRequestResponse';
 import watchlistService from './watchlistService';
 
 // Utilitários para criar posts baseados em dados do TMDB
@@ -7,8 +7,7 @@ export async function createNewsFromMovie(movie: Movie): Promise<Partial<BlogTyp
   const movieDetails = await tmdbService.getMovieDetails(movie.id);
   const genres = movieDetails.genres?.map(g => g.name).join(', ') || '';
   const trailer = movieDetails.videos?.results ? tmdbService.findOfficialTrailer(movieDetails.videos.results) : null;
-  
-  return {
+    return {
     title: `${movie.title}: Novidades e Estreia`,
     content: `
 # ${movie.title}
@@ -29,7 +28,6 @@ ${trailer ? `\n\n**Confira o trailer oficial:** [Assistir no YouTube](${tmdbServ
     tmdbId: movie.id,
     tmdbType: 'movie',
     tmdbData: movie,
-    postType: PostTypeEnum.NEWS,
     imageUrl: movie.poster_path ? tmdbService.getImageUrl(movie.poster_path) : undefined
   };
 }
@@ -38,7 +36,6 @@ export async function createNewsFromTVShow(tvShow: TVShow): Promise<Partial<Blog
   const tvDetails = await tmdbService.getTVShowDetails(tvShow.id);
   const genres = tvDetails.genres?.map(g => g.name).join(', ') || '';
   const trailer = tvDetails.videos?.results ? tmdbService.findOfficialTrailer(tvDetails.videos.results) : null;
-
   return {
     title: `${tvShow.name}: Novidades e Lançamento`,
     content: `
@@ -61,7 +58,6 @@ ${trailer ? `\n\n**Confira o trailer oficial:** [Assistir no YouTube](${tmdbServ
     tmdbId: tvShow.id,
     tmdbType: 'tv',
     tmdbData: tvShow,
-    postType: PostTypeEnum.NEWS,
     imageUrl: tvShow.poster_path ? tmdbService.getImageUrl(tvShow.poster_path) : undefined
   };
 }
@@ -101,13 +97,10 @@ ${movie.overview || 'Sinopse indisponível.'}
 ## Nota
 [Sua nota de 0-10]/10
       `,
-      category: 'Filmes',
-      movieId: movie.id,
+      category: 'Filmes',      movieId: movie.id,
       tmdbId: movie.id,
       tmdbType: 'movie',
       tmdbData: movie,
-      postType: PostTypeEnum.REVIEW,
-      rating: 0,
       imageUrl: movie.poster_path ? tmdbService.getImageUrl(movie.poster_path) : undefined
     };
   } else {
@@ -145,13 +138,10 @@ ${tvShow.overview || 'Sinopse indisponível.'}
 ## Nota
 [Sua nota de 0-10]/10
       `,
-      category: 'Séries',
-      serieId: tvShow.id,
+      category: 'Séries',      serieId: tvShow.id,
       tmdbId: tvShow.id,
       tmdbType: 'tv',
       tmdbData: tvShow,
-      postType: PostTypeEnum.REVIEW,
-      rating: 0,
       imageUrl: tvShow.poster_path ? tmdbService.getImageUrl(tvShow.poster_path) : undefined
     };
   }
@@ -192,9 +182,7 @@ export function createListicleTemplate(title: string, type: 'movie' | 'tv' | 'mi
 
 ## Conclusão
 [Faça um fechamento da sua lista]
-    `,
-    category,
-    postType: PostTypeEnum.LISTICLE
+    `,    category
   };
 }
 

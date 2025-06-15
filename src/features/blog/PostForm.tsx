@@ -3,73 +3,32 @@ import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputLabel from '@mui/material/InputLabel';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
+import TextareaAutosize from 'react-textarea-autosize';
 import Grid from '@mui/material/Grid';
-import Rating from '@mui/material/Rating';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import Chip from '@mui/material/Chip';
-import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
 import Card from '@mui/material/Card';
 import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import CircularProgress from '@mui/material/CircularProgress';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import Alert from '@mui/material/Alert';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import MovieFilterIcon from '@mui/icons-material/MovieFilter';
 import TvIcon from '@mui/icons-material/Tv';
-import SearchIcon from '@mui/icons-material/Search';
 import StarIcon from '@mui/icons-material/Star';
-import { BlogType, PostTypeEnum, POST_TYPE_LABELS } from '../../types/BlogRequestResponse';
+import { BlogType } from '../../types/BlogRequestResponse';
 import tmdbService, { Movie as TMDBMovie, TVShow } from '../../services/tmdbService';
 import { createNewsFromMovie, createNewsFromTVShow, createReviewTemplate } from '../../services/blogTmdbService';
 
-// Validação de campos
 const validateField = (field: string | undefined, fieldName: string): string => {
   if (!field || field.trim() === '') {
     return `O campo ${fieldName} é obrigatório`;
   }
   return '';
 };
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tmdb-search-tabpanel-${index}`}
-      aria-labelledby={`tmdb-search-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 2 }}>{children}</Box>}
-    </div>
-  );
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `tmdb-search-tab-${index}`,
-    'aria-controls': `tmdb-search-tabpanel-${index}`,
-  };
-}
 
 interface PostFormProps {
   modal: {
@@ -85,23 +44,106 @@ interface PostFormProps {
   onSave: (post: BlogType) => void;
 }
 
+// Constante para o número máximo de caracteres permitidos
+const MAX_CONTENT_LENGTH = 2000;
+
 export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [tmdbSearchQuery, setTmdbSearchQuery] = useState<string>('');
+  const [tmdbSearchQuery] = useState<string>('');
   const [tmdbSearchResults, setTmdbSearchResults] = useState<Array<TMDBMovie | TVShow>>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchTab, setSearchTab] = useState<number>(0);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('none');
-  
-  // Efeito para limpar os resultados da pesquisa quando a query muda
+  const [selectedTemplate] = useState<string>('none');
+  const [contentLength, setContentLength] = useState<number>(0);
+  const [exceedsMaxLength, setExceedsMaxLength] = useState<boolean>(false);
+  // Estado para rastrear a mudança de cor do contador
+  const [countColor, setCountColor] = useState<'normal' | 'warning' | 'error'>('normal');
+
   useEffect(() => {
     if (!tmdbSearchQuery.trim()) {
       setTmdbSearchResults([]);
     }
-  }, [tmdbSearchQuery]);
+  }, [tmdbSearchQuery]);  // Função para verificar e atualizar o comprimento do conteúdo  // Referência para armazenar o temporizador de debounce
+  const debounceRef = React.useRef<any>(null);
 
-  // Handler de busca TMDB
+  // Função simplificada que apenas atualiza o contador (operação leve)
+  const updateCounter = (text: string) => {
+    const length = text?.length || 0;
+    setContentLength(length);
+  };
+  
+  // Função para verificar limites e atualizar estados (potencialmente pesada)
+  // Separada para uso com debounce
+  const validateContentLength = React.useCallback((text: string) => {
+    const length = text?.length || 0;
+    
+    // Atualizar cor do contador baseado na porcentagem de uso
+    const percentage = (length / MAX_CONTENT_LENGTH) * 100;
+    if (percentage > 100) {
+      setCountColor('error');
+    } else if (percentage > 90) {
+      setCountColor('warning');
+    } else {
+      setCountColor('normal');
+    }
+    
+    const isExceeding = length > MAX_CONTENT_LENGTH;
+    
+    // Atualizar estado de erro apenas se necessário
+    if (isExceeding) {
+      setExceedsMaxLength(true);
+      setErrors(prev => {
+        // Se já temos o erro, não atualize o estado
+        if (prev.content && prev.content.includes('limite máximo')) {
+          return prev;
+        }
+        return {
+          ...prev,
+          content: `O conteúdo excede o limite máximo de ${MAX_CONTENT_LENGTH} caracteres.`
+        };
+      });
+    } else {
+      setExceedsMaxLength(false);
+      setErrors(prev => {
+        // Se não temos erro de limite, não atualize o estado
+        if (!prev.content || !prev.content.includes('limite máximo')) {
+          return prev;
+        }
+        const newErrors = { ...prev };
+        newErrors.content = '';
+        return newErrors;
+      });
+    }
+    
+    return isExceeding;
+  }, []);
+  
+  // Função que combina as duas operações com debounce para as validações pesadas
+  const checkContentLength = React.useCallback((text: string) => {
+    // Sempre atualize o contador imediatamente (operação leve)
+    updateCounter(text);
+    
+    // Limpar o temporizador anterior para evitar múltiplas validações
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    // Executar validações com debounce para evitar loops de atualização
+    debounceRef.current = setTimeout(() => {
+      validateContentLength(text);
+    }, 300);
+    
+    return text.length > MAX_CONTENT_LENGTH;
+  }, [validateContentLength]);
+  
+  // Inicializar o contador de caracteres e verificar se excede o limite  
+  useEffect(() => {
+    const content = modal.post?.content || '';
+    // Usar nossa função de verificação que já cuida de tudo
+    checkContentLength(content);
+  }, [modal.post?.content, checkContentLength]);
+
   const handleTMDBSearch = async () => {
     if (!tmdbSearchQuery.trim()) return;
     
@@ -109,13 +151,10 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
     setSearchError(null);
     
     try {
-      // Buscar filmes ou séries com base na aba atual
       if (searchTab === 0) {
-        // Buscar filmes
         const response = await tmdbService.searchMovies(tmdbSearchQuery);
         setTmdbSearchResults(response.results);
       } else {
-        // Buscar séries
         const response = await tmdbService.searchTVShows(tmdbSearchQuery);
         setTmdbSearchResults(response.results);
       }
@@ -128,12 +167,10 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
     }
   };
 
-  // Selecionar item do TMDB e criar template
   const handleSelectTMDBItem = async (item: TMDBMovie | TVShow, type: 'movie' | 'tv') => {
     try {
       let templateData: Partial<BlogType> | null = null;
       
-      // Baseado no template selecionado
       if (selectedTemplate === 'news') {
         if (type === 'movie') {
           templateData = await createNewsFromMovie(item as TMDBMovie);
@@ -143,7 +180,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
       } else if (selectedTemplate === 'review') {
         templateData = await createReviewTemplate(type, item.id);
       } else {
-        // Template padrão - apenas definir os dados do TMDB
         templateData = {
           title: type === 'movie' ? (item as TMDBMovie).title : (item as TVShow).name,
           category: type === 'movie' ? 'Filmes' : 'Séries',
@@ -154,7 +190,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         };
       }
       
-      // Atualizar o post no modal
       setModal({
         ...modal,
         post: {
@@ -163,15 +198,20 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         } as BlogType
       });
       
-      // Limpar a pesquisa
       setTmdbSearchResults([]);
     } catch (error) {
       console.error('Erro ao criar template:', error);
       setSearchError('Falha ao criar template. Tente novamente.');
     }
-  };
-  // Função para atualizar campos do post
+  };  // Função simplificada para não usar debounce em outros campos
   const updatePost = (field: string, value: any) => {
+    // O campo de conteúdo agora é tratado separadamente
+    // para evitar lentidão na digitação
+    if (field === 'content') {
+      console.warn('Use a função dedicada para o campo de conteúdo');
+      return;
+    }
+    
     setModal((m) => {
       if (!m.post) return m;
       
@@ -183,18 +223,27 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         } as BlogType
       };
     });
-  };
-
-  // Validação e submissão do formulário
-  const handleSubmit = (e: React.FormEvent) => {
+  };  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Limpar qualquer debounce pendente
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
     
     const currentPost = modal.post || {} as BlogType;
     const validationErrors: Record<string, string> = {};
     
-    // Validação básica
     validationErrors.title = validateField(currentPost.title, 'Título');
     validationErrors.content = validateField(currentPost.content, 'Conteúdo');
+    validationErrors.category = validateField(currentPost.category, 'Categoria');
+    
+    // Verificar imediatamente se o conteúdo excede o limite máximo de caracteres
+    const contentLength = currentPost.content?.length || 0;
+    if (contentLength > MAX_CONTENT_LENGTH) {
+      validationErrors.content = `O conteúdo excede o limite máximo de ${MAX_CONTENT_LENGTH} caracteres.`;
+    }
     
     const hasErrors = Object.values(validationErrors).some(error => error !== '');
     
@@ -203,22 +252,10 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
       return;
     }
     
-    // Submeter formulário
     onSave(currentPost);
   };
 
-  // Handler para mudança de aba na busca TMDB
-  const handleChangeSearchTab = (_: React.SyntheticEvent, newValue: number) => {
-    setSearchTab(newValue);
-    setTmdbSearchResults([]); // Limpa resultados ao trocar aba
-  };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleTMDBSearch();
-    }
-  };
 
   // Componente para exibir resultados da busca TMDB
   const TMDBSearchResult = ({ 
@@ -285,19 +322,26 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         </Box>
       </Card>
     );
-  };
-
-  return (
+  };  return (
     <Box 
       component="form" 
       onSubmit={handleSubmit}
-      sx={{
+      sx={(theme) => ({
         '& .MuiFormControl-root': { mb: 3 },
         '& .MuiTextField-root': { mb: 3 },
-      }}
+        position: 'relative',
+        padding: { xs: 2, sm: 3 },
+        borderRadius: '16px',
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundImage:
+          theme.palette.mode === 'dark'
+            ? "radial-gradient(ellipse 80% 50% at 50% -20%, hsla(210, 100%, 18%, 0.5), transparent)"
+            : "radial-gradient(ellipse 80% 50% at 50% -20%, hsla(211, 100%, 83.1%, 0.2), transparent)",
+      })}
     >
       <Grid container spacing={3}>
-        {/* Título */}
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -308,14 +352,31 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
             helperText={errors.title}
             required
             InputProps={{ 
-              sx: { borderRadius: '12px' },
+              sx: { 
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                },
+                '&:focus-within': {
+                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
+                }
+              },
+            }}
+            InputLabelProps={{
+              sx: {
+                [`&.MuiInputLabel-shrink`]: {
+                  transform: 'translate(14px, -9px) scale(0.75)',
+                  background: (theme) => 
+                    `linear-gradient(to bottom, ${theme.palette.background.default} 0%, ${theme.palette.background.default} 50%, transparent 50%, transparent 100%)`,
+                  padding: '0 4px',
+                }
+              }
             }}
           />
         </Grid>
 
-        {/* Descrição */}
-        <Grid item xs={12}>
-          <TextField
+        <Grid item xs={12}>          <TextField
             fullWidth
             label="Descrição"
             multiline
@@ -323,20 +384,56 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
             value={modal.post?.description || ''}
             onChange={(e) => updatePost('description', e.target.value)}
             InputProps={{ 
-              sx: { borderRadius: '12px' },
+              sx: { 
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                },
+                '&:focus-within': {
+                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
+                }
+              },
+            }}
+            InputLabelProps={{
+              sx: {
+                [`&.MuiInputLabel-shrink`]: {
+                  transform: 'translate(14px, -9px) scale(0.75)',
+                  background: (theme) => 
+                    `linear-gradient(to bottom, ${theme.palette.background.default} 0%, ${theme.palette.background.default} 50%, transparent 50%, transparent 100%)`,
+                  padding: '0 4px',
+                }
+              }
             }}
           />
         </Grid>
 
-        {/* Categoria e Tipo de Post */}
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth error={!!errors.category}>
-            <InputLabel>Categoria</InputLabel>
+        <Grid item xs={12}>          
+          <FormControl fullWidth error={!!errors.category} required>
+            <InputLabel 
+              sx={{
+                [`&.MuiInputLabel-shrink`]: {
+                  transform: 'translate(14px, -9px) scale(0.75)',
+                  background: (theme) => 
+                    `linear-gradient(to bottom, ${theme.palette.background.default} 0%, ${theme.palette.background.default} 50%, transparent 50%, transparent 100%)`,
+                  padding: '0 4px',
+                }
+              }}
+            >Categoria</InputLabel>
             <Select
               value={modal.post?.category || ''}
               onChange={(e) => updatePost('category', e.target.value)}
               label="Categoria"
-              sx={{ borderRadius: '12px' }}
+              sx={{ 
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                },
+                '&.Mui-focused': {
+                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
+                }
+              }}
             >
               <MenuItem value="Filmes">Filmes</MenuItem>
               <MenuItem value="Séries">Séries</MenuItem>
@@ -344,106 +441,181 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
             {errors.category && <FormHelperText>{errors.category}</FormHelperText>}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <InputLabel>Tipo de Post</InputLabel>
-            <Select
-              value={modal.post?.postType || ''}
-              onChange={(e) => updatePost('postType', e.target.value)}
-              label="Tipo de Post"
-              sx={{ borderRadius: '12px' }}
-            >
-              {Object.entries(PostTypeEnum).map(([key, value]) => (
-                <MenuItem key={key} value={value}>
-                  {POST_TYPE_LABELS[value as PostTypeEnum]}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
 
-        {/* URL da Imagem */}
-        <Grid item xs={12}>
+        <Grid item xs={12}>          
           <TextField
             fullWidth
             label="URL da Imagem"
             value={modal.post?.imageUrl || ''}
             onChange={(e) => updatePost('imageUrl', e.target.value)}
             InputProps={{ 
-              sx: { borderRadius: '12px' },
+              sx: { 
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                },
+                '&:focus-within': {
+                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
+                }
+              },
+            }}
+            InputLabelProps={{
+              sx: {
+                [`&.MuiInputLabel-shrink`]: {
+                  transform: 'translate(14px, -9px) scale(0.75)',
+                  background: (theme) => 
+                    `linear-gradient(to bottom, ${theme.palette.background.default} 0%, ${theme.palette.background.default} 50%, transparent 50%, transparent 100%)`,
+                  padding: '0 4px',
+                }
+              }
             }}
           />
-        </Grid>
-
-        {/* Conteúdo */}
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Conteúdo"
-            multiline
-            rows={6}
-            value={modal.post?.content || ''}
-            onChange={(e) => updatePost('content', e.target.value)}
-            error={!!errors.content}
-            helperText={errors.content}
-            required
-            InputProps={{ 
-              sx: { borderRadius: '12px' },
-            }}
-          />
-        </Grid>
-
-        {/* Destacado */}
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={modal.post?.featured || false}
-                onChange={(e) => updatePost('featured', e.target.checked)}
-                color="primary"
-              />
-            }
-            label={
-              <Typography variant="body1" fontWeight={500}>
-                Destacar publicação
-              </Typography>
-            }
-          />
-        </Grid>
-
-        {modal.post?.postType === PostTypeEnum.REVIEW && (
-          <Grid item xs={12} sm={6}>
-            <Box sx={{ width: '100%' }}>
-              <Typography component="legend" fontWeight={500} gutterBottom>
-                Avaliação
-              </Typography>
-              <Rating
-                name="rating"
-                value={(modal.post.rating || 0) / 2}
-                precision={0.5}
-                onChange={(_, value) => updatePost('rating', value ? value * 2 : 0)}
-                size="large"
-                sx={{ 
-                  '& .MuiRating-iconFilled': {
-                    color: 'warning.main',
-                  },
+        </Grid>        <Grid item xs={12}>            <Box sx={{ position: 'relative' }}>
+            <Box
+              sx={(theme) => ({
+                border: `1px solid ${errors.content ? theme.palette.error.main : (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : 'rgba(0, 0, 0, 0.23)')}`,
+                borderRadius: '12px',
+                padding: '16.5px 14px',
+                paddingTop: '24px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                position: 'relative',
+                marginBottom: 1,
+                '&:hover': {
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+                },
+                '&:focus-within': {
+                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
+                  borderColor: errors.content ? theme.palette.error.main : theme.palette.primary.main,
+                  borderWidth: 2,
+                  padding: '15.5px 13px',
+                  paddingTop: '23px',
+                }
+              })}
+            >
+              <Typography
+                variant="caption"
+                component="label"
+                htmlFor="content-textarea"
+                sx={(theme) => ({
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  transform: 'translate(14px, -9px) scale(0.75)',
+                  background: theme.palette.background.default,
+                  padding: '0 4px',
+                  color: errors.content 
+                    ? theme.palette.error.main 
+                    : (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
+                  fontWeight: 400,
+                })}
+              >
+                Conteúdo {errors.content ? '*' : ''}
+              </Typography>                <TextareaAutosize
+                id="content-textarea"
+                value={modal.post?.content || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Atualizar apenas o valor no state e o contador
+                  setModal(prev => ({
+                    ...prev,
+                    post: {
+                      ...prev.post,
+                      content: value
+                    } as BlogType
+                  }));
+                  
+                  // Usar a função otimizada com debounce para evitar loops
+                  checkContentLength(value);
+                }}
+                onBlur={(e) => {
+                  // Ao perder o foco, verificar imediatamente sem debounce
+                  if (debounceRef.current) {
+                    clearTimeout(debounceRef.current);
+                    debounceRef.current = null;
+                  }
+                  validateContentLength(e.target.value);
+                }}
+                minRows={15}
+                maxRows={30}
+                cacheMeasurements
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  outline: 'none',
+                  resize: 'vertical',
+                  background: 'transparent',
+                  fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
+                  fontSize: '1rem',
+                  lineHeight: 1.5,
+                  color: 'inherit',
                 }}
               />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                {modal.post.rating ? `${modal.post.rating}/10` : 'Sem avaliação'}
+            </Box>
+            
+            {errors.content && (
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  display: 'block',
+                  color: theme => theme.palette.error.main,
+                  marginTop: '3px',
+                  marginLeft: '14px'
+                }}
+              >
+                {errors.content}
+              </Typography>
+            )}            <Box sx={{
+              position: 'absolute',
+              bottom: errors.content ? '24px' : '0',
+              right: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '2px 4px',
+              borderRadius: '4px',
+              backgroundColor: (theme) => 
+                countColor === 'error'
+                  ? theme.palette.mode === 'dark' ? 'rgba(211, 47, 47, 0.15)' : 'rgba(211, 47, 47, 0.08)'
+                  : countColor === 'warning'
+                    ? theme.palette.mode === 'dark' ? 'rgba(237, 108, 2, 0.15)' : 'rgba(237, 108, 2, 0.08)'
+                    : 'transparent',
+              transition: 'all 0.3s ease',
+            }}>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: (theme) => 
+                    countColor === 'error' 
+                      ? theme.palette.error.main
+                      : countColor === 'warning'
+                        ? theme.palette.warning.main
+                        : theme.palette.text.secondary,
+                  transition: 'color 0.3s ease',
+                  fontWeight: countColor !== 'normal' ? 600 : 400
+                }}
+              >
+                {contentLength}/{MAX_CONTENT_LENGTH} caracteres
               </Typography>
             </Box>
-          </Grid>
-        )}
-
-        {/* TMDB Info */}
-        {modal.post?.tmdbData && (
-          <Grid item xs={12}>            <Box sx={(theme) => ({ 
+          </Box>
+        </Grid>        {modal.post?.tmdbData && (
+          <Grid item xs={12}>              
+          <Box sx={(theme) => ({ 
               p: 3, 
               border: '1px solid', 
               borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
               borderRadius: '16px',
               bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+              backgroundImage:
+                theme.palette.mode === 'dark'
+                  ? "radial-gradient(ellipse 80% 50% at 50% -20%, hsla(210, 100%, 18%, 0.5), transparent)"
+                  : "radial-gradient(ellipse 80% 50% at 50% -20%, hsla(211, 100%, 83.1%, 0.2), transparent)",
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
             })}>
               <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                 Informações do TMDB
@@ -493,17 +665,30 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
           </Grid>
         )}
 
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+        <Grid item xs={12}>          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
             <Button 
               onClick={() => setModal({ open: false, type: null })}
               variant="outlined"
-              sx={{ 
+              sx={(theme) => ({ 
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 3,
-              }}
+                px: 4,
+                py: 1.2,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                transition: 'all 0.2s',
+                border: '1px solid',
+                borderColor: theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.2)' 
+                  : 'rgba(0, 0, 0, 0.2)',
+                '&:hover': {
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  transform: 'translateY(-2px)',
+                  borderColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.3)' 
+                    : 'rgba(0, 0, 0, 0.3)',
+                }
+              })}
             >
               Cancelar
             </Button>
@@ -515,7 +700,14 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 3,
+                px: 4,
+                py: 1.2,
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+                  transform: 'translateY(-2px)'
+                }
               }}
             >
               {modal.type === 'create' ? 'Criar' : 'Atualizar'}

@@ -69,16 +69,7 @@ export default function Footer() {
             <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
               Inscreva-se para receber atualizações, sobre o Pipocando.
             </Typography>
-            <Stack direction="row" spacing={1} useFlexGap>
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                sx={{ flexShrink: 0 }}
-              >
-                Entrar
-              </Button>
-            </Stack>
+          
           </Box>
         </Box>
         <Box

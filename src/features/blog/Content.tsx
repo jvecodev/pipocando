@@ -29,8 +29,8 @@ import TvIcon from '@mui/icons-material/Tv';
 import StarIcon from '@mui/icons-material/Star';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import { createPost, deletePost, searchPosts, updatePost } from '../../services/blogService';
-import { BlogType, PostTypeEnum } from '../../types/BlogRequestResponse';
+import { createPost, deletePost, searchPosts, updatePost, canEditPost, canDeletePost } from '../../services/blogService';
+import { BlogType } from '../../types/BlogRequestResponse';
 import { useUser } from '../../context/UserContext';
 import StandardModal from '../../organisms/dialog/StandardModal';
 import DeleteConfirmationModal from '../../organisms/dialog/DeleteConfirmationModal';
@@ -40,21 +40,13 @@ import tmdbService, { Movie, TVShow } from '../../services/tmdbService';
 import watchlistService from '../../services/watchlistService';
 import { createNewsFromMovie, createNewsFromTVShow, createReviewTemplate } from '../../services/blogTmdbService';
 import { generateWatchlistPostSuggestions } from '../../services/blogTmdbService';
+import { useNavigate } from 'react-router-dom';
 
 // Categorias disponíveis
 const CATEGORIES = [
   { label: 'Todas as categorias', value: 'all' },
   { label: 'Filmes', value: 'Filmes' },
   { label: 'Séries', value: 'Séries' },
-];
-
-// Tipos de post
-const POST_TYPES = [
-  { label: 'Todos', value: 'all' },
-  { label: 'Notícias', value: PostTypeEnum.NEWS },
-  { label: 'Resenhas', value: PostTypeEnum.REVIEW },
-  { label: 'Listas', value: PostTypeEnum.LISTICLE },
-  { label: 'Geral', value: PostTypeEnum.GENERAL },
 ];
 
 const ITEMS_PER_PAGE = 6; // Número de itens por página
@@ -92,9 +84,9 @@ function a11yProps(index: number) {
 export default function Content() {
   const [posts, setPosts] = React.useState<BlogType[]>([]);
   const [focusedCardIndex] = React.useState<number | null>(null);
-  const { user } = useUser();
+  const { user } = useUser(); 
+  const navigate = useNavigate();
   const [category, setCategory] = React.useState<string>('all');
-  const [postType, setPostType] = React.useState<string>('all');
   const [search, setSearch] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -102,7 +94,6 @@ export default function Content() {
   const [totalPages, setTotalPages] = React.useState(1);
   const [tabIndex, setTabIndex] = React.useState(0);
   
-  // Estados TMDB
   const [trendingMovies, setTrendingMovies] = React.useState<Movie[]>([]);
   const [trendingTVShows, setTrendingTVShows] = React.useState<TVShow[]>([]);
   const [loadingTrending, setLoadingTrending] = React.useState<boolean>(false);
@@ -156,21 +147,15 @@ export default function Content() {
     setIsLoading(true);
     setError(null);
     setPage(currentPage);
-    
-    searchPosts({
+      searchPosts({
       title: search.trim() ? search : undefined,
       category: category !== 'all' ? category : undefined,
     })
       .then(data => {
         if (Array.isArray(data)) {
-          let filteredPosts = data;
-          
-          if (postType !== 'all') {
-            filteredPosts = filteredPosts.filter(post => post.postType === postType);
-          }
+          const filteredPosts = data;
           
           setPosts(filteredPosts);
-          // Calcular o número total de páginas
           setTotalPages(Math.max(1, Math.ceil(filteredPosts.length / ITEMS_PER_PAGE)));
         } else {
           setPosts([]);
@@ -186,7 +171,7 @@ export default function Content() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [search, category, postType, page]);
+  }, [search, category, page]);
 
   const debouncedSearch = React.useCallback(() => {
     const delayedSearch = debounce(() => {
@@ -197,15 +182,10 @@ export default function Content() {
 
   React.useEffect(() => {
     debouncedSearch();
-  }, [debouncedSearch]);
-  React.useEffect(() => {
+  }, [debouncedSearch]);  React.useEffect(() => {
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleAddPostClick = () => {
-    setModal({ open: true, type: 'create', post: null });
-  };
 
   const handleEditClick = (post: BlogType) => {
     setModal({ open: true, type: 'edit', post });
@@ -224,32 +204,25 @@ export default function Content() {
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
-
   const handleCategoryChange = (event: SelectChangeEvent<string>) => {
     setCategory(event.target.value);
-    fetchPosts(1);
-  };
-
-  const handlePostTypeChange = (event: SelectChangeEvent<string>) => {
-    setPostType(event.target.value);
     fetchPosts(1);
   };
 
   const handleModalClose = () => {
     setModal({ open: false, type: null, post: null });
   };
-
   const handleDeleteConfirm = async () => {
-    if (!postToDelete) return;
+    if (!postToDelete || !user) return;
     
     try {
-      await deletePost(Number(postToDelete.id));
+      await deletePost(Number(postToDelete.id), user);
       fetchPosts(page);
       setDeleteModalOpen(false);
       setPostToDelete(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao excluir post:', error);
-      setError('Falha ao excluir publicação. Tente novamente.');
+      setError(error.message || 'Falha ao excluir publicação. Tente novamente.');
     }
   };
 
@@ -258,35 +231,43 @@ export default function Content() {
     setError(null);
 
     try {
+      if (!user) {
+        throw new Error('Usuário não autenticado. Faça login para salvar a publicação.');
+      }
+
       if (modal.type === 'create') {
         await createPost({
           title: post.title,
-          content: post.content || '',
-          userId: Number(user?.id) || 0,
+          content: post.content,
+          userId: Number(user.id),
+          category: post.category || 'Geral',
           movieId: post.movieId,
           serieId: post.serieId,
-          tmdbId: post.tmdbId || undefined,
-          tmdbType: post.tmdbType,
-          tmdbData: post.tmdbData,
-          postType: post.postType,
-          featured: post.featured,
-          rating: post.rating
         });
       } else if (modal.type === 'edit' && post.id) {
-        await updatePost(Number(post.id), post);
+        await updatePost(Number(post.id), {
+          title: post.title,
+          content: post.content,
+          category: post.category,
+          movieId: post.movieId,
+          serieId: post.serieId,
+        }, user);
       }
 
       fetchPosts(); 
       handleModalClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar post:', error);
-      setError('Falha ao salvar publicação. Tente novamente.');
+      setError(error.message || 'Falha ao salvar publicação. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleCreateFromTMDB = async (item: Movie | TVShow, type: 'movie' | 'tv') => {
+    if (!checkUserAuth()) {
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -309,9 +290,11 @@ export default function Content() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleCreateReview = async (item: any, type: 'movie' | 'tv') => {
+  };const handleCreateReview = async (item: any, type: 'movie' | 'tv') => {
+    if (!checkUserAuth()) {
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -342,7 +325,6 @@ export default function Content() {
     React.useEffect(() => {
       setIsInWatchlist(watchlistService.isInWatchlist(item.id, type));
       
-      // Ouvir eventos de atualização da watchlist
       const handleWatchlistUpdate = () => {
         setIsInWatchlist(watchlistService.isInWatchlist(item.id, type));
       };
@@ -430,11 +412,10 @@ export default function Content() {
           </Typography>
         </CardContent>
         
-        <CardActions sx={{ display: 'flex', justifyContent: 'space-between', px: 2, pb: 2 }}>
-          <Button 
+        <CardActions sx={{ display: 'flex', justifyContent: 'space-between', px: 2, pb: 2 }}>          <Button 
             variant="contained" 
             size="small" 
-            onClick={() => handleCreateFromTMDB(item, type)}
+            onClick={() => handleCreatePost(item, type)}
             startIcon={<AddIcon />}
           >
             Criar Post
@@ -450,10 +431,37 @@ export default function Content() {
       </Card>
     );
   }
+  const handleCreatePost = (item?: any, type?: 'movie' | 'tv') => {
+    if (!checkUserAuth()) {
+      return;
+    }
+    
+    if (item && type) {
+      handleCreateFromTMDB(item, type);
+    } else {
+      setModal({
+        open: true,
+        type: 'create',
+        post: {
+          title: '',
+          content: '',
+          category: 'Filmes',
+        } as BlogType
+      });
+    }
+  };
+
+  const checkUserAuth = (): boolean => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return false;
+    }
+    return true;
+  };
 
   return (
     <>
-      {/* Abas principais */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs 
           value={tabIndex} 
@@ -476,7 +484,6 @@ export default function Content() {
         </Tabs>
       </Box>
 
-      {/* Aba de Publicações */}
       <TabPanel value={tabIndex} index={0}>
         <Box sx={{ mb: 4 }}>
           <Grid container spacing={3} alignItems="center">
@@ -528,50 +535,6 @@ export default function Content() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={6} md={3}>
-              <FormControl fullWidth size="small" variant="outlined">
-                <Select
-                  value={postType}
-                  onChange={handlePostTypeChange}
-                  displayEmpty
-                  inputProps={{ 'aria-label': 'Tipo de Post' }}
-                  sx={(theme) => ({
-                    borderRadius: '12px',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)',
-                    },
-                  })}
-                >
-                  {POST_TYPES.map((type) => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md="auto" sx={{ ml: { md: 'auto' } }}>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                onClick={handleAddPostClick}
-                startIcon={<AddIcon />}
-                sx={{
-                  borderRadius: '12px',
-                  boxShadow: 2,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: '0.95rem',
-                  py: 1,
-                }}
-              >
-                Nova Publicação
-              </Button>
-            </Grid>
           </Grid>
         </Box>
 
@@ -603,8 +566,7 @@ export default function Content() {
             }}
           >
             {error}
-          </Alert>
-        ) : posts.length === 0 ? (
+          </Alert>        ) : posts.length === 0 ? (
           <Box sx={{ 
             textAlign: 'center', 
             py: 8, 
@@ -617,22 +579,26 @@ export default function Content() {
               Nenhuma publicação encontrada
             </Typography>
             <Typography color="text.secondary">
-              Tente mudar os filtros ou criar uma nova publicação.
+              Tente mudar os filtros ou acesse a aba "Tendências TMDB" para criar posts a partir de filmes e séries.
             </Typography>
           </Box>
         ) : (
           <>
-            <Grid container spacing={3}>
-              {currentPagePosts.map((post, index) => (
-                <Grid item xs={12} sm={6} md={4} key={post.id}>
-                  <BlogCardItem
-                    post={post}
-                    onEditClick={user ? handleEditClick : undefined}
-                    onDeleteClick={user ? handleDeleteClick : undefined}
-                    isFocused={focusedCardIndex === index}
-                  />
-                </Grid>
-              ))}
+            <Grid container spacing={3}>              {currentPagePosts.map((post, index) => {
+                const canEdit = user && canEditPost(user, post);
+                const canDelete = user && canDeletePost(user, post);
+                
+                return (
+                  <Grid item xs={12} sm={6} md={4} key={post.id}>
+                    <BlogCardItem
+                      post={post}
+                      onEditClick={canEdit ? handleEditClick : undefined}
+                      onDeleteClick={canDelete ? handleDeleteClick : undefined}
+                      isFocused={focusedCardIndex === index}
+                    />
+                  </Grid>
+                );
+              })}
             </Grid>
 
             {totalPages > 1 && (
@@ -776,11 +742,9 @@ export default function Content() {
             )}
           </>
         )}
-      </TabPanel>
-
-      <StandardModal
+      </TabPanel>      <StandardModal
         open={modal.open}
-        title={modal.type === 'create' ? 'Nova Publicação' : 'Editar Publicação'}
+        title={modal.type === 'create' ? 'Nova Publicação baseada em TMDB' : 'Editar Publicação'}
         onClose={handleModalClose}
       >
         <PostForm

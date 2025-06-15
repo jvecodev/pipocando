@@ -7,21 +7,16 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
-import Rating from '@mui/material/Rating';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MovieIcon from '@mui/icons-material/Movie';
 import TvIcon from '@mui/icons-material/Tv';
-import NewReleasesIcon from '@mui/icons-material/NewReleases';
-import RateReviewIcon from '@mui/icons-material/RateReview';
-import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
-import StarIcon from '@mui/icons-material/Star';
-import { BlogType, PostTypeEnum, POST_TYPE_LABELS } from '../../types/BlogRequestResponse';
+import { BlogType } from '../../types/BlogRequestResponse';
 import tmdbService from '../../services/tmdbService';
 import watchlistService from '../../services/watchlistService';
 
@@ -141,17 +136,14 @@ function AuthorDisplay({
   );
 }
 
-// Função para determinar o ícone do tipo de post
-function getPostTypeIcon(postType?: string) {
-  switch (postType) {
-    case PostTypeEnum.NEWS:
-      return <NewReleasesIcon color="error" />;
-    case PostTypeEnum.REVIEW:
-      return <RateReviewIcon color="info" />;
-    case PostTypeEnum.LISTICLE:
-      return <FormatListNumberedIcon color="success" />;
-    default:
-      return <FeaturedPlayListIcon color="action" />;
+// Função para determinar o ícone baseado na categoria
+function getCategoryIcon(category?: string) {
+  if (category === 'Filmes') {
+    return <MovieIcon color="primary" />;
+  } else if (category === 'Séries') {
+    return <TvIcon color="secondary" />;
+  } else {
+    return <FeaturedPlayListIcon color="action" />;
   }
 }
 
@@ -237,7 +229,7 @@ export default function BlogCardItem({
           }}
         />
         
-        {/* Badges para categoria e tipo */}
+        {/* Badge para categoria */}
         <Box
           sx={{
             position: 'absolute',
@@ -250,7 +242,7 @@ export default function BlogCardItem({
         >
           {post.category && (
             <Chip
-              icon={post.category === 'Filmes' ? <MovieIcon fontSize="small" /> : <TvIcon fontSize="small" />}
+              icon={getCategoryIcon(post.category)}
               label={post.category}
               size="small"
               variant="filled"
@@ -258,81 +250,12 @@ export default function BlogCardItem({
               sx={{
                 fontWeight: 600,
                 backdropFilter: 'blur(8px)',
-                backgroundColor: post.category === 'Filmes' ? 'primary.main' : 'secondary.main',
                 color: '#fff',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
               }}
             />
           )}
-          
-          {post.postType && (
-            <Chip
-              icon={getPostTypeIcon(post.postType)}
-              label={POST_TYPE_LABELS[post.postType as PostTypeEnum] || post.postType}
-              size="small"
-              variant="filled"
-              sx={{ 
-                fontWeight: 600,
-                backdropFilter: 'blur(8px)',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              }}
-            />
-          )}
         </Box>
-        
-        {/* Badge de destaque */}
-        {post.featured && (
-          <Chip
-            label="Destaque"
-            color="warning"
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              fontWeight: 'bold',
-              backdropFilter: 'blur(8px)',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            }}
-          />
-        )}
-        
-        {/* Avaliação para reviews */}
-        {post.postType === PostTypeEnum.REVIEW && post.rating !== undefined && (
-          <Box
-            sx={(theme) => ({
-              position: 'absolute',
-              bottom: 16,
-              right: 16,
-              bgcolor: theme.palette.mode === 'dark' 
-                ? 'rgba(0,0,0,0.75)' 
-                : 'rgba(255,255,255,0.9)',
-              borderRadius: '12px',
-              padding: '4px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              backdropFilter: 'blur(8px)',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            })}
-          >
-            <Rating 
-              value={post.rating / 2} 
-              precision={0.5} 
-              size="small" 
-              readOnly 
-              emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-            />            <Typography 
-              variant="body2" 
-              fontWeight="bold"
-              sx={(theme) => ({
-                color: theme.palette.mode === 'dark' ? 'white' : 'text.primary'
-              })}
-            >
-              {post.rating}/10
-            </Typography>
-          </Box>
-        )}
       </Box>
 
       <StyledCardContent>

@@ -14,6 +14,10 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     borderRadius: '16px',
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
     overflow: 'hidden',
+    backgroundImage:
+      theme.palette.mode === 'dark'
+        ? "radial-gradient(ellipse 80% 50% at 50% -20%, hsla(210, 100%, 16%, 0.5), transparent)"
+        : "radial-gradient(ellipse 80% 50% at 50% -20%, hsla(211, 100%, 83.1%, 0.3), transparent)",
   },
 }));
 
