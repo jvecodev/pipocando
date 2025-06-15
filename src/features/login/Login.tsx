@@ -97,24 +97,26 @@ export default function SignIn(props: Record<string, unknown>) {
       const response = await login(loginRequest);
       console.log('Login response:', response);
       
+      // Salvar o token no localStorage
+      localStorage.setItem('token', response.token);
+      
       // Usamos type assertion para acessar a propriedade id
       type ExtendedResponse = LoginResponse & { id: string | number };
       const loginData = response as ExtendedResponse;
       
-      setUser({
+      // Criar objeto de usuário
+      const userData = {
         id: loginData.id,
         name: loginData.name,
         email: email,
         perfil: loginData.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
-      });
+      };
+      
+      // Definir no contexto
+      setUser(userData);
       
       // Armazenar no localStorage
-      localStorage.setItem('user', JSON.stringify({
-        id: loginData.id,
-        name: loginData.name,
-        email: email,
-        perfil: loginData.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
-      }));
+      localStorage.setItem('user', JSON.stringify(userData));
       
       navigate('/');
     } catch (error: any) {
