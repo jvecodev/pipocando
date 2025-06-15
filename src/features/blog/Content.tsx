@@ -101,19 +101,33 @@ export default function Content() {
   };
 
   const handleConfirmModal = async () => {
+    console.log('handleConfirmModal chamado', modal);
     try {
       if (modal.type === 'create') {
         if (!modal.post?.title || !modal.post?.content || !user?.id) throw new Error('Preencha os campos obrigatórios');
-        await createPost({
+        const payload: any = {
           title: modal.post.title,
           content: modal.post.content,
-          userId: Number(user.id),
-          movieId: modal.post.movieId ? Number(modal.post.movieId) : undefined,
-          serieId: modal.post.serieId ? Number(modal.post.serieId) : undefined,
-        });
+          userId: Number(user.id), // sempre inclui o userId do usuário logado
+        };
+        if (modal.post.category === 'Filmes' && modal.post.movieId) {
+          payload.movieId = Number(modal.post.movieId);
+        }
+        if (modal.post.category === 'Séries' && modal.post.serieId) {
+          payload.serieId = Number(modal.post.serieId);
+        }
+        console.log('Payload enviado para createPost:', payload);
+        await createPost(payload);
         fetchPosts();
       } else if (modal.type === 'edit' && modal.post?.id) {
-        await updatePost(Number(modal.post.id), modal.post);
+        const updatePayload = {
+          title: modal.post.title,
+          content: modal.post.content,
+          userId: modal.post.author?.id ? Number(modal.post.author.id) : undefined,
+          movieId: modal.post.movieId ? Number(modal.post.movieId) : undefined,
+          serieId: modal.post.serieId ? Number(modal.post.serieId) : undefined,
+        };
+        await updatePost(Number(modal.post.id), updatePayload);
         fetchPosts();
       }
     } catch (e) {
@@ -149,7 +163,7 @@ export default function Content() {
           </Typography>
           <Typography>Confira as últimas publicações do Pipocando</Typography>
         </div>
-        {user?.perfil === PerfilTypeEnum.ADMIN && (
+        {user && (
           <Button
             variant="contained"
             color="primary"
@@ -272,7 +286,7 @@ export default function Content() {
 
       <DeleteConfirmationModal
         open={deleteModalOpen}
-        onClose={handleCloseModal} // Reutiliza handleCloseModal para fechar e resetar
+        onClose={handleCloseModal}
         onConfirm={handleDeleteConfirm}
         itemName={postToDelete?.title}
         title="Deletar Publicação"
