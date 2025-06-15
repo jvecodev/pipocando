@@ -9,15 +9,28 @@ export type BlogType = {
   imageUrl?: string;
   movieId?: number;
   serieId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  tmdbId?: number;
+  tmdbType?: 'movie' | 'tv';
+  tmdbData?: any;
+  postType?: 'news' | 'review' | 'listicle' | 'general'; 
+  featured?: boolean; 
+  rating?: number; 
 }
 
-// Tipos para integração com backend
 export type PostRequest = {
   title: string;
   content: string;
   userId: number;
   movieId?: number;
   serieId?: number;
+  tmdbId?: number;
+  tmdbType?: 'movie' | 'tv';
+  tmdbData?: any;
+  postType?: 'news' | 'review' | 'listicle' | 'general';
+  featured?: boolean;
+  rating?: number;
 };
 
 export type PostResponse = {
@@ -27,7 +40,26 @@ export type PostResponse = {
   userId: number;
   movieId?: number;
   serieId?: number;
+  tmdbId?: number;
+  tmdbType?: 'movie' | 'tv';
+  tmdbData?: any;
+  postType?: 'news' | 'review' | 'listicle' | 'general';
+  featured?: boolean;
+  rating?: number;
   createdAt?: string;
   updatedAt?: string;
-  // Adicione outros campos retornados pelo backend se necessário
+};
+
+export enum PostTypeEnum {
+  NEWS = 'news',
+  REVIEW = 'review', 
+  LISTICLE = 'listicle',
+  GENERAL = 'general'
+}
+
+export const POST_TYPE_LABELS = {
+  [PostTypeEnum.NEWS]: 'Notícias',
+  [PostTypeEnum.REVIEW]: 'Resenhas',
+  [PostTypeEnum.LISTICLE]: 'Listas',
+  [PostTypeEnum.GENERAL]: 'Geral'
 };

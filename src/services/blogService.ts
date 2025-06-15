@@ -19,7 +19,7 @@ export async function searchPosts({ title, category, userName }: { title?: strin
   return res.json();
 }
 
-export async function createPost(post: { title: string; content: string; userId: number; movieId?: number; serieId?: number }) {
+export async function createPost(post: { title: string; content: string; userId: number; movieId?: number; serieId?: number; tmdbId?: number; tmdbType?: 'movie' | 'tv'; tmdbData?: any; postType?: 'news' | 'review' | 'listicle' | 'general'; featured?: boolean; rating?: number }) {
   const token = localStorage.getItem('token');
   const res = await fetch(API_URL_V1, {
     method: 'POST',

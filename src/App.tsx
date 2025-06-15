@@ -8,26 +8,29 @@ import Home from "./features/home/Home";
 import Movies from "./features/movies/Movies";
 import Series from "./features/series/Series";
 import FAQ from "./features/faq/FAQ";
+import { UserProvider } from "./context/UserContext";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Rota padrão - Home */}
-        <Route path="/" element={<Home />} />
-        
-        {/* Rotas sem Header */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />        
-        <Route path="/blog" element={<Blog />} />
-        
-        {/* Novas rotas */}
+    <UserProvider>
+      <Router>
+        <Routes>
+          {/* Rota padrão - Home */}
+          <Route path="/" element={<Home />} />
+
+          {/* Rotas sem Header */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+
+          {/* Novas rotas */}
         <Route path="/filmes" element={<Movies />} />
         <Route path="/series" element={<Series />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/blog" element={<Blog />} />
       </Routes>
     </Router>
-  );
+  </UserProvider>
+);
 }
 
 export default App;

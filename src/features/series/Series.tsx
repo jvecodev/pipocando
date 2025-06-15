@@ -15,11 +15,9 @@ import {
 import {
   Search as SearchIcon,
   Tv as TvIcon,
-  Movie as MovieIcon,
   Whatshot as WhatshotIcon,
   Schedule as ScheduleIcon,
   Star as StarIcon,
-  Wifi as OnAirIcon,
   SentimentVeryDissatisfied as NoResultsIcon,
 } from "@mui/icons-material";
 import MainLayout from "../../layout/MainLayout";
