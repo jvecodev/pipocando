@@ -20,6 +20,7 @@ import { login } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { PerfilType, PerfilTypeEnum } from '../../types/PerfilType';
 import { useUser } from '../../context/UserContext';
+import { LoginResponse } from '../../types/LoginResponse';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -92,25 +93,34 @@ export default function SignIn(props: Record<string, unknown>) {
     const password = data.get('password') as string;
 
     try {
-      const response = await login({ email, password });
-      console.log('Login realizado com sucesso:', {
-        token: response.token,
-        name: response.name,
-        role: response.role,
-      });
-      localStorage.setItem('token', response.token);
-      if (response.name) {
-        localStorage.setItem('username', response.name);
-      }
+      const loginRequest = { email, password };
+      const response = await login(loginRequest);
+      console.log('Login response:', response);
+      
+      // Usamos type assertion para acessar a propriedade id
+      type ExtendedResponse = LoginResponse & { id: string | number };
+      const loginData = response as ExtendedResponse;
+      
       setUser({
-        id: '',
-        name: response.name,
+        id: loginData.id,
+        name: loginData.name,
         email: email,
-        perfil: response.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
+        perfil: loginData.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
       });
+      
+      // Armazenar no localStorage
+      localStorage.setItem('user', JSON.stringify({
+        id: loginData.id,
+        name: loginData.name,
+        email: email,
+        perfil: loginData.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
+      }));
+      
       navigate('/');
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
+      setEmailError(true);
+      setEmailErrorMessage(error.message || 'Credenciais inválidas');
     }
   };
 

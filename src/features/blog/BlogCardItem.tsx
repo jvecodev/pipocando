@@ -12,6 +12,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { BlogType } from '../../types/BlogRequestResponse';
 import { PerfilType, PerfilTypeEnum } from '../../types/PerfilType';
+import { User } from '../../context/UserContext'; // Importe a interface User
 
 // Styled components (movidos de Content.tsx)
 const SyledCard = styled(Card)(({ theme }) => ({
@@ -87,7 +88,7 @@ function AuthorDisplay({ authors }: { authors: { name: string; avatar: string }[
 
 interface BlogCardItemProps {
   post: BlogType;
-  user: PerfilType | null;
+  user: User | null;  // Alterado de PerfilType | null para User | null
   onEdit: (post: BlogType) => void;
   onDelete: (post: BlogType) => void;
   onFocus: () => void;

@@ -5,6 +5,7 @@ import Blog from "./features/blog/Blog";
 import SignUp from "./features/sign-up/SignUp";
 import Login from "./features/login/Login";
 import Home from "./features/home/Home";
+import Perfil from "./features/perfil/Perfil";
 import { UserProvider } from './context/UserContext';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             path="/blog"
             element={<Blog />}
           />
+          <Route path="/perfil" element={<Perfil />} />
         </Routes>
       </Router>
     </UserProvider>

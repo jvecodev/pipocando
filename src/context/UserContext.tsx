@@ -1,17 +1,66 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { PerfilType } from '../types/PerfilType';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { PerfilTypeEnum } from '../types/PerfilType';
 
-interface UserContextType {
-  user: PerfilType | null;
-  setUser: (user: PerfilType | null) => void;
+// Definir a interface para o usuário
+export interface User {
+  id?: string | number; // Voltando para aceitar string ou number
+  name?: string;
+  email: string;
+  perfil?: string;
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+// Definir a interface para o contexto
+export interface UserContextType {
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  logout: () => void;
+}
 
-export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<PerfilType | null>(null);
+// Criar e exportar o contexto
+export const UserContext = createContext<UserContextType>({
+  user: null,
+  setUser: () => { },
+  logout: () => { }
+});
+
+// Props para o provider
+interface UserProviderProps {
+  children: ReactNode;
+}
+
+// Componente Provider
+export function UserProvider({ children }: UserProviderProps) {
+  const [user, setUser] = useState<User | null>(null);
+
+  // Lógica para carregar usuário do localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [user]);
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, setUser, logout }}>
       {children}
     </UserContext.Provider>
   );
@@ -24,3 +73,20 @@ export function useUser() {
   }
   return context;
 }
+
+// Se você estiver usando localStorage para armazenar dados do usuário, garanta que o ID seja preservado
+const getUserFromStorage = (): User | null => {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      console.log("Usuário recuperado do localStorage:", parsedUser);
+      return parsedUser;
+    } catch (e) {
+      console.error("Erro ao fazer parse do usuário do localStorage:", e);
+      localStorage.removeItem('user');
+      return null;
+    }
+  }
+  return null;
+};
