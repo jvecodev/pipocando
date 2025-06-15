@@ -12,7 +12,7 @@ import {
   Alert,
   Stack,
 } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
+import { Search as SearchIcon, LocalFireDepartment, Star, TrackChanges } from '@mui/icons-material';
 import MainLayout from '../../layout/MainLayout';
 import MovieCard from './MovieCard';
 import tmdbService, { Movie, WatchProviders } from '../../services/tmdbService';
@@ -229,10 +229,9 @@ const Movies: React.FC = () => {
                 minWidth: 120,
               },
             }}
-          >
-            <Tab label="🔥 Populares" />
-            <Tab label="⭐ Melhores Avaliados" />
-            <Tab label="🎯 Em Breve" />
+          >            <Tab icon={<LocalFireDepartment />} iconPosition="start" label="Populares" />
+            <Tab icon={<Star />} iconPosition="start" label="Melhores Avaliados" />
+            <Tab icon={<TrackChanges />} iconPosition="start" label="Em Breve" />
           </Tabs>
         </Box>
       )}

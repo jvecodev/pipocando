@@ -12,7 +12,7 @@ import {
   Alert,
   Stack,
 } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
+import { Search as SearchIcon, LocalFireDepartment, Star, Satellite } from '@mui/icons-material';
 import MainLayout from '../../layout/MainLayout';
 import TVShowCard from './TVShowCard';
 import tmdbService, { TVShow, WatchProviders } from '../../services/tmdbService';
@@ -225,10 +225,9 @@ const Series: React.FC = () => {
                 minWidth: 120,
               },
             }}
-          >
-            <Tab label="🔥 Populares" />
-            <Tab label="⭐ Melhores Avaliadas" />
-            <Tab label="📡 No Ar" />
+          >            <Tab icon={<LocalFireDepartment />} iconPosition="start" label="Populares" />
+            <Tab icon={<Star />} iconPosition="start" label="Melhores Avaliadas" />
+            <Tab icon={<Satellite />} iconPosition="start" label="No Ar" />
           </Tabs>
         </Box>
       )}

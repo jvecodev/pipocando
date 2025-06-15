@@ -11,7 +11,21 @@ import {
   Stack,
   Chip,
 } from '@mui/material';
-import { ExpandMore, Search as SearchIcon, QuestionAnswer } from '@mui/icons-material';
+import { 
+  ExpandMore, 
+  Search as SearchIcon, 
+  QuestionAnswer,
+  LocalMovies,
+  Search,
+  CheckCircle,
+  Person,
+  Favorite,
+  AttachMoney,
+  Tv,
+  Movie,
+  Chat,
+  PhoneAndroid
+} from '@mui/icons-material';
 import MainLayout from '../../layout/MainLayout';
 
 interface FAQItem {
@@ -19,79 +33,78 @@ interface FAQItem {
   question: string;
   answer: string;
   category: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
-const faqData: FAQItem[] = [
-  {
+const faqData: FAQItem[] = [  {
     id: 1,
     question: 'O que é o Pipocando?',
     answer: 'O Pipocando é uma plataforma que ajuda você a descobrir onde assistir seus filmes e séries favoritos. Utilizamos dados da API do TMDB (The Movie Database) para fornecer informações atualizadas sobre disponibilidade em diferentes plataformas de streaming, compra e aluguel.',
     category: 'geral',
-    icon: '🍿'
+    icon: <LocalMovies color="primary" />
   },
   {
     id: 2,
     question: 'Como funciona a busca por onde assistir?',
     answer: 'Integramos com a API do TMDB que fornece dados de provedores como Netflix, Amazon Prime, Disney+, Apple TV e outros. As informações são específicas para o Brasil e mostram onde cada conteúdo está disponível para streaming, compra ou aluguel.',
     category: 'funcionalidades',
-    icon: '🔍'
+    icon: <Search color="primary" />
   },
   {
     id: 3,
     question: 'As informações são sempre precisas?',
     answer: 'Fazemos o nosso melhor para manter as informações atualizadas, mas a disponibilidade de conteúdo pode mudar rapidamente nas plataformas de streaming. Recomendamos sempre verificar diretamente na plataforma antes de fazer uma compra ou se inscrever em um serviço.',
     category: 'precisão',
-    icon: '✅'
+    icon: <CheckCircle color="primary" />
   },
   {
     id: 4,
     question: 'Preciso criar uma conta para usar o Pipocando?',
     answer: 'Não, você pode navegar e buscar filmes e séries sem criar uma conta. No entanto, criar uma conta permite salvar seus favoritos e ter uma experiência mais personalizada.',
     category: 'conta',
-    icon: '👤'
+    icon: <Person color="primary" />
   },
   {
     id: 5,
     question: 'Como posso salvar meus filmes e séries favoritos?',
     answer: 'Após criar uma conta e fazer login, você verá um ícone de coração em cada filme/série. Clique nele para adicionar ou remover dos seus favoritos. Seus favoritos ficam salvos e você pode acessá-los a qualquer momento.',
     category: 'favoritos',
-    icon: '❤️'
+    icon: <Favorite color="primary" />
   },
   {
     id: 6,
     question: 'Vocês cobram alguma taxa para usar a plataforma?',
     answer: 'Não, o Pipocando é completamente gratuito. Não cobramos nenhuma taxa para usar nossa plataforma de busca e descoberta de conteúdo.',
     category: 'pagamento',
-    icon: '💰'
+    icon: <AttachMoney color="primary" />
   },
   {
     id: 7,
     question: 'Quais plataformas de streaming vocês monitoram?',
     answer: 'Monitoramos as principais plataformas disponíveis no Brasil, incluindo Netflix, Amazon Prime Video, Disney+, Globoplay, Apple TV+, HBO Max, Paramount+, Pluto TV, e muitas outras. A lista é atualizada conforme novas plataformas se tornam disponíveis.',
     category: 'plataformas',
-    icon: '📺'
+    icon: <Tv color="primary" />
   },
   {
     id: 8,
     question: 'Como vocês obtêm as informações sobre filmes e séries?',
     answer: 'Utilizamos a API oficial do TMDB (The Movie Database), que é uma das maiores bases de dados de filmes e séries do mundo. Esta API nos fornece informações detalhadas sobre elenco, sinopse, avaliações e disponibilidade em diferentes plataformas.',
     category: 'dados',
-    icon: '🎬'
+    icon: <Movie color="primary" />
   },
   {
     id: 9,
     question: 'Posso sugerir novos recursos ou reportar problemas?',
     answer: 'Sim! Valorizamos muito o feedback dos nossos usuários. Entre em contato conosco através do email contato@pipocando.com.br para sugerir novos recursos, reportar bugs ou enviar qualquer feedback.',
     category: 'feedback',
-    icon: '💬'
+    icon: <Chat color="primary" />
   },
   {
     id: 10,
     question: 'Vocês têm aplicativo móvel?',
     answer: 'Atualmente somos uma aplicação web responsiva que funciona bem em dispositivos móveis. Estamos considerando desenvolver aplicativos nativos para iOS e Android no futuro.',
     category: 'mobile',
-    icon: '📱'
+    icon: <PhoneAndroid color="primary" />
   }
 ];
 
@@ -115,8 +128,7 @@ const FAQ: React.FC = () => {
   return (
     <MainLayout>
       {/* Hero Section */}
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Typography
+      <Box sx={{ textAlign: 'center', mb: 6 }}>        <Typography
           variant="h2"
           component="h1"
           gutterBottom
@@ -126,9 +138,13 @@ const FAQ: React.FC = () => {
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 2
           }}
         >
-          ❓ Perguntas Frequentes
+          <QuestionAnswer sx={{ fontSize: '0.8em', verticalAlign: 'middle' }} /> Perguntas Frequentes
         </Typography>
         
         <Typography 
