@@ -7,9 +7,8 @@ export interface User {
   name: string;
   email: string;
   role?: string;
+  perfil?: PerfilTypeEnum;
   active?: boolean;
-  perfil?: PerfilTypeEnum; // Added perfil property
-  // Add other fields as needed
 }
 
 // Definir a interface para o contexto

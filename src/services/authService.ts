@@ -18,12 +18,13 @@ export const login = async (loginRequest: LoginRequest) => {
       password,
     });
 
-    // Store token in localStorage
+    // Store token and user info in localStorage
     localStorage.setItem("token", response.data.token);
     localStorage.setItem("userName", response.data.userName);
     localStorage.setItem("userRole", response.data.role);
-    // Add userId to localStorage
-    localStorage.setItem("userId", response.data.userId);
+    
+    // Store userId as string (will be parsed to number when needed)
+    localStorage.setItem("userId", response.data.userId.toString());
 
     return response.data;
   } catch (error) {

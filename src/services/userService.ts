@@ -4,8 +4,9 @@ import { User } from "../context/UserContext";
 
 const API_URL = environment.API_URL;
 
-interface ProfileUpdateData {
-  id: number; // Changed to number to match INT in database
+// Make the interface exported
+export interface ProfileUpdateData {
+  id: number;
   name: string;
   email: string;
   currentPassword?: string;
@@ -19,7 +20,8 @@ const getAuthToken = () => {
 
 // Function to get the user ID from localStorage
 const getUserId = () => {
-  return localStorage.getItem("userId");
+  const userId = localStorage.getItem("userId");
+  return userId ? parseInt(userId) : null;
 };
 
 export const updateUserProfile = async (userData: ProfileUpdateData) => {
@@ -38,8 +40,8 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
     const dataToSend = {
       name: userData.name,
       email: userData.email,
-      currentPassword: userData.currentPassword || undefined,
-      newPassword: userData.newPassword || undefined,
+      currentPassword: userData.currentPassword,
+      newPassword: userData.newPassword,
     };
 
     // Remove undefined fields
@@ -71,6 +73,17 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
         // Server responded with an error status
         console.error("Resposta de erro do servidor:", error.response.data);
 
+        // Trate especificamente o erro de senha incorreta
+        if (error.response.status === 400 || error.response.status === 401) {
+          // Verifica se há informações sobre senha na mensagem de erro
+          const errorMessage = error.response.data.message || error.response.data.error || "";
+          if (errorMessage.toLowerCase().includes("senha") || 
+              errorMessage.toLowerCase().includes("password") || 
+              errorMessage.toLowerCase().includes("invalid request")) {
+            throw new Error("Senha atual inválida");
+          }
+        }
+
         if (error.response.status === 401) {
           throw new Error("Sessão expirada. Por favor, faça login novamente.");
         } else if (error.response.status === 403) {
@@ -80,7 +93,7 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
         }
 
         throw new Error(
-          error.response.data.message || "Erro ao atualizar o perfil"
+          error.response.data.message || error.response.data.error || "Erro ao atualizar o perfil"
         );
       } else if (error.request) {
         // The request was made but no response was received

@@ -30,6 +30,8 @@ import { updateUserProfile } from '../../services/userService';
 import AppTheme from '../../shared-theme/AppTheme';
 import Header from '../../organisms/header/Header';
 import { styled } from '@mui/material/styles';
+// Import the ProfileUpdateData interface
+import { ProfileUpdateData } from '../../services/userService';
 
 // Modificamos a interface para incluir perfil
 interface ProfileData {
@@ -75,6 +77,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState(""); // Added success message state
     const [passwordValid, setPasswordValid] = useState(false);
 
     const [formData, setFormData] = useState<ProfileData>({
@@ -152,6 +155,16 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
     const validateForm = (): boolean => {
         let isValid = true;
 
+        // Reset previous errors
+        setNameError(false);
+        setNameErrorMessage('');
+        setEmailError(false);
+        setEmailErrorMessage('');
+        setPasswordError(false);
+        setPasswordErrorMessage('');
+        setConfirmPasswordError(false);
+        setConfirmPasswordErrorMessage('');
+
         // Validar nome
         if (!formData.name || formData.name.length < 4 || !/^[A-Za-zÀ-ÖØ-öø-ÿ]+ [A-Za-zÀ-ÖØ-öø-ÿ]+$/.test(formData.name)) {
             setNameError(true);
@@ -166,24 +179,59 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             isValid = false;
         }
 
-        // Validar senha (apenas se o usuário estiver tentando mudar a senha)
-        if (formData.newPassword) {
-            if (formData.newPassword.length < 6 || /\s/.test(formData.newPassword)) {
+        // Verificar se os campos de senha estão sendo usados
+        const isChangingPassword = formData.currentPassword || formData.newPassword || formData.confirmPassword;
+
+        if (isChangingPassword) {
+            // Validar senha atual
+            if (!formData.currentPassword) {
+                setPasswordError(true);
+                setPasswordErrorMessage('A senha atual é necessária para alterar sua senha.');
+                isValid = false;
+            }
+
+            // Validar nova senha
+            if (!formData.newPassword) {
+                setPasswordError(true);
+                setPasswordErrorMessage('Por favor, preencha a nova senha.');
+                isValid = false;
+            } else if (formData.newPassword.length < 6 || /\s/.test(formData.newPassword)) {
                 setPasswordError(true);
                 setPasswordErrorMessage('A nova senha precisa ter no mínimo 6 caracteres e não pode conter espaços.');
                 isValid = false;
             }
 
-            if (!formData.currentPassword) {
-                setPasswordError(true);
-                setPasswordErrorMessage('A senha atual é necessária para definir uma nova senha.');
+            // Validar confirmação da nova senha
+            if (!formData.confirmPassword) {
+                setConfirmPasswordError(true);
+                setConfirmPasswordErrorMessage('Por favor, confirme sua nova senha.');
                 isValid = false;
-            }
-
-            if (formData.newPassword !== formData.confirmPassword) {
+            } else if (formData.newPassword !== formData.confirmPassword) {
                 setConfirmPasswordError(true);
                 setConfirmPasswordErrorMessage('As senhas não conferem.');
                 isValid = false;
+            }
+        } else {
+            // Se não estiver tentando mudar a senha, verificar que todos os campos de senha estão vazios
+            if (formData.currentPassword || formData.newPassword || formData.confirmPassword) {
+                // Se algum campo de senha estiver preenchido, verificar se todos os outros necessários estão
+                if (!formData.currentPassword) {
+                    setPasswordError(true);
+                    setPasswordErrorMessage('A senha atual é necessária para alterar sua senha.');
+                    isValid = false;
+                }
+                
+                if (!formData.newPassword) {
+                    setPasswordError(true);
+                    setPasswordErrorMessage('Por favor, preencha a nova senha.');
+                    isValid = false;
+                }
+                
+                if (!formData.confirmPassword) {
+                    setConfirmPasswordError(true);
+                    setConfirmPasswordErrorMessage('Por favor, confirme sua nova senha.');
+                    isValid = false;
+                }
             }
         }
 
@@ -203,55 +251,85 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
 
         try {
             const dataToUpdate = {
-                id: user?.id ? Number(user.id) : 0, // Ensure id is a number
+                id: user?.id ? Number(user.id) : 0,
                 name: formData.name,
                 email: formData.email,
                 currentPassword: formData.currentPassword || undefined,
                 newPassword: formData.newPassword || undefined
             };
 
-            // Remover campos indefinidos
+            // Remove undefined fields and empty strings
             Object.keys(dataToUpdate).forEach(key => {
-                if (dataToUpdate[key as keyof typeof dataToUpdate] === undefined) {
+                const value = dataToUpdate[key as keyof typeof dataToUpdate];
+                if (value === undefined || (typeof value === 'string' && value.trim() === '')) {
                     delete dataToUpdate[key as keyof typeof dataToUpdate];
                 }
             });
 
-            const response = await updateUserProfile(dataToUpdate);
+            try {
+                const response = await updateUserProfile(dataToUpdate);
 
-            // Atualizar contexto do usuário com novos dados
-            if (user) {
-                setUser({
-                    ...user,
-                    name: response.name || user.name,
-                    email: response.email || user.email
-                });
+                // Atualizar contexto do usuário com novos dados
+                if (user) {
+                    setUser({
+                        ...user,
+                        name: response.name || user.name,
+                        email: response.email || user.email
+                    });
+                    
+                    // Update localStorage
+                    const updatedUserData = {
+                        ...user,
+                        name: response.name || user.name,
+                        email: response.email || user.email,
+                    };
+                    localStorage.setItem('user', JSON.stringify(updatedUserData));
+                }
+
+                setSuccess(true);
+
+                // Limpar campos de senha após atualização
+                setFormData(prev => ({
+                    ...prev,
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                }));
+
+                // Mensagem de sucesso
+                setSuccessMessage("Perfil atualizado com sucesso!");
+            } catch (error: any) {
+                console.error("Erro ao atualizar perfil:", error);
                 
-                // Update localStorage
-                const updatedUserData = {
-                    ...user,
-                    name: formData.name,
-                    email: formData.email,
-                };
-                localStorage.setItem('user', JSON.stringify(updatedUserData));
+                // Verificar erro específico de senha atual inválida
+                if (error.message.includes("Senha atual inválida") ||
+                    error.message.includes("Invalid request") ||
+                    error.message.toLowerCase().includes("current password")) {
+                
+                    setPasswordError(true);
+                    
+                    // Exibir alerta mais visível
+                    setError("Senha atual inválida. Por favor, verifique e tente novamente.");
+                    
+                    // Limpa apenas a senha atual para nova tentativa, preservando os outros campos
+                    setFormData(prev => ({
+                        ...prev,
+                        currentPassword: ''
+                    }));
+                } else {
+                    setError(error.message || "Ocorreu um erro ao atualizar o perfil");
+                }
+            } finally {
+                setLoading(false);
             }
-
-            setSuccess(true);
-
-            // Limpar campos de senha após atualização
-            setFormData(prev => ({
-                ...prev,
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: ''
-            }));
         } catch (error: any) {
-            setError(error.message || "Ocorreu um erro ao atualizar o perfil");
+            console.error("Erro geral:", error);
+            setError("Ocorreu um erro inesperado. Por favor, tente novamente.");
         } finally {
             setLoading(false);
         }
     };
-
+    
     const handleCloseSnackbar = () => {
         setSuccess(false);
         setError("");
@@ -427,13 +505,12 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                                 autoComplete="current-password"
                                                 value={formData.currentPassword}
                                                 onChange={handleChange}
-                                                error={passwordError}
-                                                helperText={passwordError ? passwordErrorMessage : ''}
+                                                error={passwordError && formData.currentPassword === ''}
+                                                helperText={passwordError && formData.currentPassword === '' ? passwordErrorMessage : ''}
                                                 color={passwordError ? 'error' : 'primary'}
                                                 InputProps={{
                                                     sx: {
-                                                        borderRadius: 1.5,
-                                                        maxWidth: '300px'
+                                                        borderRadius: 1.5
                                                     }
                                                 }}
                                             />
@@ -495,11 +572,14 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                                     onChange={handleChange}
                                                     error={confirmPasswordError}
                                                     helperText={confirmPasswordError ? confirmPasswordErrorMessage : ''}
-                                                    color={confirmPasswordError ? 'error' : 'primary'}
+                                                    color={formData.confirmPassword && formData.newPassword && formData.confirmPassword === formData.newPassword ? 'success' : (confirmPasswordError ? 'error' : 'primary')}
                                                     InputProps={{
                                                         sx: {
                                                             borderRadius: 1.5
-                                                        }
+                                                        },
+                                                        endAdornment: formData.confirmPassword && formData.newPassword && formData.confirmPassword === formData.newPassword ? (
+                                                            <CheckIcon color="success" />
+                                                        ) : null
                                                     }}
                                                 />
                                             </FormControl>

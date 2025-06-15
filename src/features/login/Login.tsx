@@ -17,10 +17,9 @@ import ForgotPassword from './ForgotPassword';
 import AppTheme from '../../shared-theme/AppTheme';
 import ColorModeSelect from '../../shared-theme/ColorModeSelect';
 import { login } from '../../services/authService';
+import { PerfilTypeEnum } from '../../types/PerfilType';
 import { useNavigate } from 'react-router-dom';
-import { PerfilType, PerfilTypeEnum } from '../../types/PerfilType';
 import { useUser } from '../../context/UserContext';
-import { LoginResponse } from '../../types/LoginResponse';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -93,18 +92,19 @@ export default function SignIn(props: Record<string, unknown>) {
     const password = data.get('password') as string;
 
     try {
-      const loginRequest = { email, password };
+      const loginRequest = { 
+        email: email, // Fixed: removed .value
+        password: password // Fixed: removed .value
+      };
+      
       const response = await login(loginRequest);
       console.log('Login response:', response);
       
-      // Salvar o token no localStorage
-      localStorage.setItem('token', response.token);
-      
       // Atualizar dados do usuário
       const userData = {
-        id: Number(response.userId), // Convert to number to match User interface
+        id: Number(response.userId),
         name: response.userName,
-        email: email,
+        email: email, // Fixed: removed .value
         perfil: response.role === 'ADMIN' ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
         role: response.role
       };
