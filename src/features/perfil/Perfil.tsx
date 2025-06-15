@@ -22,24 +22,37 @@ import {
     DialogTitle,
     DialogContent,
     DialogContentText,
-    DialogActions
+    DialogActions,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TablePagination,
+    IconButton,
+    Tooltip
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SecurityIcon from '@mui/icons-material/Security';
 import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
 import WarningIcon from '@mui/icons-material/Warning';
+import GroupIcon from '@mui/icons-material/Group';
 import { UserContext } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import { updateUserProfile, deleteUserAccount } from '../../services/userService';
+import { updateUserProfile, deleteUserAccount, getAllUsers, deleteUser, updateUser, deleteUserAdmin } from '../../services/userService';
 import AppTheme from '../../shared-theme/AppTheme';
 import Header from '../../organisms/header/Header';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
 import { ProfileUpdateData } from '../../services/userService';
+import { PerfilTypeEnum } from '../../types/PerfilType';
+import DeleteConfirmationModal from '../../organisms/dialog/DeleteConfirmationModal';
 
 // Modificamos a interface para incluir perfil
 interface ProfileData {
@@ -49,6 +62,24 @@ interface ProfileData {
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
+}
+
+// Interface para os usuários na tabela
+interface UserTableData {
+    id: number;
+    name: string;
+    email: string;
+    perfil: string;
+    active: boolean;
+}
+
+// Interface para o modal de edição de usuário
+interface UserEditData {
+    id: number;
+    name: string;
+    email: string;
+    perfil: string;
+    active: boolean;
 }
 
 // Styled card similar ao BlogCard
@@ -86,14 +117,31 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
-    const [successMessage, setSuccessMessage] = useState(""); 
+    const [successMessage, setSuccessMessage] = useState("");
     const [passwordValid, setPasswordValid] = useState(false);
-    
+
     // Estado para controlar o modal de exclusão de conta
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [confirmEmail, setConfirmEmail] = useState('');
     const [confirmEmailError, setConfirmEmailError] = useState(false);
     const [confirmEmailErrorMessage, setConfirmEmailErrorMessage] = useState('');
+
+    // Estados para a tabela de usuários (apenas para ADMIN)
+    const [users, setUsers] = useState<UserTableData[]>([]);
+    const [usersLoading, setUsersLoading] = useState(false);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [usersError, setUsersError] = useState('');
+
+    // Estados para o modal de confirmação de exclusão de usuário
+    const [deleteUserModalOpen, setDeleteUserModalOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<UserTableData | null>(null);
+    const [deletingUser, setDeletingUser] = useState(false);
+
+    // Estados para o modal de edição de usuário
+    const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+    const [userToEdit, setUserToEdit] = useState<UserEditData | null>(null);
+    const [savingUser, setSavingUser] = useState(false);
 
     const [formData, setFormData] = useState<ProfileData>({
         id: 0,
@@ -114,9 +162,13 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
     const [confirmPasswordError, setConfirmPasswordError] = useState(false);
     const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState('');
 
+    const [userManagementSuccess, setUserManagementSuccess] = useState(false);
+    const [userManagementError, setUserManagementError] = useState("");
+    const [userManagementSuccessMessage, setUserManagementSuccessMessage] = useState("");
+
     useEffect(() => {
         console.log("UserContext data:", user);
-        
+
         // Redirecionar se não estiver autenticado
         if (!user) {
             navigate('/login');
@@ -132,7 +184,48 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             newPassword: '',
             confirmPassword: ''
         });
+
+        // Carregar lista de usuários se for ADMIN
+        if (user.perfil === PerfilTypeEnum.ADMIN) {
+            fetchUsers();
+        }
     }, [user, navigate]);
+
+    // Função fetchUsers modificada para normalizar os valores de perfil
+    const fetchUsers = async () => {
+        if (user?.perfil !== PerfilTypeEnum.ADMIN) return;
+
+        setUsersLoading(true);
+        setUsersError('');
+
+        try {
+            const usersData = await getAllUsers();
+            // Ajustar os dados para garantir que o perfil seja mapeado corretamente
+            const formattedUsers = usersData.map((user: any) => ({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                // Mapear o campo 'role' ou 'perfil' e normalizar para maiúsculas
+                perfil: (user.role || user.perfil || '').toUpperCase(),
+                active: user.active
+            }));
+            setUsers(formattedUsers);
+        } catch (error: any) {
+            console.error("Erro ao carregar usuários:", error);
+            setUsersError(error.message || "Não foi possível carregar a lista de usuários.");
+        } finally {
+            setUsersLoading(false);
+        }
+    };
+
+    const handleChangePage = (event: unknown, newPage: number) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -158,7 +251,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             setPasswordValid(value.length >= 6);
             setPasswordError(false);
             setPasswordErrorMessage('');
-            
+
             // Check if confirmPassword already has a value and update confirmation validation
             if (formData.confirmPassword) {
                 if (value !== formData.confirmPassword) {
@@ -185,7 +278,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
 
     const handleConfirmEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setConfirmEmail(e.target.value);
-        
+
         // Limpa o erro quando o usuário começa a digitar novamente
         if (confirmEmailError) {
             setConfirmEmailError(false);
@@ -261,13 +354,13 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                     setPasswordErrorMessage('A senha atual é necessária para alterar sua senha.');
                     isValid = false;
                 }
-                
+
                 if (!formData.newPassword) {
                     setPasswordError(true);
                     setPasswordErrorMessage('Por favor, preencha a nova senha.');
                     isValid = false;
                 }
-                
+
                 if (!formData.confirmPassword) {
                     setConfirmPasswordError(true);
                     setConfirmPasswordErrorMessage('Por favor, confirme sua nova senha.');
@@ -308,23 +401,34 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             });
 
             try {
+                // Salvar completo estado de autenticação
+                const authState = {
+                    token: localStorage.getItem('token'),
+                    userId: localStorage.getItem('userId'),
+                    userName: localStorage.getItem('userName'),
+                    userRole: localStorage.getItem('userRole')
+                };
+
                 const response = await updateUserProfile(dataToUpdate);
 
-                // Atualizar contexto do usuário com novos dados
+                // Atualizar contexto do usuário com novos dados mantendo todos os campos existentes
                 if (user) {
-                    setUser({
+                    const updatedUser = {
                         ...user,
                         name: response.name || user.name,
                         email: response.email || user.email
-                    });
-                    
-                    // Update localStorage
-                    const updatedUserData = {
-                        ...user,
-                        name: response.name || user.name,
-                        email: response.email || user.email,
                     };
-                    localStorage.setItem('user', JSON.stringify(updatedUserData));
+
+                    setUser(updatedUser);
+
+                    // Atualizar localStorage com o usuário atualizado
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+
+                    // Restaurar TODOS os dados de autenticação
+                    if (authState.token) localStorage.setItem('token', authState.token);
+                    if (authState.userId) localStorage.setItem('userId', authState.userId);
+                    if (authState.userName) localStorage.setItem('userName', authState.userName);
+                    if (authState.userRole) localStorage.setItem('userRole', authState.userRole);
                 }
 
                 setSuccess(true);
@@ -341,18 +445,18 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                 setSuccessMessage("Perfil atualizado com sucesso!");
             } catch (error: any) {
                 console.error("Erro ao atualizar perfil:", error);
-                
+
                 // Verificar erro específico de senha atual inválida
                 if (error.message.includes("Senha atual inválida") ||
                     error.message.includes("Invalid request") ||
                     error.message.toLowerCase().includes("current password")) {
-                
+
                     setPasswordError(true);
                     setPasswordErrorMessage("Senha atual inválida");
-                    
+
                     // Exibir alerta mais visível
                     setError("Senha atual inválida. Por favor, verifique e tente novamente.");
-                    
+
                     // Limpa apenas a senha atual para nova tentativa, preservando os outros campos
                     setFormData(prev => ({
                         ...prev,
@@ -371,7 +475,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             setLoading(false);
         }
     };
-    
+
     const handleDeleteAccount = async () => {
         // Validar se o email digitado corresponde ao email do usuário
         if (confirmEmail !== user?.email) {
@@ -385,20 +489,20 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
         try {
             // Usar a função de serviço em vez de chamar axios diretamente
             await deleteUserAccount(user?.id ? Number(user.id) : 0);
-            
+
             // Limpar dados de sessão
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
             localStorage.removeItem('userName');
             localStorage.removeItem('userRole');
             localStorage.removeItem('user');
-            
+
             // Limpar contexto do usuário
             setUser(null);
-            
+
             // Fechar o modal
             setDeleteModalOpen(false);
-            
+
             // Redirecionar para a página inicial com mensagem de confirmação
             navigate('/?accountDeleted=true');
         } catch (error: any) {
@@ -415,10 +519,97 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
         setConfirmEmailError(false);
         setConfirmEmailErrorMessage('');
     };
-    
-    const handleCloseSnackbar = () => {
+
+    // Manipuladores para o modal de edição
+    const handleOpenEditModal = (user: UserTableData) => {
+        setUserToEdit({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            perfil: user.perfil,
+            active: user.active
+        });
+        setEditUserModalOpen(true);
+    };
+
+    const handleCloseEditModal = () => {
+        setEditUserModalOpen(false);
+        setUserToEdit(null);
+        setSavingUser(false);
+    };
+
+    const handleEditUserChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+        const { name, value } = e.target;
+        if (name && userToEdit) {
+            setUserToEdit({
+                ...userToEdit,
+                [name]: value
+            });
+        }
+    };
+
+    const handleSaveUser = async () => {
+        if (!userToEdit) return;
+
+        setSavingUser(true);
+        try {
+            await updateUser(userToEdit.id, {
+                name: userToEdit.name,
+                email: userToEdit.email
+            });
+
+            // Atualizar a lista de usuários após edição
+            await fetchUsers();
+            setUserManagementSuccessMessage(`Usuário "${userToEdit.name}" atualizado com sucesso!`);
+            setUserManagementSuccess(true);
+            handleCloseEditModal();
+        } catch (error: any) {
+            setUserManagementError(error.message || "Erro ao atualizar usuário");
+        } finally {
+            setSavingUser(false);
+        }
+    };
+
+    // Manipuladores para o modal de exclusão de usuário
+    const handleOpenDeleteUserModal = (user: UserTableData) => {
+        setUserToDelete(user);
+        setDeleteUserModalOpen(true);
+    };
+
+    const handleCloseDeleteUserModal = () => {
+        setDeleteUserModalOpen(false);
+        setUserToDelete(null);
+        setDeletingUser(false);
+    };
+
+    const handleDeleteUser = async () => {
+        if (!userToDelete) return;
+
+        setDeletingUser(true);
+        try {
+            await deleteUserAdmin(userToDelete.id);
+
+            // Atualiza a lista de usuários após exclusão
+            fetchUsers();
+            setUserManagementSuccessMessage(`Usuário "${userToDelete.name}" excluído com sucesso!`);
+            setUserManagementSuccess(true);
+            handleCloseDeleteUserModal();
+        } catch (error: any) {
+            setUserManagementError(error.message || "Erro ao excluir usuário");
+        } finally {
+            setDeletingUser(false);
+        }
+    };
+
+    // Funções separadas para fechar os snackbars
+    const handleCloseProfileSnackbar = () => {
         setSuccess(false);
         setError("");
+    };
+
+    const handleCloseUserManagementSnackbar = () => {
+        setUserManagementSuccess(false);
+        setUserManagementError("");
     };
 
     return (
@@ -432,10 +623,10 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                     width: "100%",
                     backgroundRepeat: "no-repeat",
                     backgroundImage:
-                        "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(211, 100.00%, 83.10%), transparent)",
+                        "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(211, 100.00%, 70%), transparent)",
                     ...theme.applyStyles("dark", {
                         backgroundImage:
-                            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
+                            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 12%), transparent)",
                     }),
                 })}
             >
@@ -702,7 +893,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 >
                                     {loading ? 'Salvando alterações...' : 'Salvar alterações'}
                                 </Button>
-                                
+
                                 {/* Botão de deletar conta */}
                                 <Button
                                     variant="outlined"
@@ -742,7 +933,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 }
                             }}
                         >
-                            <DialogTitle id="delete-account-dialog-title" sx={{ 
+                            <DialogTitle id="delete-account-dialog-title" sx={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 1.5,
@@ -756,11 +947,11 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                     <DialogContentText id="delete-account-dialog-description" sx={{ mb: 3 }}>
                                         Esta ação <strong>não poderá ser desfeita</strong>. Todos os seus dados, incluindo histórico de atividades e preferências, serão excluídos permanentemente do nosso sistema.
                                     </DialogContentText>
-                                    
+
                                     <DialogContentText sx={{ mb: 2 }}>
                                         Por favor, digite seu email atual <strong>({user?.email})</strong> para confirmar que deseja excluir sua conta:
                                     </DialogContentText>
-                                    
+
                                     <TextField
                                         autoFocus
                                         fullWidth
@@ -778,15 +969,15 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 </Box>
                             </DialogContent>
                             <DialogActions sx={{ px: 3, pb: 3 }}>
-                                <Button 
-                                    onClick={() => setDeleteModalOpen(false)} 
+                                <Button
+                                    onClick={() => setDeleteModalOpen(false)}
                                     variant="text"
                                     sx={{ borderRadius: 2 }}
                                 >
                                     Cancelar
                                 </Button>
-                                <Button 
-                                    onClick={handleDeleteAccount} 
+                                <Button
+                                    onClick={handleDeleteAccount}
                                     variant="contained"
                                     color="error"
                                     disabled={confirmEmail !== user?.email || deleteLoading}
@@ -798,10 +989,233 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                             </DialogActions>
                         </Dialog>
 
-                        {/* Notificações */}
-                        <Snackbar open={success} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+                        {/* Tabela de usuários para ADMINs */}
+                        {user?.perfil === PerfilTypeEnum.ADMIN && (
+                            <StyledCard sx={{ mt: 4 }}>
+                                <SectionHeader>
+                                    <GroupIcon color="primary" />
+                                    <Typography variant="h6" fontWeight="500">
+                                        Gestão de Usuários
+                                    </Typography>
+                                </SectionHeader>
+                                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                        Como administrador, você pode ver todos os usuários cadastrados na plataforma.
+                                    </Typography>
+
+                                    {usersError && (
+                                        <Alert severity="error" sx={{ mb: 2 }}>
+                                            {usersError}
+                                            <Button
+                                                size="small"
+                                                color="inherit"
+                                                sx={{ ml: 2 }}
+                                                onClick={fetchUsers}
+                                            >
+                                                Tentar novamente
+                                            </Button>
+                                        </Alert>
+                                    )}
+
+                                    <TableContainer component={Paper} sx={{
+                                        borderRadius: 2,
+                                        boxShadow: 'none',
+                                        border: '1px solid',
+                                        borderColor: 'divider'
+                                    }}>
+                                        <Table sx={{ minWidth: 650 }} aria-label="tabela de usuários">
+                                            <TableHead>
+                                                <TableRow sx={{
+                                                    backgroundColor: (theme) => theme.palette.mode === 'dark'
+                                                        ? 'rgba(255, 255, 255, 0.05)'
+                                                        : 'rgba(0, 0, 0, 0.02)'
+                                                }}>
+                                                    <TableCell>Nome</TableCell>
+                                                    <TableCell>Email</TableCell>
+                                                    <TableCell align="center">Perfil</TableCell>
+                                                    <TableCell align="center">Ações</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {usersLoading ? (
+                                                    <TableRow>
+                                                        <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                                                            <CircularProgress size={30} />
+                                                            <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                                                                Carregando usuários...
+                                                            </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : users.length === 0 ? (
+                                                    <TableRow>
+                                                        <TableCell colSpan={4} align="center" sx={{ py: 5 }}>
+                                                            <Typography variant="body1">
+                                                                Nenhum usuário encontrado
+                                                            </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : (
+                                                    users
+                                                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                                        .map((user) => (
+                                                            <TableRow key={user.id} hover>
+                                                                <TableCell>{user.name}</TableCell>
+                                                                <TableCell>{user.email}</TableCell>
+                                                                <TableCell align="center">
+                                                                    <Chip
+                                                                        label={user.perfil === 'ADMIN' ? 'Administrador' : 'Usuário'}
+                                                                        size="small"
+                                                                        color={user.perfil === 'ADMIN' ? 'primary' : 'default'}
+                                                                        variant={user.perfil === 'ADMIN' ? 'filled' : 'outlined'}
+                                                                        sx={{
+                                                                            minWidth: 90,
+                                                                            fontWeight: 600,
+                                                                            fontSize: '0.75rem',
+                                                                            padding: '0 2px',
+                                                                            borderRadius: '16px',
+                                                                            '& .MuiChip-label': {
+                                                                                padding: '0 8px'
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                                                                        <Tooltip title="Editar">
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                color="primary"
+                                                                                onClick={() => handleOpenEditModal(user)}
+                                                                                sx={{
+                                                                                    border: '1px solid',
+                                                                                    borderColor: 'divider'
+                                                                                }}
+                                                                            >
+                                                                                <EditIcon fontSize="small" />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                        <Tooltip title="Excluir">
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                color="error"
+                                                                                onClick={() => handleOpenDeleteUserModal(user)}
+                                                                                sx={{
+                                                                                    border: '1px solid',
+                                                                                    borderColor: 'divider'
+                                                                                }}
+                                                                            >
+                                                                                <DeleteIcon fontSize="small" />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    </Box>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                    <TablePagination
+                                        rowsPerPageOptions={[5, 10, 25]}
+                                        component="div"
+                                        count={users.length}
+                                        rowsPerPage={rowsPerPage}
+                                        page={page}
+                                        onPageChange={handleChangePage}
+                                        onRowsPerPageChange={handleChangeRowsPerPage}
+                                        labelRowsPerPage="Linhas por página:"
+                                        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+                                    />
+                                </CardContent>
+                            </StyledCard>
+                        )}
+
+                        {/* Modal para editar usuário */}
+                        <Dialog
+                            open={editUserModalOpen}
+                            onClose={handleCloseEditModal}
+                            PaperProps={{
+                                sx: {
+                                    borderRadius: 3,
+                                    width: '100%',
+                                    maxWidth: 500
+                                }
+                            }}
+                        >
+                            <DialogTitle sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1.5
+                            }}>
+                                <EditIcon color="primary" />
+                                Editar Usuário
+                            </DialogTitle>
+                            <DialogContent>
+                                <Box component="form" sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                    {/* Campos de formulário redesenhados conforme o padrão dos outros formulários */}
+                                    <FormControl>
+                                        <FormLabel htmlFor="name" sx={{ mb: 1, fontWeight: 500 }}>
+                                            Nome completo
+                                        </FormLabel>
+                                        <TextField
+                                            fullWidth
+                                            id="name"
+                                            name="name"
+                                            placeholder="Fulano da Silva"
+                                            autoComplete="name"
+                                            value={userToEdit?.name || ''}
+                                            onChange={handleEditUserChange}
+                                            InputProps={{
+                                                sx: { borderRadius: 1.5 }
+                                            }}
+                                        />
+                                    </FormControl>
+
+                                    <FormControl>
+                                        <FormLabel htmlFor="email" sx={{ mb: 1, fontWeight: 500 }}>
+                                            Email
+                                        </FormLabel>
+                                        <TextField
+                                            fullWidth
+                                            id="email"
+                                            name="email"
+                                            placeholder="seu.email@email.com"
+                                            autoComplete="email"
+                                            variant="outlined"
+                                            value={userToEdit?.email || ''}
+                                            onChange={handleEditUserChange}
+                                            InputProps={{
+                                                sx: { borderRadius: 1.5 }
+                                            }}
+                                        />
+                                    </FormControl>
+                                </Box>
+                            </DialogContent>
+                            <DialogActions sx={{ px: 3, pb: 3 }}>
+                                <Button
+                                    onClick={handleCloseEditModal}
+                                    variant="text"
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    onClick={handleSaveUser}
+                                    variant="contained"
+                                    color="primary"
+                                    disabled={savingUser}
+                                    startIcon={savingUser ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    {savingUser ? 'Salvando...' : 'Salvar'}
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
+
+                        {/* Snackbars para notificações de perfil */}
+                        <Snackbar open={success} autoHideDuration={6000} onClose={handleCloseProfileSnackbar}>
                             <Alert
-                                onClose={handleCloseSnackbar}
+                                onClose={handleCloseProfileSnackbar}
                                 severity="success"
                                 sx={{
                                     width: '100%',
@@ -814,9 +1228,9 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                             </Alert>
                         </Snackbar>
 
-                        <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+                        <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseProfileSnackbar}>
                             <Alert
-                                onClose={handleCloseSnackbar}
+                                onClose={handleCloseProfileSnackbar}
                                 severity="error"
                                 sx={{
                                     width: '100%',
@@ -826,6 +1240,37 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 variant="filled"
                             >
                                 {error}
+                            </Alert>
+                        </Snackbar>
+
+                        {/* Snackbars para notificações de gestão de usuários */}
+                        <Snackbar open={userManagementSuccess} autoHideDuration={6000} onClose={handleCloseUserManagementSnackbar}>
+                            <Alert
+                                onClose={handleCloseUserManagementSnackbar}
+                                severity="success"
+                                sx={{
+                                    width: '100%',
+                                    boxShadow: 2,
+                                    borderRadius: 2
+                                }}
+                                variant="filled"
+                            >
+                                {userManagementSuccessMessage || "Operação realizada com sucesso!"}
+                            </Alert>
+                        </Snackbar>
+
+                        <Snackbar open={!!userManagementError} autoHideDuration={6000} onClose={handleCloseUserManagementSnackbar}>
+                            <Alert
+                                onClose={handleCloseUserManagementSnackbar}
+                                severity="error"
+                                sx={{
+                                    width: '100%',
+                                    boxShadow: 2,
+                                    borderRadius: 2
+                                }}
+                                variant="filled"
+                            >
+                                {userManagementError}
                             </Alert>
                         </Snackbar>
                     </Box>

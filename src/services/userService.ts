@@ -151,10 +151,20 @@ export const getAllUsers = async () => {
 
     return response.data;
   } catch (error) {
+    console.error("Erro ao obter lista de usuários:", error);
+
     if (axios.isAxiosError(error)) {
-      if (error.response) {
+      if (error.response?.status === 401) {
+        throw new Error("Sessão expirada. Por favor, faça login novamente.");
+      } else if (error.response?.status === 403) {
+        throw new Error("Você não tem permissão para acessar esta lista.");
+      } else if (error.response) {
         throw new Error(
-          error.response.data.message || "Erro ao buscar usuários"
+          error.response.data.message || "Erro ao buscar lista de usuários"
+        );
+      } else if (error.request) {
+        throw new Error(
+          "Servidor não respondeu. Verifique sua conexão de internet."
         );
       }
     }
@@ -248,5 +258,82 @@ export const deleteUserAccount = async (userId: number) => {
     }
 
     throw new Error("Ocorreu um erro inesperado ao excluir a conta.");
+  }
+};
+
+// Interface para atualização de outros usuários pelo admin
+export interface AdminUserUpdate {
+  name?: string;
+  email?: string;
+  perfil?: string;
+  active?: boolean;
+}
+
+// Função para atualizar um usuário (como admin)
+export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/v1/user/${userId}/admin`,
+      userData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error);
+
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        throw new Error("Sessão expirada. Por favor, faça login novamente.");
+      } else if (error.response?.status === 403) {
+        throw new Error("Você não tem permissão para atualizar este usuário.");
+      } else if (error.response?.status === 404) {
+        throw new Error("Usuário não encontrado.");
+      } else if (error.response) {
+        throw new Error(
+          error.response.data.message || "Erro ao atualizar o usuário"
+        );
+      }
+    }
+
+    throw new Error("Erro ao conectar com o servidor");
+  }
+};
+
+export const deleteUserAdmin = async (userId: number) => {
+  try {
+    const response = await axios.delete(
+      `${API_URL}/v1/user/${userId}/admin`,
+      {
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao excluir usuário:", error);
+
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        throw new Error("Sessão expirada. Por favor, faça login novamente.");
+      } else if (error.response?.status === 403) {
+        throw new Error("Você não tem permissão para excluir este usuário.");
+      } else if (error.response?.status === 404) {
+        throw new Error("Usuário não encontrado.");
+      } else if (error.response) {
+        throw new Error(
+          error.response.data.message || "Erro ao excluir o usuário"
+        );
+      }
+    }
+
+    throw new Error("Erro ao conectar com o servidor");
   }
 };
