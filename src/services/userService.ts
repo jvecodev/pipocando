@@ -209,3 +209,44 @@ export const createUser = async (userData: Omit<User, "id">) => {
     throw new Error("Erro ao conectar com o servidor");
   }
 };
+
+export const deleteUserAccount = async (userId: number) => {
+  try {
+    if (!userId) {
+      throw new Error("ID do usuário é necessário para excluir a conta");
+    }
+
+    const response = await axios.delete(`${API_URL}/v1/user/${userId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao excluir conta:", error);
+
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        if (error.response.status === 401) {
+          throw new Error("Sessão expirada. Por favor, faça login novamente.");
+        } else if (error.response.status === 403) {
+          throw new Error("Você não tem permissão para excluir esta conta.");
+        } else if (error.response.status === 404) {
+          throw new Error("Usuário não encontrado.");
+        }
+
+        throw new Error(
+          error.response.data.message || "Erro ao excluir a conta"
+        );
+      } else if (error.request) {
+        throw new Error(
+          "Servidor não respondeu. Verifique sua conexão de internet."
+        );
+      }
+    }
+
+    throw new Error("Ocorreu um erro inesperado ao excluir a conta.");
+  }
+};

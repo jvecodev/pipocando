@@ -16,21 +16,29 @@ import {
     CardContent,
     Divider,
     Stack,
-    Chip
+    Chip,
+    Modal,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
+import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SecurityIcon from '@mui/icons-material/Security';
 import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
+import WarningIcon from '@mui/icons-material/Warning';
 import { UserContext } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import { updateUserProfile } from '../../services/userService';
+import { updateUserProfile, deleteUserAccount } from '../../services/userService';
 import AppTheme from '../../shared-theme/AppTheme';
 import Header from '../../organisms/header/Header';
 import { styled } from '@mui/material/styles';
-// Import the ProfileUpdateData interface
+import axios from 'axios';
 import { ProfileUpdateData } from '../../services/userService';
 
 // Modificamos a interface para incluir perfil
@@ -75,10 +83,17 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
-    const [successMessage, setSuccessMessage] = useState(""); // Added success message state
+    const [successMessage, setSuccessMessage] = useState(""); 
     const [passwordValid, setPasswordValid] = useState(false);
+    
+    // Estado para controlar o modal de exclusão de conta
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [confirmEmail, setConfirmEmail] = useState('');
+    const [confirmEmailError, setConfirmEmailError] = useState(false);
+    const [confirmEmailErrorMessage, setConfirmEmailErrorMessage] = useState('');
 
     const [formData, setFormData] = useState<ProfileData>({
         id: 0,
@@ -143,12 +158,38 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             setPasswordValid(value.length >= 6);
             setPasswordError(false);
             setPasswordErrorMessage('');
+            
+            // Check if confirmPassword already has a value and update confirmation validation
+            if (formData.confirmPassword) {
+                if (value !== formData.confirmPassword) {
+                    setConfirmPasswordError(true);
+                    setConfirmPasswordErrorMessage('As senhas não conferem.');
+                } else {
+                    setConfirmPasswordError(false);
+                    setConfirmPasswordErrorMessage('');
+                }
+            }
         } else if (name === 'currentPassword') {
             setPasswordError(false);
             setPasswordErrorMessage('');
         } else if (name === 'confirmPassword') {
-            setConfirmPasswordError(false);
-            setConfirmPasswordErrorMessage('');
+            if (formData.newPassword && value !== formData.newPassword) {
+                setConfirmPasswordError(true);
+                setConfirmPasswordErrorMessage('As senhas não conferem.');
+            } else {
+                setConfirmPasswordError(false);
+                setConfirmPasswordErrorMessage('');
+            }
+        }
+    };
+
+    const handleConfirmEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setConfirmEmail(e.target.value);
+        
+        // Limpa o erro quando o usuário começa a digitar novamente
+        if (confirmEmailError) {
+            setConfirmEmailError(false);
+            setConfirmEmailErrorMessage('');
         }
     };
 
@@ -307,6 +348,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                     error.message.toLowerCase().includes("current password")) {
                 
                     setPasswordError(true);
+                    setPasswordErrorMessage("Senha atual inválida");
                     
                     // Exibir alerta mais visível
                     setError("Senha atual inválida. Por favor, verifique e tente novamente.");
@@ -328,6 +370,50 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
         } finally {
             setLoading(false);
         }
+    };
+    
+    const handleDeleteAccount = async () => {
+        // Validar se o email digitado corresponde ao email do usuário
+        if (confirmEmail !== user?.email) {
+            setConfirmEmailError(true);
+            setConfirmEmailErrorMessage("O email informado não corresponde ao seu email. Tente novamente.");
+            return;
+        }
+
+        setDeleteLoading(true);
+
+        try {
+            // Usar a função de serviço em vez de chamar axios diretamente
+            await deleteUserAccount(user?.id ? Number(user.id) : 0);
+            
+            // Limpar dados de sessão
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('user');
+            
+            // Limpar contexto do usuário
+            setUser(null);
+            
+            // Fechar o modal
+            setDeleteModalOpen(false);
+            
+            // Redirecionar para a página inicial com mensagem de confirmação
+            navigate('/?accountDeleted=true');
+        } catch (error: any) {
+            console.error("Erro ao excluir conta:", error);
+            setError(error.message || "Ocorreu um erro ao tentar excluir sua conta. Por favor, tente novamente.");
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
+    const openDeleteModal = () => {
+        setDeleteModalOpen(true);
+        setConfirmEmail('');
+        setConfirmEmailError(false);
+        setConfirmEmailErrorMessage('');
     };
     
     const handleCloseSnackbar = () => {
@@ -401,8 +487,6 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                     color="text.primary"
                                 >
                                     {user?.perfil === 'ADMIN' ? 'Administrador' : 'Usuário'}
-                                    {/* Alternative way if using role property */}
-                                    {/* {user?.role === 'ADMIN' ? 'Administrador' : 'Usuário'} */}
                                 </Typography>
                             </Box>
                         </Box>
@@ -505,8 +589,8 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                                 autoComplete="current-password"
                                                 value={formData.currentPassword}
                                                 onChange={handleChange}
-                                                error={passwordError && formData.currentPassword === ''}
-                                                helperText={passwordError && formData.currentPassword === '' ? passwordErrorMessage : ''}
+                                                error={passwordError}
+                                                helperText={passwordError ? passwordErrorMessage : ''}
                                                 color={passwordError ? 'error' : 'primary'}
                                                 InputProps={{
                                                     sx: {
@@ -588,12 +672,15 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 </CardContent>
                             </StyledCard>
 
+                            {/* Botões de ação */}
                             <Box
                                 sx={{
                                     display: 'flex',
                                     justifyContent: 'center',
+                                    gap: 2,
                                     mt: 4,
-                                    mb: 2
+                                    mb: 2,
+                                    flexWrap: { xs: 'wrap', sm: 'nowrap' }
                                 }}
                             >
                                 <Button
@@ -609,13 +696,107 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                         borderRadius: 2,
                                         '&:hover': {
                                             backgroundColor: 'hsl(49, 72.90%, 65.30%)'
-                                        }
+                                        },
+                                        flex: { xs: '1 1 100%', sm: '1 1 auto' }
                                     }}
                                 >
                                     {loading ? 'Salvando alterações...' : 'Salvar alterações'}
                                 </Button>
+                                
+                                {/* Botão de deletar conta */}
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    size="large"
+                                    onClick={openDeleteModal}
+                                    startIcon={<DeleteIcon />}
+                                    sx={{
+                                        py: 1.5,
+                                        px: 4,
+                                        borderRadius: 2,
+                                        borderColor: 'error.main',
+                                        color: 'error.main',
+                                        '&:hover': {
+                                            backgroundColor: 'error.light',
+                                            borderColor: 'error.dark',
+                                            color: 'error.contrastText'
+                                        },
+                                        flex: { xs: '1 1 100%', sm: '1 1 auto' }
+                                    }}
+                                >
+                                    Deletar conta
+                                </Button>
                             </Box>
                         </Box>
+
+                        {/* Modal de confirmação de exclusão de conta */}
+                        <Dialog
+                            open={deleteModalOpen}
+                            onClose={() => setDeleteModalOpen(false)}
+                            aria-labelledby="delete-account-dialog-title"
+                            aria-describedby="delete-account-dialog-description"
+                            PaperProps={{
+                                sx: {
+                                    borderRadius: 3,
+                                    maxWidth: 500
+                                }
+                            }}
+                        >
+                            <DialogTitle id="delete-account-dialog-title" sx={{ 
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1.5,
+                                color: 'error.main'
+                            }}>
+                                <WarningIcon color="error" />
+                                Excluir conta permanentemente
+                            </DialogTitle>
+                            <DialogContent>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <DialogContentText id="delete-account-dialog-description" sx={{ mb: 3 }}>
+                                        Esta ação <strong>não poderá ser desfeita</strong>. Todos os seus dados, incluindo histórico de atividades e preferências, serão excluídos permanentemente do nosso sistema.
+                                    </DialogContentText>
+                                    
+                                    <DialogContentText sx={{ mb: 2 }}>
+                                        Por favor, digite seu email atual <strong>({user?.email})</strong> para confirmar que deseja excluir sua conta:
+                                    </DialogContentText>
+                                    
+                                    <TextField
+                                        autoFocus
+                                        fullWidth
+                                        variant="outlined"
+                                        placeholder="seu.email@email.com"
+                                        value={confirmEmail}
+                                        onChange={handleConfirmEmailChange}
+                                        error={confirmEmailError}
+                                        helperText={confirmEmailError ? confirmEmailErrorMessage : ''}
+                                        InputProps={{
+                                            sx: { borderRadius: 1.5 }
+                                        }}
+                                        sx={{ mb: 1 }}
+                                    />
+                                </Box>
+                            </DialogContent>
+                            <DialogActions sx={{ px: 3, pb: 3 }}>
+                                <Button 
+                                    onClick={() => setDeleteModalOpen(false)} 
+                                    variant="text"
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button 
+                                    onClick={handleDeleteAccount} 
+                                    variant="contained"
+                                    color="error"
+                                    disabled={confirmEmail !== user?.email || deleteLoading}
+                                    startIcon={deleteLoading ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    {deleteLoading ? 'Excluindo...' : 'Confirmar exclusão'}
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
 
                         {/* Notificações */}
                         <Snackbar open={success} autoHideDuration={6000} onClose={handleCloseSnackbar}>
@@ -629,7 +810,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 }}
                                 variant="filled"
                             >
-                                Perfil atualizado com sucesso!
+                                {successMessage || "Perfil atualizado com sucesso!"}
                             </Alert>
                         </Snackbar>
 
