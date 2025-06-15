@@ -58,7 +58,6 @@ const Movies: React.FC = () => {
   const [favorites, setFavorites] = useState<number[]>([]);
 
   useEffect(() => {
-    // Carregar favoritos do localStorage
     const savedFavorites = localStorage.getItem('favoriteMovies');
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites));
@@ -67,7 +66,6 @@ const Movies: React.FC = () => {
 
   useEffect(() => {
     loadMovies();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabValue, page]);
 
   useEffect(() => {
@@ -76,7 +74,6 @@ const Movies: React.FC = () => {
     } else {
       loadMovies();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const loadMovies = async () => {
@@ -103,7 +100,6 @@ const Movies: React.FC = () => {
       setMovies(response.results);
       setTotalPages(response.total_pages);
 
-      // Carregar provedores de streaming para os filmes
       const providersPromises = response.results.map(async (movie) => {
         try {
           const providers = await tmdbService.getMovieWatchProviders(movie.id);
