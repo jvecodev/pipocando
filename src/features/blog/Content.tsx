@@ -41,6 +41,7 @@ import watchlistService from '../../services/watchlistService';
 import { createNewsFromMovie, createNewsFromTVShow, createReviewTemplate } from '../../services/blogTmdbService';
 import { generateWatchlistPostSuggestions } from '../../services/blogTmdbService';
 import { useNavigate } from 'react-router-dom';
+import BlogDetail from './BlogDetail';
 
 // Categorias disponíveis
 const CATEGORIES = [
@@ -514,6 +515,11 @@ export default function Content() {
     return true;
   };
 
+  // Adiciona navegação ao clicar no card do blog
+  const handleCardClick = (post: BlogType) => {
+    navigate(`/blog/${post.id}`);
+  };
+
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
@@ -720,6 +726,7 @@ export default function Content() {
                       post={post}
                       onEditClick={canEdit ? handleEditClick : undefined}
                       onDeleteClick={canDelete ? handleDeleteClick : undefined}
+                      onCardClick={handleCardClick}
                       isFocused={focusedCardIndex === index}
                     />
                   </Grid>
