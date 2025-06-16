@@ -15,6 +15,13 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Logout from '@mui/icons-material/Logout';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import Divider from '@mui/material/Divider';
+import CloseIcon from '@mui/icons-material/Close';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
@@ -33,6 +40,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 function Header() {
   const [userName, setUserName] = React.useState<string | null>(null);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const open = Boolean(anchorEl);
 
   React.useEffect(() => {
@@ -48,12 +56,17 @@ function Header() {
       }
     }
   }, []);
-
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+  const handleMobileMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+  const handleMobileMenuClose = () => {
+    setMobileMenuOpen(false);
   };
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -81,14 +94,20 @@ function Header() {
           <Box
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
           >
-            <Sitemark />
-            <Box sx={{ display: { xs: "none", md: "flex" } }}>
+            <Sitemark />            <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <Button
                 component={Link}
                 to="/"
                 variant="text"
                 color="info"
                 size="small"
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                })}
               >
                 Home
               </Button>
@@ -98,6 +117,13 @@ function Header() {
                 variant="text"
                 color="info"
                 size="small"
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                })}
               >
                 Blog
               </Button>
@@ -107,6 +133,13 @@ function Header() {
                 variant="text"
                 color="info"
                 size="small"
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                })}
               >
                 Filmes
               </Button>
@@ -116,6 +149,13 @@ function Header() {
                 variant="text"
                 color="info"
                 size="small"
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                })}
               >
                 Séries
               </Button>
@@ -125,7 +165,14 @@ function Header() {
                 variant="text"
                 color="info"
                 size="small"
-                sx={{ minWidth: 0 }}
+                sx={{ 
+                  minWidth: 0,
+                  textTransform: 'none',
+                  color: (theme) => theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  '&:hover': {
+                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                }}
               >
                 FAQ
               </Button>
@@ -139,19 +186,21 @@ function Header() {
             }}
           >
             {userName ? (
-              <>
-                <Button
+              <>                <Button
                   color="primary"
                   variant="text"
                   size="small"
                   onClick={handleMenu}
                   sx={(theme) => ({
                     fontWeight: 700,
-                    color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+                    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                     background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                     borderRadius: 2,
                     px: 2,
                     textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
+                    },
                   })}
                 >
                   {userName}
@@ -177,14 +226,20 @@ function Header() {
                   </MenuItem>
                 </Menu>
               </>
-            ) : (
-              <>
+            ) : (              <>
                 <Button 
                   component={Link}
                   to="/login"
                   color="primary" 
                   variant="text" 
                   size="small"
+                  sx={(theme) => ({
+                    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                    textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                    },
+                  })}
                 >
                   Entrar
                 </Button>
@@ -194,22 +249,164 @@ function Header() {
                   color="primary" 
                   variant="contained" 
                   size="small"
+                  sx={(theme) => ({
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+                    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.primary.main,
+                    textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.dark,
+                    },
+                  })}
                 >
                   Cadastrar
                 </Button>
               </>
             )}
             <ColorModeIconDropdown />
-          </Box>
-
-          <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
+          </Box>          <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
             <ColorModeIconDropdown />
-            <IconButton aria-label="Menu button">
+            <IconButton 
+              aria-label="Menu button"
+              onClick={handleMobileMenuToggle}
+              sx={(theme) => ({
+                color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+              })}
+            >
               <MenuIcon />
             </IconButton>
-          </Box>
-        </StyledToolbar>
+          </Box>        </StyledToolbar>
       </Container>
+
+      {/* Mobile Menu Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={handleMobileMenuClose}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: 280,
+            boxSizing: 'border-box',
+          },
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Sitemark />
+          <IconButton onClick={handleMobileMenuClose}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Divider />
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="Home" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/blog" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="Blog" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/filmes" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="Filmes" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/series" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="Séries" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/faq" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="FAQ" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+        <Divider />
+        <Box sx={{ p: 2 }}>
+          {userName ? (
+            <List>
+              <ListItem disablePadding>
+                <ListItemButton 
+                  component={Link} 
+                  to="/perfil" 
+                  onClick={handleMobileMenuClose}
+                  sx={{ textTransform: 'none' }}
+                >
+                  <ListItemIcon>
+                    <AccountCircle />
+                  </ListItemIcon>
+                  <ListItemText primary={`Olá, ${userName}`} />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton 
+                  onClick={() => {
+                    handleLogout();
+                    handleMobileMenuClose();
+                  }}
+                  sx={{ textTransform: 'none' }}
+                >
+                  <ListItemIcon>
+                    <Logout />
+                  </ListItemIcon>
+                  <ListItemText primary="Logout" />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Button 
+                component={Link}
+                to="/login"
+                variant="text"
+                fullWidth
+                onClick={handleMobileMenuClose}
+                sx={{ textTransform: 'none' }}
+              >
+                Entrar
+              </Button>
+              <Button 
+                component={Link}
+                to="/signup"
+                variant="contained"
+                fullWidth
+                onClick={handleMobileMenuClose}
+                sx={{ textTransform: 'none' }}
+              >
+                Cadastrar
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Drawer>
     </AppBar>
   );
 }

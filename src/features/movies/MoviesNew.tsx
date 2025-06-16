@@ -212,25 +212,23 @@ const Movies: React.FC = () => {
 
       {/* Tabs Navigation */}
       {!searchQuery && (
-        <Box sx={{ mb: 4 }}>
-          <Tabs
+        <Box sx={{ mb: 4 }}>          <Tabs
             value={tabValue}
             onChange={handleTabChange}
             centered
-            sx={{
+            sx={(theme) => ({
               '& .MuiTabs-indicator': {
-                backgroundColor: 'primary.main',
+                backgroundColor: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
                 height: 3,
                 borderRadius: 1.5,
-              },
-              '& .MuiTab-root': {
+              },              '& .MuiTab-root': {
                 fontSize: '1rem',
                 fontWeight: 600,
                 textTransform: 'none',
                 minWidth: 120,
               },
-            }}
-          >            <Tab icon={<LocalFireDepartment />} iconPosition="start" label="Populares" />
+            })}
+          ><Tab icon={<LocalFireDepartment />} iconPosition="start" label="Populares" />
             <Tab icon={<Star />} iconPosition="start" label="Melhores Avaliados" />
             <Tab icon={<TrackChanges />} iconPosition="start" label="Em Breve" />
           </Tabs>
@@ -323,18 +321,21 @@ const Movies: React.FC = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <Box display="flex" justifyContent="center" mt={6}>
-              <Pagination
+            <Box display="flex" justifyContent="center" mt={6}>              <Pagination
                 count={Math.min(totalPages, 500)} // TMDB limita a 500 páginas
                 page={page}
                 onChange={handlePageChange}
-                color="primary"
                 size="large"
-                sx={{
+                sx={(theme) => ({
                   '& .MuiPaginationItem-root': {
                     fontSize: '1rem',
+                    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                   },
-                }}
+                  '& .Mui-selected': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : theme.palette.primary.main,
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+                  },
+                })}
               />
             </Box>
           )}

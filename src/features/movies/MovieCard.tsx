@@ -167,14 +167,21 @@ const MovieCard: React.FC<MovieCardProps> = ({
               borderRadius: '10px',
             },
           }}
-        >
-          <Stack spacing={1.5}>
+        >          <Stack spacing={1.5}>
             <Button
               variant="outlined"
               size="small"
               startIcon={<ShoppingCart />}
               onClick={() => window.open(tmdbService.getGooglePlayMovieUrl(movie.title, year), '_blank')}
-              sx={{ justifyContent: 'flex-start' }}
+              sx={(theme) => ({ 
+                justifyContent: 'flex-start',
+                borderColor: theme.palette.mode === 'dark' ? '#fff' : '#424242',
+                color: theme.palette.mode === 'dark' ? '#fff' : '#424242',
+                '&:hover': {
+                  borderColor: theme.palette.mode === 'dark' ? '#e0e0e0' : '#616161',
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(66,66,66,0.04)',
+                },
+              })}
             >
               Alugar na Google Play
             </Button>
@@ -183,7 +190,15 @@ const MovieCard: React.FC<MovieCardProps> = ({
               size="small"
               startIcon={<YouTube />}
               onClick={() => window.open(tmdbService.getYouTubeMovieUrl(movie.title, year), '_blank')}
-              sx={{ justifyContent: 'flex-start' }}
+              sx={(theme) => ({ 
+                justifyContent: 'flex-start',
+                borderColor: theme.palette.mode === 'dark' ? '#fff' : '#424242',
+                color: theme.palette.mode === 'dark' ? '#fff' : '#424242',
+                '&:hover': {
+                  borderColor: theme.palette.mode === 'dark' ? '#e0e0e0' : '#616161',
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(66,66,66,0.04)',
+                },
+              })}
             >
               Comprar no YouTube
             </Button>
@@ -263,9 +278,16 @@ const MovieCard: React.FC<MovieCardProps> = ({
                   backgroundColor: 'rgba(0,0,0,0.8)',
                   color: 'white',
                   '&:hover': { backgroundColor: 'rgba(0,0,0,0.9)' },
-                }}
-              >
-                {isInWatchlist ? <Remove color="primary" /> : <Add color="primary" />}
+                }}              >
+                {isInWatchlist ? (
+                  <Remove sx={(theme) => ({ 
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#424242'
+                  })} />
+                ) : (
+                  <Add sx={(theme) => ({ 
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#424242'
+                  })} />
+                )}
               </IconButton>
             </Tooltip>
           </Box>
@@ -309,16 +331,21 @@ const MovieCard: React.FC<MovieCardProps> = ({
 
           {renderStreamingProviders()}
           
-          {!hasStreamingOptions && renderPurchaseOptions()}
-
-          <Stack spacing={1} direction="row">
+          {!hasStreamingOptions && renderPurchaseOptions()}          <Stack spacing={1} direction="row">
             {hasStreamingOptions && watchProviders?.link && (
               <Button
                 variant="contained"
                 startIcon={<PlayArrow />}
                 size="small"
                 onClick={() => window.open(watchProviders.link, '_blank')}
-                sx={{ flex: 1 }}
+                sx={(theme) => ({ 
+                  flex: 1,
+                  backgroundColor: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
+                  color: theme.palette.mode === 'dark' ? '#424242' : '#fff',
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? '#e0e0e0' : theme.palette.primary.dark,
+                  },
+                })}
               >
                 Assistir
               </Button>
@@ -329,7 +356,15 @@ const MovieCard: React.FC<MovieCardProps> = ({
               startIcon={<MovieCreation />}
               size="small"
               onClick={handleTrailerClick}
-              sx={{ flex: hasStreamingOptions ? 0 : 1 }}
+              sx={(theme) => ({ 
+                flex: 1,
+                borderColor: theme.palette.mode === 'dark' ? '#fff' : '#424242',
+                color: theme.palette.mode === 'dark' ? '#fff' : '#424242',
+                '&:hover': {
+                  borderColor: theme.palette.mode === 'dark' ? '#e0e0e0' : '#616161',
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(66,66,66,0.04)',
+                },
+              })}
             >
               Trailer
             </Button>
@@ -372,9 +407,18 @@ const MovieCard: React.FC<MovieCardProps> = ({
               />
             </Box>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setTrailerOpen(false)}>Fechar</Button>
+        </DialogContent>        <DialogActions>
+          <Button 
+            onClick={() => setTrailerOpen(false)}
+            sx={(theme) => ({
+              color: theme.palette.mode === 'dark' ? '#fff' : '#424242',
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(66,66,66,0.04)',
+              },
+            })}
+          >
+            Fechar
+          </Button>
         </DialogActions>
       </Dialog>
     </>

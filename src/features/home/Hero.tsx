@@ -98,24 +98,22 @@ export default function Hero() {
             spacing={1}
             useFlexGap
             sx={{ pt: 2, width: { xs: "100%", sm: "350px" } }}
-          ></Stack>
-          <Box sx={{ mt: 4, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          ></Stack>          <Box sx={{ mt: 4, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography
               variant="subtitle1"
-              color="primary"
-              sx={{
+              sx={(theme) => ({
                 fontWeight: 700,
                 letterSpacing: 1,
                 fontSize: { xs: '1.1rem', md: '1.2rem' },
                 textShadow: '0 1px 8px rgba(128,0,32,0.10)',
-              }}
+                color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
+              })}
             >
               Leia nossos termos
             </Typography>
             <Button
               variant="outlined"
-              color="primary"
-              sx={{
+              sx={(theme) => ({
                 fontWeight: 700,
                 textTransform: 'none',
                 fontSize: { xs: '1rem', md: '1.1rem' },
@@ -124,15 +122,25 @@ export default function Hero() {
                 borderRadius: 2,
                 boxShadow: '0 2px 8px 0 rgba(128,0,32,0.08)',
                 borderWidth: 2,
-                borderColor: 'primary.main',
                 ml: 1,
                 transition: 'all 0.2s',
-                '&:hover': {
-                  backgroundColor: 'primary.main',
-                  color: 'white',
-                  borderColor: 'primary.main',
-                },
-              }}
+                ...(theme.palette.mode === 'dark' ? {
+                  color: '#fff',
+                  borderColor: '#fff',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    borderColor: '#fff',
+                  },
+                } : {
+                  color: theme.palette.primary.main,
+                  borderColor: theme.palette.primary.main,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderColor: theme.palette.primary.main,
+                  },
+                }),
+              })}
               onClick={handleOpenTerms}
             >
               Termos de uso

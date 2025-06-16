@@ -186,16 +186,15 @@ const Movies: React.FC = () => {
             sx={{ mb: 2 }}
           />
 
-          {!searchQuery && (
-            <Tabs
+          {!searchQuery && (            <Tabs
               value={tabValue}
               onChange={handleTabChange}
               centered
-              sx={{
+              sx={(theme) => ({
                 '& .MuiTabs-indicator': {
-                  backgroundColor: 'primary.main',
+                  backgroundColor: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
                 },
-              }}
+              })}
             >
               <Tab label="Populares" />
               <Tab label="Melhores Avaliados" />
@@ -274,13 +273,20 @@ const Movies: React.FC = () => {
             )}
 
             {totalPages > 1 && (
-              <Box display="flex" justifyContent="center" mt={4}>
-                <Pagination
+              <Box display="flex" justifyContent="center" mt={4}>                <Pagination
                   count={Math.min(totalPages, 500)} // TMDB limita a 500 páginas
                   page={page}
                   onChange={handlePageChange}
-                  color="primary"
                   size="large"
+                  sx={(theme) => ({
+                    '& .MuiPaginationItem-root': {
+                      color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                    },
+                    '& .Mui-selected': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : theme.palette.primary.main,
+                      color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+                    },
+                  })}
                 />
               </Box>
             )}

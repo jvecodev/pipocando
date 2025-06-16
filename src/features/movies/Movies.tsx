@@ -217,18 +217,16 @@ const Movies: React.FC = () => {
           <Tabs
             value={tabValue}
             onChange={handleTabChange}
-            centered={false}
-            sx={{
+            centered={false}            sx={(theme) => ({
               justifyContent: 'flex-start',
               '& .MuiTabs-flexContainer': {
                 justifyContent: 'flex-start',
               },
               '& .MuiTabs-indicator': {
-                backgroundColor: 'primary.main',
+                backgroundColor: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
                 height: 3,
                 borderRadius: 1.5,
-              },
-              '& .MuiTab-root': {
+              },              '& .MuiTab-root': {
                 fontSize: '1rem',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -237,7 +235,7 @@ const Movies: React.FC = () => {
                 alignItems: 'flex-start',
                 transition: 'none',
               },
-            }}
+            })}
           >
             <Tab 
               icon={<WhatshotIcon />} 
@@ -343,18 +341,21 @@ const Movies: React.FC = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <Box display="flex" justifyContent="center" mt={6}>
-              <Pagination
+            <Box display="flex" justifyContent="center" mt={6}>              <Pagination
                 count={Math.min(totalPages, 500)} // TMDB limita a 500 páginas
                 page={page}
                 onChange={handlePageChange}
-                color="primary"
                 size="large"
-                sx={{
+                sx={(theme) => ({
                   '& .MuiPaginationItem-root': {
                     fontSize: '1rem',
+                    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                   },
-                }}
+                  '& .Mui-selected': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : theme.palette.primary.main,
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+                  },
+                })}
               />
             </Box>
           )}
