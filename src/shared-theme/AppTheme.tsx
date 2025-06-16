@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import type { ThemeOptions } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery'; // Importação correta do hook
-import { colorSchemes, extendTheme } from './themePrimitives';
+import { extendTheme } from './themePrimitives';
 
 interface AppThemeProps {
   children: React.ReactNode;

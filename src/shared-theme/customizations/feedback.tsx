@@ -1,5 +1,5 @@
 import { Theme, alpha, Components } from '@mui/material/styles';
-import { gray, cremePipoca, carameloPipoca, carameloEscuro, borgonhaFundo, cremeSuave, begeAreia } from '../themePrimitives';
+import { cremePipoca, carameloEscuro, cremeSuave, begeAreia } from '../themePrimitives';
 
 /* eslint-disable import/prefer-default-export */
 export const feedbackCustomizations: Components<Theme> = {
@@ -20,8 +20,7 @@ export const feedbackCustomizations: Components<Theme> = {
           border: '1px solid',
           borderColor: theme.palette.divider,
           // Adicionando um background sutil de bege
-          backgroundImage: theme.palette.mode === 'dark' 
-            ? `linear-gradient(135deg, ${alpha('#3A2D1E', 0.95)}, ${alpha('#2A1E14', 0.9)})`
+          backgroundImage: theme.palette.mode === 'dark'            ? `linear-gradient(135deg, ${alpha(carameloEscuro, 0.95)}, ${alpha('#2A1E14', 0.9)})`
             : `linear-gradient(135deg, ${alpha(cremePipoca, 0.95)}, ${alpha(cremeSuave, 0.9)})`,
         },
       }),
