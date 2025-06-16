@@ -15,6 +15,7 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Logout from '@mui/icons-material/Logout';
+import { useUser } from '../../context/UserContext'; // Adicione esta linha
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
@@ -31,37 +32,33 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 function Header() {
-  const [userName, setUserName] = React.useState<string | null>(null);
+  const { user, setUser } = useUser(); // Garantir que estamos usando o contexto do usuário
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-
-  React.useEffect(() => {
-    // Obter nome do usuário do objeto 'user' no localStorage
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const userData = JSON.parse(userStr);
-        setUserName(userData.name);
-      } catch (e) {
-        console.error('Erro ao recuperar dados do usuário:', e);
-        setUserName(null);
-      }
-    }
-  }, []);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
+
   const handleLogout = () => {
+    // Limpar dados do localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    // Remova esta linha se estiver usando a opção 2
-    // localStorage.removeItem('username');
-    setUserName(null);
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
+
+    // Limpar o usuário no contexto
+    setUser(null);
+
+    // Fechar o menu
     handleClose();
+
+    // Redirecionar para a página inicial
     window.location.href = "/";
   };
 
@@ -138,7 +135,7 @@ function Header() {
               alignItems: "center",
             }}
           >
-            {userName ? (
+            {user ? (
               <>
                 <Button
                   color="primary"
@@ -154,7 +151,7 @@ function Header() {
                     textTransform: 'none',
                   })}
                 >
-                  {userName}
+                  {user.name}
                 </Button>
                 <Menu
                   anchorEl={anchorEl}
@@ -179,20 +176,20 @@ function Header() {
               </>
             ) : (
               <>
-                <Button 
+                <Button
                   component={Link}
                   to="/login"
-                  color="primary" 
-                  variant="text" 
+                  color="primary"
+                  variant="text"
                   size="small"
                 >
                   Entrar
                 </Button>
-                <Button 
+                <Button
                   component={Link}
                   to="/signup"
-                  color="primary" 
-                  variant="contained" 
+                  color="primary"
+                  variant="contained"
                   size="small"
                 >
                   Cadastrar

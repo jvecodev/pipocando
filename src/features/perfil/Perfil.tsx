@@ -379,93 +379,90 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
         setSuccess(false);
 
         try {
-            const dataToUpdate = {
-                id: user?.id ? Number(user.id) : 0,
+            // Modificar a definição do objeto para incluir os campos como opcionais
+            const dataToUpdate: {
+                name: string;
+                email: string;
+                currentPassword?: string;
+                newPassword?: string;
+            } = {
                 name: formData.name,
                 email: formData.email,
-                currentPassword: formData.currentPassword || undefined,
-                newPassword: formData.newPassword || undefined
             };
 
-            // Remove undefined fields and empty strings
-            Object.keys(dataToUpdate).forEach(key => {
-                const value = dataToUpdate[key as keyof typeof dataToUpdate];
-                if (value === undefined || (typeof value === 'string' && value.trim() === '')) {
-                    delete dataToUpdate[key as keyof typeof dataToUpdate];
-                }
+            // Adicionar senha apenas se estiver sendo alterada
+            if (formData.currentPassword && formData.newPassword) {
+                dataToUpdate.currentPassword = formData.currentPassword;
+                dataToUpdate.newPassword = formData.newPassword;
+            }
+
+            // Corrigir a chamada de função para passar um único objeto com ID incluído
+            const response = await updateUserProfile({
+                id: user?.id ? Number(user.id) : 0,
+                ...dataToUpdate
             });
 
-            try {
-                // Salvar completo estado de autenticação
-                const authState = {
-                    token: localStorage.getItem('token'),
-                    userId: localStorage.getItem('userId'),
-                    userName: localStorage.getItem('userName'),
-                    userRole: localStorage.getItem('userRole')
+            if (user) {
+                const updatedUser = {
+                    ...user,
+                    name: response.name || user.name,
+                    email: response.email || user.email
                 };
 
-                const response = await updateUserProfile(dataToUpdate);
+                // Atualizar o contexto do usuário
+                setUser(updatedUser);
 
-                // Atualizar contexto do usuário com novos dados mantendo todos os campos existentes
-                if (user) {
-                    const updatedUser = {
-                        ...user,
-                        name: response.name || user.name,
-                        email: response.email || user.email
-                    };
+                // Atualizar localStorage com o usuário atualizado
+                localStorage.setItem('user', JSON.stringify(updatedUser));
 
-                    setUser(updatedUser);
+                // Restaurar dados de autenticação usando os valores armazenados
+                const token = localStorage.getItem('token');
+                if (token) localStorage.setItem('token', token);
 
-                    // Atualizar localStorage com o usuário atualizado
-                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                const userId = localStorage.getItem('userId');
+                if (userId) localStorage.setItem('userId', userId);
 
-                    // Restaurar TODOS os dados de autenticação
-                    if (authState.token) localStorage.setItem('token', authState.token);
-                    if (authState.userId) localStorage.setItem('userId', authState.userId);
-                    if (authState.userName) localStorage.setItem('userName', authState.userName);
-                    if (authState.userRole) localStorage.setItem('userRole', authState.userRole);
-                }
+                // Atualizar o nome do usuário no localStorage
+                localStorage.setItem('userName', updatedUser.name);
 
-                setSuccess(true);
+                const userRole = localStorage.getItem('userRole');
+                if (userRole) localStorage.setItem('userRole', userRole);
+            }
 
-                // Limpar campos de senha após atualização
+            setSuccess(true);
+
+            // Limpar campos de senha após atualização
+            setFormData(prev => ({
+                ...prev,
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            }));
+
+            // Mensagem de sucesso
+            setSuccessMessage("Perfil atualizado com sucesso!");
+        } catch (error: any) {
+            console.error("Erro ao atualizar perfil:", error);
+
+            // Verificar erro específico de senha atual inválida
+            if (error.message.includes("Senha atual inválida") ||
+                error.message.includes("Invalid request") ||
+                error.message.toLowerCase().includes("current password")) {
+
+                setPasswordError(true);
+                setPasswordErrorMessage("Senha atual inválida");
+
+                // Exibir alerta mais visível
+                setError("Senha atual inválida. Por favor, verifique e tente novamente.");
+
+                // Limpa apenas a senha atual para nova tentativa, preservando os outros campos
                 setFormData(prev => ({
                     ...prev,
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: ''
+                    currentPassword: ''
                 }));
-
-                // Mensagem de sucesso
-                setSuccessMessage("Perfil atualizado com sucesso!");
-            } catch (error: any) {
-                console.error("Erro ao atualizar perfil:", error);
-
-                // Verificar erro específico de senha atual inválida
-                if (error.message.includes("Senha atual inválida") ||
-                    error.message.includes("Invalid request") ||
-                    error.message.toLowerCase().includes("current password")) {
-
-                    setPasswordError(true);
-                    setPasswordErrorMessage("Senha atual inválida");
-
-                    // Exibir alerta mais visível
-                    setError("Senha atual inválida. Por favor, verifique e tente novamente.");
-
-                    // Limpa apenas a senha atual para nova tentativa, preservando os outros campos
-                    setFormData(prev => ({
-                        ...prev,
-                        currentPassword: ''
-                    }));
-                } else {
-                    setError(error.message || "Ocorreu um erro ao atualizar o perfil");
-                }
-            } finally {
-                setLoading(false);
+            } else {
+                setError(error.message || "Ocorreu um erro ao atualizar o perfil");
             }
-        } catch (error: any) {
-            console.error("Erro geral:", error);
-            setError("Ocorreu um erro inesperado. Por favor, tente novamente.");
         } finally {
             setLoading(false);
         }
@@ -548,13 +545,48 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
 
         setSavingUser(true);
         try {
-            await updateUser(userToEdit.id, {
+            // Enviar solicitação para atualizar o usuário
+            const updatedUserData = await updateUser(userToEdit.id, {
                 name: userToEdit.name,
-                email: userToEdit.email
+                email: userToEdit.email,
+                perfil: userToEdit.perfil,
+                active: userToEdit.active
             });
 
-            // Atualizar a lista de usuários após edição
-            await fetchUsers();
+            // Atualizar a lista de usuários localmente sem precisar fazer uma nova chamada à API
+            setUsers(currentUsers =>
+                currentUsers.map(u =>
+                    u.id === userToEdit.id
+                        ? {
+                            ...u,
+                            name: updatedUserData.name || u.name,
+                            email: updatedUserData.email || u.email,
+                            perfil: (updatedUserData.role || updatedUserData.perfil || '').toUpperCase(),
+                            active: updatedUserData.active !== undefined ? updatedUserData.active : u.active
+                        }
+                        : u
+                )
+            );
+
+            // Se o usuário que está sendo editado é o mesmo que está logado, atualizar também o contexto
+            // Corrigir comparação convertendo ambos para o mesmo tipo
+            if (user && Number(user.id) === userToEdit.id) {
+                const updatedUser = {
+                    ...user,
+                    name: updatedUserData.name || user.name,
+                    email: updatedUserData.email || user.email,
+                    perfil: updatedUserData.role || user.perfil
+                    // Remover a propriedade active que não existe no tipo PerfilType
+                };
+
+                // Atualizar o contexto do usuário
+                setUser(updatedUser);
+
+                // Atualizar localStorage com o usuário atualizado
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                if (updatedUser.name) localStorage.setItem('userName', updatedUser.name);
+            }
+
             setUserManagementSuccessMessage(`Usuário "${userToEdit.name}" atualizado com sucesso!`);
             setUserManagementSuccess(true);
             handleCloseEditModal();
@@ -1298,10 +1330,10 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 <Button onClick={handleCloseDeleteUserModal} color="inherit">
                                     Cancelar
                                 </Button>
-                                <Button 
-                                    onClick={handleDeleteUser} 
-                                    color="error" 
-                                    variant="contained" 
+                                <Button
+                                    onClick={handleDeleteUser}
+                                    color="error"
+                                    variant="contained"
                                     autoFocus
                                     disabled={deletingUser}
                                     startIcon={deletingUser ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}

@@ -28,7 +28,7 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
   try {
     // Get user ID from localStorage if not provided
     const userId = userData.id || getUserId();
-    
+
     if (!userId) {
       console.error("ID do usuário não fornecido para atualização de perfil");
       throw new Error("ID do usuário é necessário para atualização do perfil");
@@ -73,10 +73,13 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
         console.error("Resposta de erro do servidor:", error.response.data);
 
         if (error.response.status === 400 || error.response.status === 401) {
-          const errorMessage = error.response.data.message || error.response.data.error || "";
-          if (errorMessage.toLowerCase().includes("senha") || 
-              errorMessage.toLowerCase().includes("password") || 
-              errorMessage.toLowerCase().includes("invalid request")) {
+          const errorMessage =
+            error.response.data.message || error.response.data.error || "";
+          if (
+            errorMessage.toLowerCase().includes("senha") ||
+            errorMessage.toLowerCase().includes("password") ||
+            errorMessage.toLowerCase().includes("invalid request")
+          ) {
             throw new Error("Senha atual inválida");
           }
         }
@@ -90,7 +93,9 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
         }
 
         throw new Error(
-          error.response.data.message || error.response.data.error || "Erro ao atualizar o perfil"
+          error.response.data.message ||
+            error.response.data.error ||
+            "Erro ao atualizar o perfil"
         );
       } else if (error.request) {
         console.error("Nenhuma resposta recebida:", error.request);
@@ -109,11 +114,11 @@ export const getUserProfile = async (userId?: string | number) => {
   try {
     // Use the provided userId or get it from localStorage
     const id = userId || getUserId();
-    
+
     if (!id) {
       throw new Error("ID do usuário é necessário para obter o perfil");
     }
-    
+
     const response = await axios.get(`${API_URL}/v1/user/${id}`, {
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
@@ -269,7 +274,7 @@ export interface AdminUserUpdate {
 export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
   try {
     const response = await axios.put(
-      `${API_URL}/v1/user/${userId}/admin`,
+      `${API_URL}/v1/user/${userId}`, // Ajuste o endpoint conforme necessário
       userData,
       {
         headers: {
@@ -279,7 +284,8 @@ export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
       }
     );
 
-    return response.data;
+    console.log("Usuário atualizado com sucesso:", response.data);
+    return response.data; // Retorna os dados atualizados
   } catch (error) {
     console.error("Erro ao atualizar usuário:", error);
 
@@ -303,14 +309,11 @@ export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
 
 export const deleteUserAdmin = async (userId: number) => {
   try {
-    const response = await axios.delete(
-      `${API_URL}/v1/user/${userId}/admin`,
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
+    const response = await axios.delete(`${API_URL}/v1/user/${userId}/admin`, {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    });
 
     return response.data;
   } catch (error) {
