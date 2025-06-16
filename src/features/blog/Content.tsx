@@ -248,23 +248,22 @@ export default function Content() {
         throw new Error('Usuário não autenticado. Faça login para salvar a publicação.');
       }
 
+      // Monta o payload conforme a categoria
+      const payload: any = {
+        title: post.title,
+        content: post.content,
+        userId: Number(user.id),
+      };
+      if (post.category === 'Filmes' && post.movieId) {
+        payload.movieId = post.movieId;
+      } else if (post.category === 'Séries' && post.serieId) {
+        payload.serieId = post.serieId;
+      }
+
       if (modal.type === 'create') {
-        await createPost({
-          title: post.title,
-          content: post.content,
-          userId: Number(user.id),
-          category: post.category || 'Geral',
-          movieId: post.movieId,
-          serieId: post.serieId,
-        });
+        await createPost(payload);
       } else if (modal.type === 'edit' && post.id) {
-        await updatePost(Number(post.id), {
-          title: post.title,
-          content: post.content,
-          category: post.category,
-          movieId: post.movieId,
-          serieId: post.serieId,
-        }, user);
+        await updatePost(Number(post.id), payload, user);
       }
 
       fetchPosts(); 
