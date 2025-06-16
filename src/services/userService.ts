@@ -323,11 +323,25 @@ export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
   }
 };
 
+// Função para administradores excluírem usuários
 export const deleteUserAdmin = async (userId: number) => {
   try {
+    // Verificar se o ID do usuário é válido
+    if (!userId) {
+      throw new Error("ID do usuário é necessário para exclusão");
+    }
+
+    // Obter token de autenticação
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("Autenticação necessária");
+    }
+
+    // Use o endpoint ADMIN específico que existe no backend
     const response = await axios.delete(`${API_URL}/v1/user/${userId}/admin`, {
       headers: {
-        Authorization: `Bearer ${getAuthToken()}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -336,8 +350,11 @@ export const deleteUserAdmin = async (userId: number) => {
     console.error("Erro ao excluir usuário:", error);
 
     if (axios.isAxiosError(error)) {
+      // Se houver um erro 401, sugerir reautenticação sem redirecionar
       if (error.response?.status === 401) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente.");
+        throw new Error(
+          "Sessão expirada. Por favor, tente fazer login novamente."
+        );
       } else if (error.response?.status === 403) {
         throw new Error("Você não tem permissão para excluir este usuário.");
       } else if (error.response?.status === 404) {

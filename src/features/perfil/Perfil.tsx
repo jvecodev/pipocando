@@ -669,15 +669,34 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
 
         setDeletingUser(true);
         try {
+            // Log para diagnóstico
+            console.log(`Tentando excluir usuário com ID: ${userToDelete.id}`);
+
+            // Enviar solicitação para excluir o usuário
             await deleteUserAdmin(userToDelete.id);
 
-            // Atualiza a lista de usuários após exclusão
-            fetchUsers();
+            // Atualizar a lista de usuários localmente sem precisar fazer nova chamada à API
+            setUsers(currentUsers => currentUsers.filter(u => u.id !== userToDelete.id));
+
+            // Exibir mensagem de sucesso
             setUserManagementSuccessMessage(`Usuário "${userToDelete.name}" excluído com sucesso!`);
             setUserManagementSuccess(true);
+
+            // Fechar o modal
             handleCloseDeleteUserModal();
         } catch (error: any) {
+            console.error("Erro ao excluir usuário:", error);
+
+            // Mostrar o erro sem redirecionar
             setUserManagementError(error.message || "Erro ao excluir usuário");
+
+            // Se o erro estiver relacionado à autenticação, permitir que o usuário escolha
+            if (error.message && error.message.includes('Sessão expirada')) {
+                setUserManagementError("Sua sessão pode ter expirado. Deseja fazer login novamente?");
+
+                // Adicionamos um botão ao Snackbar para permitir que o usuário escolha fazer login
+                // Este botão será criado na renderização do componente
+            }
         } finally {
             setDeletingUser(false);
         }
@@ -1356,6 +1375,26 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                     borderRadius: 2
                                 }}
                                 variant="filled"
+                                action={
+                                    userManagementError && userManagementError.includes('sessão') ? (
+                                        <Button color="inherit" size="small" onClick={() => {
+                                            // Limpar dados de autenticação
+                                            localStorage.removeItem('token');
+                                            localStorage.removeItem('userId');
+                                            localStorage.removeItem('userName');
+                                            localStorage.removeItem('userRole');
+                                            localStorage.removeItem('user');
+
+                                            // Limpar contexto do usuário
+                                            setUser(null);
+
+                                            // Redirecionar para login
+                                            navigate('/login');
+                                        }}>
+                                            LOGIN
+                                        </Button>
+                                    ) : null
+                                }
                             >
                                 {userManagementError}
                             </Alert>
