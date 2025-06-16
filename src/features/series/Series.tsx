@@ -180,41 +180,26 @@ const Series: React.FC = () => {
 
   return (
     <MainLayout>
-      {" "}
-      <Box sx={{ textAlign: "center", mb: 6 }}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="center"
-          spacing={2}
-          sx={{ mb: 2 }}
+      <Box sx={{ textAlign: 'left', mb: 6, mt: { xs: 6, md: 12 } }}>
+        <Typography
+          variant="h2"
+          component="h1"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            fontSize: { xs: '2.5rem', md: '4rem' },
+            color: 'text.primary',
+          }}
         >
-          <TvIcon sx={{ fontSize: 48, color: "primary.main" }} />
-
-          <Typography
-            variant="h2"
-            component="h1"
-            sx={{
-              fontWeight: "bold",
-              background: "linear-gradient(45deg, #9C27B0 30%, #E91E63 90%)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Séries
-          </Typography>
-        </Stack>
-
+          Séries
+        </Typography>
         <Typography
           variant="h5"
           color="text.secondary"
-          sx={{ mb: 4, maxWidth: 600, mx: "auto" }}
+          sx={{ fontWeight: 500, maxWidth: 800, mb: 4 }}
         >
-          Descubra onde assistir suas séries favoritas e adicione-as à sua lista
-          de interesse
+          Descubra onde assistir suas séries favoritas e adicione-as à sua lista de interesse.
         </Typography>
-
         <TextField
           fullWidth
           placeholder="Buscar séries..."
@@ -235,6 +220,9 @@ const Series: React.FC = () => {
             },
           }}
         />
+        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 2 }}>
+          {/* Botões podem ser personalizados conforme necessidade */}
+        </Box>
       </Box>
    
       {!searchQuery && (
@@ -242,18 +230,25 @@ const Series: React.FC = () => {
           <Tabs
             value={tabValue}
             onChange={handleTabChange}
-            centered
+            centered={false}
             sx={{
-              "& .MuiTabs-indicator": {
-                backgroundColor: "primary.main",
+              justifyContent: 'flex-start',
+              '& .MuiTabs-flexContainer': {
+                justifyContent: 'flex-start',
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'primary.main',
                 height: 3,
                 borderRadius: 1.5,
               },
-              "& .MuiTab-root": {
-                fontSize: "1rem",
+              '& .MuiTab-root': {
+                fontSize: '1rem',
                 fontWeight: 600,
-                textTransform: "none",
+                textTransform: 'none',
                 minWidth: 120,
+                color: 'text.primary',
+                alignItems: 'flex-start',
+                transition: 'none',
               },
             }}
           >
@@ -295,7 +290,7 @@ const Series: React.FC = () => {
           <TabPanel value={searchQuery ? 0 : tabValue} index={0}>
             <Grid container spacing={3}>
               {tvShows.map((tvShow) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={tvShow.id}>
+                <Grid item xs={12} sm={6} md={4} lg={4} key={tvShow.id}>
                   <TVShowCard
                     tvShow={tvShow}
                     watchProviders={watchProviders[tvShow.id]}
@@ -312,7 +307,7 @@ const Series: React.FC = () => {
               <TabPanel value={tabValue} index={1}>
                 <Grid container spacing={3}>
                   {tvShows.map((tvShow) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={tvShow.id}>
+                    <Grid item xs={12} sm={6} md={4} lg={4} key={tvShow.id}>
                       <TVShowCard
                         tvShow={tvShow}
                         watchProviders={watchProviders[tvShow.id]}
@@ -327,7 +322,7 @@ const Series: React.FC = () => {
               <TabPanel value={tabValue} index={2}>
                 <Grid container spacing={3}>
                   {tvShows.map((tvShow) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={tvShow.id}>
+                    <Grid item xs={12} sm={6} md={4} lg={4} key={tvShow.id}>
                       <TVShowCard
                         tvShow={tvShow}
                         watchProviders={watchProviders[tvShow.id]}
@@ -344,10 +339,10 @@ const Series: React.FC = () => {
           {tvShows.length === 0 && !loading && (
             <Box textAlign="center" py={8}>
               <NoResultsIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
-              <Typography variant="h5" color="text.secondary" gutterBottom>
+              <Typography variant="h5" color="text.secondary" gutterBottom sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2rem' }, mb: 2 }}>
                 Nenhuma série encontrada
               </Typography>
-              <Typography color="text.secondary">
+              <Typography color="text.secondary" sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' }, mb: 1, fontWeight: 500 }}>
                 {searchQuery    
                   ? `Tente uma busca diferente para "${searchQuery}"`
                   : "Tente novamente mais tarde"}

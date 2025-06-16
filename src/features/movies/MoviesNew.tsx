@@ -16,6 +16,7 @@ import { Search as SearchIcon, LocalFireDepartment, Star, TrackChanges } from '@
 import MainLayout from '../../layout/MainLayout';
 import MovieCard from './MovieCard';
 import tmdbService, { Movie, WatchProviders } from '../../services/tmdbService';
+import { COLORS } from '../../shared-theme/colors';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -170,7 +171,7 @@ const Movies: React.FC = () => {
           gutterBottom
           sx={{
             fontWeight: 'bold',
-            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            background: COLORS.main,
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',

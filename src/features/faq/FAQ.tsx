@@ -128,33 +128,33 @@ const FAQ: React.FC = () => {
   return (
     <MainLayout>
       {/* Hero Section */}
-      <Box sx={{ textAlign: 'center', mb: 6 }}>        <Typography
+      <Box sx={{ textAlign: 'left', mb: 6, mt: { xs: 6, md: 12 } }}>
+        <Typography
           variant="h2"
           component="h1"
           gutterBottom
           sx={{
             fontWeight: 'bold',
-            background: 'linear-gradient(45deg, #FF9800 30%, #FFC107 90%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 2
+            fontSize: { xs: '2.5rem', md: '4rem' },
+            color: 'text.primary',
           }}
         >
-          <QuestionAnswer sx={{ fontSize: '0.8em', verticalAlign: 'middle' }} /> Perguntas Frequentes
+          Perguntas Frequentes
         </Typography>
-        
-        <Typography 
-          variant="h5" 
-          color="text.secondary" 
-          sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}
+        <Typography
+          variant="h5"
+          color="text.secondary"
+          sx={{ fontWeight: 500, maxWidth: 800, mb: 4 }}
         >
-          Encontre respostas para as dúvidas mais comuns sobre o Pipocando
+          Encontre respostas para as dúvidas mais comuns sobre o Pipocando.
         </Typography>
+        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 2 }}>
+          {/* Botões podem ser personalizados conforme necessidade */}
+        </Box>
+      </Box>
 
+      {/* Search Section */}
+      <Box sx={{ textAlign: 'center', mb: 6 }}>
         <TextField
           fullWidth
           placeholder="Buscar nas perguntas frequentes..."

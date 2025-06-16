@@ -23,6 +23,7 @@ import {
 import MainLayout from '../../layout/MainLayout';
 import MovieCard from './MovieCard';
 import tmdbService, { Movie, WatchProviders } from '../../services/tmdbService';
+import { COLORS } from '../../shared-theme/colors';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -165,32 +166,26 @@ const Movies: React.FC = () => {
 
   return (
     <MainLayout>      {/* Hero Section */}
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} sx={{ mb: 2 }}>
-          <MovieIcon sx={{ fontSize: 48, color: 'primary.main' }} />
-          <Typography
-            variant="h2"
-            component="h1"
-            sx={{
-              fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Filmes
-          </Typography>
-        </Stack>
-        
-        <Typography 
-          variant="h5" 
-          color="text.secondary" 
-          sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}
+      <Box sx={{ textAlign: 'left', mb: 6, mt: { xs: 6, md: 12 } }}>
+        <Typography
+          variant="h2"
+          component="h1"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            fontSize: { xs: '2.5rem', md: '4rem' },
+            color: 'text.primary',
+          }}
         >
-          Descubra onde assistir seus filmes favoritos e adicione-os à sua lista de interesse
+          Filmes
         </Typography>
-
+        <Typography
+          variant="h5"
+          color="text.secondary"
+          sx={{ fontWeight: 500, maxWidth: 800, mb: 4 }}
+        >
+          Descubra onde assistir seus filmes favoritos e adicione-os à sua lista de interesse.
+        </Typography>
         <TextField
           fullWidth
           placeholder="Buscar filmes..."
@@ -203,14 +198,17 @@ const Movies: React.FC = () => {
               </InputAdornment>
             ),
           }}
-          sx={{ 
+          sx={{
             maxWidth: 500,
-            '& .MuiOutlinedInput-root': {
+            "& .MuiOutlinedInput-root": {
               borderRadius: 3,
-              backgroundColor: 'background.paper',
-            }
+              backgroundColor: "background.paper",
+            },
           }}
         />
+        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 2 }}>
+          {/* Botões podem ser personalizados conforme necessidade */}
+        </Box>
       </Box>
 
       {/* Tabs Navigation */}
@@ -219,8 +217,12 @@ const Movies: React.FC = () => {
           <Tabs
             value={tabValue}
             onChange={handleTabChange}
-            centered
+            centered={false}
             sx={{
+              justifyContent: 'flex-start',
+              '& .MuiTabs-flexContainer': {
+                justifyContent: 'flex-start',
+              },
               '& .MuiTabs-indicator': {
                 backgroundColor: 'primary.main',
                 height: 3,
@@ -231,7 +233,11 @@ const Movies: React.FC = () => {
                 fontWeight: 600,
                 textTransform: 'none',
                 minWidth: 120,
-              },            }}
+                color: 'text.primary',
+                alignItems: 'flex-start',
+                transition: 'none',
+              },
+            }}
           >
             <Tab 
               icon={<WhatshotIcon />} 
@@ -275,7 +281,7 @@ const Movies: React.FC = () => {
           <TabPanel value={searchQuery ? 0 : tabValue} index={0}>
             <Grid container spacing={3}>
               {movies.map((movie) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={movie.id}>
+                <Grid item xs={12} sm={6} md={4} lg={4} key={movie.id}>
                   <MovieCard
                     movie={movie}
                     watchProviders={watchProviders[movie.id]}
@@ -292,7 +298,7 @@ const Movies: React.FC = () => {
               <TabPanel value={tabValue} index={1}>
                 <Grid container spacing={3}>
                   {movies.map((movie) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={movie.id}>
+                    <Grid item xs={12} sm={6} md={4} lg={4} key={movie.id}>
                       <MovieCard
                         movie={movie}
                         watchProviders={watchProviders[movie.id]}
@@ -307,7 +313,7 @@ const Movies: React.FC = () => {
               <TabPanel value={tabValue} index={2}>
                 <Grid container spacing={3}>
                   {movies.map((movie) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={movie.id}>
+                    <Grid item xs={12} sm={6} md={4} lg={4} key={movie.id}>
                       <MovieCard
                         movie={movie}
                         watchProviders={watchProviders[movie.id]}
