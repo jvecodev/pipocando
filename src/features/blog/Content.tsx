@@ -134,29 +134,16 @@ export default function Content() {
       loadTrending();
     }
   }, [tabIndex]);
-
-  const debounce = (func: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout;
-    return function(...args: any[]) {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func(...args), delay);
-    };
-  };
-
-  const fetchPosts = React.useCallback((currentPage: number = page) => {
+  // Busca todos os posts do backend (sem paginação)
+  const fetchPosts = React.useCallback(() => {
     setIsLoading(true);
     setError(null);
-    setPage(currentPage);
     
-    // Verificamos se há um token, indicando que o usuário está autenticado
     const token = localStorage.getItem('token');
-    
-    // Se não houver token, definimos uma mensagem especial, não como erro
     if (!token) {
       setPosts([]);
       setTotalPages(1);
       setIsLoading(false);
-      // Não configuramos um erro aqui, tratamos como um estado especial
       return;
     }
     
@@ -165,15 +152,9 @@ export default function Content() {
       category: category !== 'all' ? category : undefined,
     })
       .then(data => {
-        if (Array.isArray(data)) {
-          const filteredPosts = data;
-          
-          setPosts(filteredPosts);
-          setTotalPages(Math.max(1, Math.ceil(filteredPosts.length / ITEMS_PER_PAGE)));
-        } else {
-          setPosts([]);
-          setTotalPages(1);
-        }
+        const allPosts = Array.isArray(data) ? data : [];
+        setPosts(allPosts);
+        setTotalPages(Math.max(1, Math.ceil(allPosts.length / ITEMS_PER_PAGE)));
       })
       .catch(e => {
         setPosts([]);
@@ -184,21 +165,13 @@ export default function Content() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [search, category, page]);
+  }, [search, category]);
 
-  const debouncedSearch = React.useCallback(() => {
-    const delayedSearch = debounce(() => {
-      fetchPosts(1); 
-    }, 500);
-    delayedSearch();
-  }, [fetchPosts]);
-
+  // Resetar página ao trocar busca/filtro e buscar posts
   React.useEffect(() => {
-    debouncedSearch();
-  }, [debouncedSearch]);  React.useEffect(() => {
+    setPage(1);
     fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [search, category, fetchPosts]);
 
   const handleEditClick = (post: BlogType) => {
     setModal({ open: true, type: 'edit', post });
@@ -208,29 +181,28 @@ export default function Content() {
     setPostToDelete(post);
     setDeleteModalOpen(true);
   };
-
   const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
-    window.scrollTo(0, 0);
-    fetchPosts(value);
+    setPage(value);
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
+
   const handleCategoryChange = (event: SelectChangeEvent<string>) => {
     setCategory(event.target.value);
-    fetchPosts(1);
+    setPage(1); // Reset page when changing category
   };
 
   const handleModalClose = () => {
     setModal({ open: false, type: null, post: null });
-  };
-  const handleDeleteConfirm = async () => {
+  };  const handleDeleteConfirm = async () => {
     if (!postToDelete || !user) return;
     
     try {
       await deletePost(Number(postToDelete.id), user);
-      fetchPosts(page);
+      setPage(1); // Reset to first page after deletion
+      fetchPosts();
       setDeleteModalOpen(false);
       setPostToDelete(null);
     } catch (error: any) {
@@ -256,13 +228,11 @@ export default function Content() {
         imageUrl = imageUrl.substring(0, 1000);
       }
       
-      // Verificar e garantir que a categoria esteja corretamente definida
       const category = post.category || 'blog';
       if (!['Filmes', 'Séries'].includes(category)) {
         throw new Error('Categoria inválida. Selecione Filmes ou Séries.');
       }
-        // Verificar se os IDs correspondentes à categoria estão presentes apenas na criação
-      // Na edição, aceitamos os valores como estão
+     
       if (modal.type === 'create') {
         if (category === 'Filmes' && !post.movieId) {
           // Durante a criação, tentamos usar o tmdbId se disponível
@@ -332,9 +302,7 @@ export default function Content() {
         await createPost(payload);
       } else if (modal.type === 'edit' && post.id) {
         await updatePost(Number(post.id), payload, user);
-      }
-
-      fetchPosts(); 
+      }      fetchPosts(); 
       handleModalClose();
     } catch (error: any) {
       console.error('Erro ao salvar post:', error);
