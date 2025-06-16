@@ -18,12 +18,13 @@ import AppTheme from '../../shared-theme/AppTheme';
 import ColorModeSelect from '../../shared-theme/ColorModeSelect';
 import { login } from '../../services/authService';
 import { PerfilTypeEnum } from '../../types/PerfilType';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import Alert from '@mui/material/Alert';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -76,6 +77,9 @@ export default function SignIn(props: Record<string, unknown>) {
   const [open, setOpen] = React.useState<boolean>(false);
   const navigate = useNavigate();
   const { setUser } = useUser();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const message = searchParams.get('message');
 
   const handleClickOpen = (): void => {
     setOpen(true);
@@ -173,6 +177,11 @@ export default function SignIn(props: Record<string, unknown>) {
           >
             Login
           </Typography>
+          {message && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+                {decodeURIComponent(message)}
+            </Alert>
+          )}
           <Box
             component="form"
             onSubmit={handleSubmit}

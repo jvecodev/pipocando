@@ -26,32 +26,31 @@ const getUserId = () => {
 
 export const updateUserProfile = async (userData: ProfileUpdateData) => {
   try {
-    // Get user ID from localStorage if not provided
-    const userId = userData.id || getUserId();
+    // Obter o ID do usuário (já está incluído no userData)
+    const userId = userData.id;
 
     if (!userId) {
-      console.error("ID do usuário não fornecido para atualização de perfil");
       throw new Error("ID do usuário é necessário para atualização do perfil");
     }
 
-    console.log("Atualizando perfil para o usuário com ID:", userId);
-
-    // Prepare the data to be sent
-    const dataToSend = {
+    // Preparar dados para envio com tipagem correta
+    const dataToSend: {
+      name: string;
+      email: string;
+      currentPassword?: string;
+      newPassword?: string;
+    } = {
       name: userData.name,
       email: userData.email,
-      currentPassword: userData.currentPassword,
-      newPassword: userData.newPassword,
     };
 
-    // Remove undefined fields
-    Object.keys(dataToSend).forEach((key) => {
-      if (dataToSend[key as keyof typeof dataToSend] === undefined) {
-        delete dataToSend[key as keyof typeof dataToSend];
-      }
-    });
+    // Adicionar campos de senha apenas se estiverem presentes
+    if (userData.currentPassword && userData.newPassword) {
+      dataToSend.currentPassword = userData.currentPassword;
+      dataToSend.newPassword = userData.newPassword;
+    }
 
-    // Make request to the API
+    // Fazer requisição para a API
     const response = await axios.put(
       `${API_URL}/v1/user/${userId}`,
       dataToSend,
@@ -63,7 +62,6 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
       }
     );
 
-    console.log("Resposta da API após atualização de perfil:", response.data);
     return response.data;
   } catch (error) {
     console.error("Erro ao atualizar perfil:", error);

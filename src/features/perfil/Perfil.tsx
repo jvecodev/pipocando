@@ -48,6 +48,8 @@ import AppTheme from '../../shared-theme/AppTheme';
 import Header from '../../organisms/header/Header';
 import { styled } from '@mui/material/styles';
 import { PerfilTypeEnum } from '../../types/PerfilType';
+import AlertTitle from '@mui/material/Alert';
+import { ProfileUpdateData } from '../../services/userService';
 
 // Modificamos a interface para incluir perfil
 interface ProfileData {
@@ -374,73 +376,95 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             return;
         }
 
+        // Verificar se o nome está sendo alterado
+        const isChangingName = user && formData.name !== user.name;
+
+        // Se estiver alterando o nome, mostrar um alerta de confirmaçã
+
         setLoading(true);
         setError("");
         setSuccess(false);
 
         try {
-            // Modificar a definição do objeto para incluir os campos como opcionais
-            const dataToUpdate: {
-                name: string;
-                email: string;
-                currentPassword?: string;
-                newPassword?: string;
-            } = {
+            // Preparar dados para atualização
+            const dataToUpdate: ProfileUpdateData = {
+                id: Number(user?.id),
                 name: formData.name,
                 email: formData.email,
             };
 
             // Adicionar senha apenas se estiver sendo alterada
-            if (formData.currentPassword && formData.newPassword) {
+            const isChangingPassword = formData.currentPassword && formData.newPassword;
+            if (isChangingPassword) {
                 dataToUpdate.currentPassword = formData.currentPassword;
                 dataToUpdate.newPassword = formData.newPassword;
             }
 
-            // Corrigir a chamada de função para passar um único objeto com ID incluído
-            const response = await updateUserProfile({
-                id: user?.id ? Number(user.id) : 0,
-                ...dataToUpdate
-            });
+            // Enviar para API
+            const response = await updateUserProfile(dataToUpdate);
 
-            if (user) {
-                const updatedUser = {
-                    ...user,
-                    name: response.name || user.name,
-                    email: response.email || user.email
-                };
+            // Preparar mensagem de sucesso para redirecionar
+            let successMessage = isChangingPassword
+                ? "Senha atualizada com sucesso!"
+                : "Informações pessoais atualizadas com sucesso!";
+
+            if (isChangingName) {
+                // Limpar dados de autenticação
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('user');
+
+                // Limpar contexto do usuário
+                setUser(null);
+
+                // Redirecionar para login com mensagem de sucesso
+                navigate('/login?message=' + encodeURIComponent(
+                    "Seu nome foi atualizado com sucesso! Por favor, faça login novamente."
+                ));
+            } else {
+                // Para atualizações que não alteram o nome
+                // Preservar informações de autenticação atuais
+                const token = localStorage.getItem('token');
+                const userId = localStorage.getItem('userId');
+                const userRole = localStorage.getItem('userRole');
 
                 // Atualizar o contexto do usuário
-                setUser(updatedUser);
+                if (user) {
+                    const updatedUser = {
+                        ...user,
+                        name: response.name || user.name,
+                        email: response.email || user.email
+                    };
 
-                // Atualizar localStorage com o usuário atualizado
-                localStorage.setItem('user', JSON.stringify(updatedUser));
+                    // Atualizar o contexto do usuário
+                    setUser(updatedUser);
 
-                // Restaurar dados de autenticação usando os valores armazenados
-                const token = localStorage.getItem('token');
+                    // Atualizar localStorage com o usuário atualizado
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    localStorage.setItem('userName', updatedUser.name);
+                }
+
+                // Restaurar dados de autenticação
                 if (token) localStorage.setItem('token', token);
-
-                const userId = localStorage.getItem('userId');
                 if (userId) localStorage.setItem('userId', userId);
-
-                // Atualizar o nome do usuário no localStorage
-                localStorage.setItem('userName', updatedUser.name);
-
-                const userRole = localStorage.getItem('userRole');
                 if (userRole) localStorage.setItem('userRole', userRole);
+
+                setSuccess(true);
+
+                // Limpar campos de senha após atualização
+                if (isChangingPassword) {
+                    setFormData(prev => ({
+                        ...prev,
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                    }));
+                }
+
+                setSuccessMessage(successMessage);
             }
-
-            setSuccess(true);
-
-            // Limpar campos de senha após atualização
-            setFormData(prev => ({
-                ...prev,
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: ''
-            }));
-
-            // Mensagem de sucesso
-            setSuccessMessage("Perfil atualizado com sucesso!");
         } catch (error: any) {
             console.error("Erro ao atualizar perfil:", error);
 
@@ -451,11 +475,8 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
 
                 setPasswordError(true);
                 setPasswordErrorMessage("Senha atual inválida");
-
-                // Exibir alerta mais visível
                 setError("Senha atual inválida. Por favor, verifique e tente novamente.");
 
-                // Limpa apenas a senha atual para nova tentativa, preservando os outros campos
                 setFormData(prev => ({
                     ...prev,
                     currentPassword: ''
@@ -747,6 +768,11 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                                 }}
                                             />
                                         </FormControl>
+                                        {user && formData.name !== user.name && (
+                                            <Alert severity="info" sx={{ mb: 2 }}>
+                                                Alterar seu nome exigirá um novo login após a atualização.
+                                            </Alert>
+                                        )}
 
                                         <FormControl>
                                             <FormLabel htmlFor="email" sx={{ mb: 1, fontWeight: 500 }}>
