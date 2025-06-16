@@ -147,7 +147,20 @@ export default function Content() {
     setIsLoading(true);
     setError(null);
     setPage(currentPage);
-      searchPosts({
+    
+    // Verificamos se há um token, indicando que o usuário está autenticado
+    const token = localStorage.getItem('token');
+    
+    // Se não houver token, definimos uma mensagem especial, não como erro
+    if (!token) {
+      setPosts([]);
+      setTotalPages(1);
+      setIsLoading(false);
+      // Não configuramos um erro aqui, tratamos como um estado especial
+      return;
+    }
+    
+    searchPosts({
       title: search.trim() ? search : undefined,
       category: category !== 'all' ? category : undefined,
     })
@@ -548,6 +561,7 @@ export default function Content() {
                     <Skeleton variant="text" height={30} animation="wave" />
                     <Skeleton variant="text" animation="wave" />
                     <Skeleton variant="text" animation="wave" />
+                    <Skeleton variant="text" animation="wave" />
                     <Skeleton variant="text" width="60%" animation="wave" />
                   </Box>
                 </Card>
@@ -566,7 +580,78 @@ export default function Content() {
             }}
           >
             {error}
-          </Alert>        ) : posts.length === 0 ? (
+          </Alert>
+        ) : !localStorage.getItem('token') ? (
+          <Box 
+            sx={(theme) => ({ 
+              textAlign: 'center', 
+              py: 8, 
+              px: 4,
+              borderRadius: '16px',
+              backgroundImage: theme.palette.mode === 'dark' 
+                ? 'radial-gradient(ellipse at top, rgba(25, 118, 210, 0.2), transparent), radial-gradient(ellipse at bottom, rgba(124, 58, 237, 0.1), transparent)'
+                : 'radial-gradient(ellipse at top, rgba(25, 118, 210, 0.1), transparent), radial-gradient(ellipse at bottom, rgba(124, 58, 237, 0.05), transparent)',
+              border: `2px solid ${theme.palette.primary.main}40`,
+              boxShadow: '0 10px 40px -10px rgba(0,0,0,0.2)',
+              animation: 'pulseFade 3s infinite alternate',
+              '@keyframes pulseFade': {
+                '0%': { boxShadow: '0 0 20px -10px rgba(25, 118, 210, 0.3)' },
+                '100%': { boxShadow: '0 0 30px -5px rgba(25, 118, 210, 0.6)' }
+              }
+            })}
+          >
+            <Typography 
+              variant="h4" 
+              color="primary" 
+              gutterBottom 
+              fontWeight="bold"
+              sx={{ mb: 2 }}
+            >
+              Acesse sua conta para ver as publicações!
+            </Typography>
+            <Typography 
+              variant="h6" 
+              color="text.secondary" 
+              paragraph 
+              sx={{ maxWidth: 700, mx: 'auto', mb: 4 }}
+            >
+              Faça login ou cadastre-se agora para explorar todas as publicações, criar seus próprios posts e interagir com a comunidade Pipocando.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained" 
+                color="primary"
+                size="large"
+                onClick={() => navigate('/login')}
+                sx={{ 
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  borderRadius: '12px'
+                }}
+              >
+                Fazer Login
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                onClick={() => navigate('/signup')}
+                sx={{ 
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  borderRadius: '12px'
+                }}
+              >
+                Cadastrar-se
+              </Button>
+            </Box>
+          </Box>
+        ) : posts.length === 0 ? (
           <Box sx={{ 
             textAlign: 'center', 
             py: 8, 
@@ -639,6 +724,76 @@ export default function Content() {
               </Grid>
             ))}
           </Grid>
+        ) : !localStorage.getItem('token') ? (
+          <Box 
+            sx={(theme) => ({ 
+              textAlign: 'center', 
+              py: 8, 
+              px: 4,
+              borderRadius: '16px',
+              backgroundImage: theme.palette.mode === 'dark' 
+                ? 'radial-gradient(ellipse at top, rgba(156, 39, 176, 0.2), transparent), radial-gradient(ellipse at bottom, rgba(33, 150, 243, 0.1), transparent)'
+                : 'radial-gradient(ellipse at top, rgba(156, 39, 176, 0.1), transparent), radial-gradient(ellipse at bottom, rgba(33, 150, 243, 0.05), transparent)',
+              border: `2px solid ${theme.palette.secondary.main}40`,
+              boxShadow: '0 10px 40px -10px rgba(0,0,0,0.2)',
+              animation: 'pulseGlow 3s infinite alternate',
+              '@keyframes pulseGlow': {
+                '0%': { boxShadow: '0 0 20px -10px rgba(156, 39, 176, 0.3)' },
+                '100%': { boxShadow: '0 0 30px -5px rgba(156, 39, 176, 0.6)' }
+              }
+            })}
+          >
+            <Typography 
+              variant="h4" 
+              color="secondary" 
+              gutterBottom 
+              fontWeight="bold"
+              sx={{ mb: 2 }}
+            >
+              Descubra as tendências do momento!
+            </Typography>
+            <Typography 
+              variant="h6" 
+              color="text.secondary" 
+              paragraph 
+              sx={{ maxWidth: 700, mx: 'auto', mb: 4 }}
+            >
+              Faça login ou cadastre-se agora para explorar filmes e séries em destaque, criar publicações sobre eles e compartilhar suas opiniões.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained" 
+                color="secondary"
+                size="large"
+                onClick={() => navigate('/login')}
+                sx={{ 
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  borderRadius: '12px'
+                }}
+              >
+                Fazer Login
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="large"
+                onClick={() => navigate('/signup')}
+                sx={{ 
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  borderRadius: '12px'
+                }}
+              >
+                Cadastrar-se
+              </Button>
+            </Box>
+          </Box>
         ) : (
           <>
             {/* Filmes em tendência */}
@@ -739,10 +894,11 @@ export default function Content() {
                   ))}
                 </Grid>
               </Box>
-            )}
-          </>
+            )}          </>
         )}
-      </TabPanel>      <StandardModal
+      </TabPanel>
+      
+      <StandardModal
         open={modal.open}
         title={modal.type === 'create' ? 'Nova Publicação baseada em TMDB' : 'Editar Publicação'}
         onClose={handleModalClose}

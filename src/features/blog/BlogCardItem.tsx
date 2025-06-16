@@ -20,7 +20,6 @@ import { BlogType } from '../../types/BlogRequestResponse';
 import tmdbService from '../../services/tmdbService';
 import watchlistService from '../../services/watchlistService';
 
-// Styled components
 const StyledCard = styled(Card)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
