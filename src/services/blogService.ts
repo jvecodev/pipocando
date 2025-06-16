@@ -39,18 +39,72 @@ export async function createPost(post: PostRequest) {
   if (!token) {
     throw new Error('Usuário não autenticado. Faça login para criar uma publicação.');
   }
-
-  const res = await fetch(API_URL_V1, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(post),
-  });
   
-  if (!res.ok) throw new Error('Erro ao criar publicação');
-  return res.json();
+  try {
+    // Processar e validar a URL da imagem
+    let imageUrl = post.urlImage || post.imageUrl;
+    
+    // Limitar o tamanho da URL para evitar problemas com o backend
+    if (imageUrl && imageUrl.length > 1000) {
+      imageUrl = imageUrl.substring(0, 1000);
+    }
+    
+    // Garantir que a categoria seja válida
+    const category = post.category;
+    
+    if (!category || !['Filmes', 'Séries'].includes(category)) {
+      throw new Error('Categoria inválida. Deve ser "Filmes" ou "Séries".');
+    }
+    
+    // Preparar os dados para envio
+    const postData = { 
+      ...post,
+      urlImage: imageUrl
+    };    // Usar a função utilitária para garantir que os IDs estão corretos baseados na categoria
+    const validatedPostData = ensureCategoryIdsAreValid(postData);
+    
+    // Log para debug dos IDs finais
+    if (validatedPostData.category === 'Filmes') {
+      console.log(`Criando post de Filmes com movieId=${validatedPostData.movieId}`);
+      if (!validatedPostData.movieId) {
+        console.warn('ATENÇÃO: Post na categoria Filmes sem movieId definido');
+      }
+    } else if (validatedPostData.category === 'Séries') {
+      console.log(`Criando post de Séries com serieId=${validatedPostData.serieId}`);
+      if (!validatedPostData.serieId) {
+        console.warn('ATENÇÃO: Post na categoria Séries sem serieId definido');
+      }
+    }
+    
+    // Atualizar o postData com os valores validados
+    Object.assign(postData, validatedPostData);
+
+    console.log('Dados enviados para criação:', postData);
+
+    const res = await fetch(API_URL_V1, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(postData),
+    });
+    
+    if (!res.ok) {
+      // Tentar obter mensagem de erro detalhada do backend
+      try {
+        const errorData = await res.json();
+        throw new Error(`Erro ao criar publicação: ${errorData.message || res.statusText}`);
+      } catch (e) {
+        throw new Error(`Erro ao criar publicação: ${res.status} ${res.statusText}`);
+      }
+    }
+    
+    return res.json();
+  } catch (error: any) {
+    console.error('Erro ao criar post:', error);
+    throw error;
+  }
 }
 
 export async function updatePost(id: number, post: Partial<BlogType>, user: PerfilType | null) {
@@ -60,23 +114,81 @@ export async function updatePost(id: number, post: Partial<BlogType>, user: Perf
     throw new Error('Usuário não autenticado. Faça login para atualizar a publicação.');
   }
 
-  const currentPost = await getPostById(id);
-  
-  if (user && !canEditPost(user, currentPost)) {
-    throw new Error('Você não tem permissão para editar esta publicação');
+  try {
+    // Buscar o post atual para garantir que temos todos os dados necessários
+    const currentPost = await getPostById(id);
+    
+    if (user && !canEditPost(user, currentPost)) {
+      throw new Error('Você não tem permissão para editar esta publicação');
+    }
+    
+    // Processar e validar a URL da imagem
+    let imageUrl = post.urlImage || post.imageUrl;
+    
+    // Limitar o tamanho da URL para evitar problemas com o backend
+    if (imageUrl && imageUrl.length > 1000) {
+      imageUrl = imageUrl.substring(0, 1000);
+    }
+    
+    // Garantir que a categoria seja preservada
+    const category = post.category || currentPost.category;
+    
+    if (!category || !['Filmes', 'Séries'].includes(category)) {
+      throw new Error('Categoria inválida. Deve ser "Filmes" ou "Séries".');
+    }
+    
+    // Preparar os dados para envio, preservando informações importantes
+    const postData = {
+      ...post,
+      urlImage: imageUrl,
+      category: category,
+    };
+      // Usar a função utilitária para garantir que os IDs estão corretos baseados na categoria
+    const validatedPostData = ensureCategoryIdsAreValid(postData, currentPost);
+    
+    // Log para debug dos IDs finais
+    if (validatedPostData.category === 'Filmes') {
+      console.log(`Atualizando post de Filmes com movieId=${validatedPostData.movieId}`);
+      if (!validatedPostData.movieId) {
+        console.warn('ATENÇÃO: Post na categoria Filmes continua sem movieId definido');
+      }
+    } else if (validatedPostData.category === 'Séries') {
+      console.log(`Atualizando post de Séries com serieId=${validatedPostData.serieId}`);
+      if (!validatedPostData.serieId) {
+        console.warn('ATENÇÃO: Post na categoria Séries continua sem serieId definido');
+      }
+    }
+    
+    // Atualizar o postData com os valores validados
+    Object.assign(postData, validatedPostData);
+    
+    // Para debug, verificar os dados que estão sendo enviados
+    console.log('Dados enviados para atualização:', postData);
+    
+    const res = await fetch(`${API_URL_V1}/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(postData),
+    });
+    
+    if (!res.ok) {
+      // Tentar obter mensagem de erro detalhada do backend
+      try {
+        const errorData = await res.json();
+        throw new Error(`Erro ao atualizar publicação: ${errorData.message || res.statusText}`);
+      } catch (e) {
+        throw new Error(`Erro ao atualizar publicação: ${res.status} ${res.statusText}`);
+      }
+    }
+    
+    return res.json();
+  } catch (error: any) {
+    console.error('Erro ao atualizar post:', error);
+    throw error;
   }
-
-  const res = await fetch(`${API_URL_V1}/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(post),
-  });
-  
-  if (!res.ok) throw new Error('Erro ao atualizar publicação');
-  return res.json();
 }
 
 export async function deletePost(id: number, user: PerfilType | null) {
@@ -108,4 +220,44 @@ export async function getPostById(id: number): Promise<BlogType> {
   
   if (!res.ok) throw new Error('Erro ao buscar publicação');
   return res.json();
+}
+
+// Função utilitária para garantir que os IDs estão corretos baseados na categoria
+function ensureCategoryIdsAreValid(post: Partial<BlogType>, currentPost?: BlogType): Partial<BlogType> {
+  const updatedPost = { ...post };
+  const category = post.category;
+
+  if (category === 'Filmes') {
+    // Para categoria Filmes, garantir que movieId esteja definido
+    if (!updatedPost.movieId && currentPost?.movieId) {
+      updatedPost.movieId = currentPost.movieId;
+      console.log('Usando movieId existente:', updatedPost.movieId);
+    } else if (!updatedPost.movieId && updatedPost.id) {
+      updatedPost.movieId = Number(updatedPost.id);
+      console.log('Usando ID do post como movieId:', updatedPost.movieId);
+    } else if (!updatedPost.movieId && updatedPost.tmdbId && updatedPost.tmdbType === 'movie') {
+      updatedPost.movieId = updatedPost.tmdbId;
+      console.log('Usando tmdbId como movieId:', updatedPost.movieId);
+    }
+    
+    // Para categoria Filmes, remover serieId
+    updatedPost.serieId = undefined;
+  } else if (category === 'Séries') {
+    // Para categoria Séries, garantir que serieId esteja definido
+    if (!updatedPost.serieId && currentPost?.serieId) {
+      updatedPost.serieId = currentPost.serieId;
+      console.log('Usando serieId existente:', updatedPost.serieId);
+    } else if (!updatedPost.serieId && updatedPost.id) {
+      updatedPost.serieId = Number(updatedPost.id);
+      console.log('Usando ID do post como serieId:', updatedPost.serieId);
+    } else if (!updatedPost.serieId && updatedPost.tmdbId && updatedPost.tmdbType === 'tv') {
+      updatedPost.serieId = updatedPost.tmdbId;
+      console.log('Usando tmdbId como serieId:', updatedPost.serieId);
+    }
+    
+    // Para categoria Séries, remover movieId
+    updatedPost.movieId = undefined;
+  }
+
+  return updatedPost;
 }

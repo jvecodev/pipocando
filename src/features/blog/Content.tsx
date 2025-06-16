@@ -247,18 +247,86 @@ export default function Content() {
       if (!user) {
         throw new Error('Usuário não autenticado. Faça login para salvar a publicação.');
       }
-
-      // Monta o payload conforme a categoria
+      
+      // Processa a URL da imagem
+      let imageUrl = post.urlImage || post.imageUrl;
+      
+      // Se a URL for muito longa, pode causar problemas no backend
+      if (imageUrl && imageUrl.length > 1000) {
+        imageUrl = imageUrl.substring(0, 1000);
+      }
+      
+      // Verificar e garantir que a categoria esteja corretamente definida
+      const category = post.category || 'blog';
+      if (!['Filmes', 'Séries'].includes(category)) {
+        throw new Error('Categoria inválida. Selecione Filmes ou Séries.');
+      }
+        // Verificar se os IDs correspondentes à categoria estão presentes apenas na criação
+      // Na edição, aceitamos os valores como estão
+      if (modal.type === 'create') {
+        if (category === 'Filmes' && !post.movieId) {
+          // Durante a criação, tentamos usar o tmdbId se disponível
+          if (post.tmdbId && post.tmdbType === 'movie') {
+            post.movieId = post.tmdbId;
+            console.log('Usando tmdbId como movieId:', post.tmdbId);
+          } else {
+            throw new Error('Para a categoria Filmes, é necessário informar o ID do filme.');
+          }
+        } else if (category === 'Séries' && !post.serieId) {
+          // Durante a criação, tentamos usar o tmdbId se disponível
+          if (post.tmdbId && post.tmdbType === 'tv') {
+            post.serieId = post.tmdbId;
+            console.log('Usando tmdbId como serieId:', post.tmdbId);
+          } else {
+            throw new Error('Para a categoria Séries, é necessário informar o ID da série.');
+          }
+        }
+      } else {
+        // Em modo de edição, garantimos que não perdemos os IDs existentes
+        console.log('Modo de edição: preservando IDs existentes');
+      }
+          // Monta o payload conforme a categoria
       const payload: any = {
         title: post.title,
         content: post.content,
         userId: Number(user.id),
+        urlImage: imageUrl, // Usa a URL processada
+        category: category,
       };
-      if (post.category === 'Filmes' && post.movieId) {
-        payload.movieId = post.movieId;
-      } else if (post.category === 'Séries' && post.serieId) {
-        payload.serieId = post.serieId;
+      
+      // Sempre incluir os IDs conforme a categoria
+      if (category === 'Filmes') {
+        // Usa o ID existente do post ou o tmdbId se disponível
+        payload.movieId = post.movieId || (post.tmdbId && post.tmdbType === 'movie' ? post.tmdbId : undefined);
+        
+        // Para categoria Filmes, garantimos que serieId seja undefined
+        payload.serieId = undefined;
+        
+        // Log para debug
+        console.log(`Categoria Filmes: usando movieId=${payload.movieId}`);
+      } else if (category === 'Séries') {
+        // Usa o ID existente do post ou o tmdbId se disponível
+        payload.serieId = post.serieId || (post.tmdbId && post.tmdbType === 'tv' ? post.tmdbId : undefined);
+        
+        // Para categoria Séries, garantimos que movieId seja undefined
+        payload.movieId = undefined;
+        
+        // Log para debug
+        console.log(`Categoria Séries: usando serieId=${payload.serieId}`);
+      }      // Ajuste especial para modo de edição
+      if (modal.type === 'edit' && post.id) {
+        // Garantir que movieId ou serieId estejam definidos na edição
+        if (category === 'Filmes' && !payload.movieId) {
+          console.log('Edição: Definindo movieId com ID do post:', post.id);
+          payload.movieId = Number(post.id);
+        } else if (category === 'Séries' && !payload.serieId) {
+          console.log('Edição: Definindo serieId com ID do post:', post.id);
+          payload.serieId = Number(post.id);
+        }
       }
+
+      // Log para debug
+      console.log('Payload de salvamento:', payload);
 
       if (modal.type === 'create') {
         await createPost(payload);

@@ -7,7 +7,11 @@ export async function createNewsFromMovie(movie: Movie): Promise<Partial<BlogTyp
   const movieDetails = await tmdbService.getMovieDetails(movie.id);
   const genres = movieDetails.genres?.map(g => g.name).join(', ') || '';
   const trailer = movieDetails.videos?.results ? tmdbService.findOfficialTrailer(movieDetails.videos.results) : null;
-    return {
+  
+  // Processar URL da imagem para garantir tamanho adequado
+  const imageUrl = movie.poster_path ? processImageUrl(tmdbService.getImageUrl(movie.poster_path)) : undefined;
+  
+  return {
     title: `${movie.title}: Novidades e Estreia`,
     content: `
 # ${movie.title}
@@ -28,7 +32,8 @@ ${trailer ? `\n\n**Confira o trailer oficial:** [Assistir no YouTube](${tmdbServ
     tmdbId: movie.id,
     tmdbType: 'movie',
     tmdbData: movie,
-    imageUrl: movie.poster_path ? tmdbService.getImageUrl(movie.poster_path) : undefined
+    urlImage: imageUrl,
+    imageUrl: imageUrl
   };
 }
 
@@ -36,6 +41,10 @@ export async function createNewsFromTVShow(tvShow: TVShow): Promise<Partial<Blog
   const tvDetails = await tmdbService.getTVShowDetails(tvShow.id);
   const genres = tvDetails.genres?.map(g => g.name).join(', ') || '';
   const trailer = tvDetails.videos?.results ? tmdbService.findOfficialTrailer(tvDetails.videos.results) : null;
+  
+  // Processar URL da imagem para garantir tamanho adequado
+  const imageUrl = tvShow.poster_path ? processImageUrl(tmdbService.getImageUrl(tvShow.poster_path)) : undefined;
+  
   return {
     title: `${tvShow.name}: Novidades e Lançamento`,
     content: `
@@ -58,19 +67,24 @@ ${trailer ? `\n\n**Confira o trailer oficial:** [Assistir no YouTube](${tmdbServ
     tmdbId: tvShow.id,
     tmdbType: 'tv',
     tmdbData: tvShow,
-    imageUrl: tvShow.poster_path ? tmdbService.getImageUrl(tvShow.poster_path) : undefined
+    urlImage: imageUrl,
+    imageUrl: imageUrl
   };
 }
 
 export async function createReviewTemplate(type: 'movie' | 'tv', id: number): Promise<Partial<BlogType>> {
   if (type === 'movie') {
     const movie = await tmdbService.getMovieDetails(id);
+    
+    // Processar URL da imagem para garantir tamanho adequado
+    const imageUrl = movie.poster_path ? processImageUrl(tmdbService.getImageUrl(movie.poster_path)) : undefined;
+    
     return {
       title: `Crítica: ${movie.title}`,
       content: `
 # ${movie.title} - Crítica
 
-![${movie.title}](${movie.poster_path ? tmdbService.getImageUrl(movie.poster_path) : ''})
+![${movie.title}](${imageUrl || ''})
 
 *Lançamento: ${formatDate(movie.release_date)}*
 *Duração: ${movie.runtime} minutos*
@@ -97,20 +111,26 @@ ${movie.overview || 'Sinopse indisponível.'}
 ## Nota
 [Sua nota de 0-10]/10
       `,
-      category: 'Filmes',      movieId: movie.id,
+      category: 'Filmes',      
+      movieId: movie.id,
       tmdbId: movie.id,
       tmdbType: 'movie',
       tmdbData: movie,
-      imageUrl: movie.poster_path ? tmdbService.getImageUrl(movie.poster_path) : undefined
+      urlImage: imageUrl,
+      imageUrl: imageUrl
     };
   } else {
     const tvShow = await tmdbService.getTVShowDetails(id);
+    
+    // Processar URL da imagem para garantir tamanho adequado
+    const imageUrl = tvShow.poster_path ? processImageUrl(tmdbService.getImageUrl(tvShow.poster_path)) : undefined;
+    
     return {
       title: `Crítica: ${tvShow.name}`,
       content: `
 # ${tvShow.name} - Crítica
 
-![${tvShow.name}](${tvShow.poster_path ? tmdbService.getImageUrl(tvShow.poster_path) : ''})
+![${tvShow.name}](${imageUrl || ''})
 
 *Estreia: ${formatDate(tvShow.first_air_date)}*
 *Temporadas: ${tvShow.number_of_seasons}*
@@ -138,11 +158,13 @@ ${tvShow.overview || 'Sinopse indisponível.'}
 ## Nota
 [Sua nota de 0-10]/10
       `,
-      category: 'Séries',      serieId: tvShow.id,
+      category: 'Séries',      
+      serieId: tvShow.id,
       tmdbId: tvShow.id,
       tmdbType: 'tv',
       tmdbData: tvShow,
-      imageUrl: tvShow.poster_path ? tmdbService.getImageUrl(tvShow.poster_path) : undefined
+      urlImage: imageUrl,
+      imageUrl: imageUrl
     };
   }
 }
@@ -153,12 +175,15 @@ export function createListicleTemplate(title: string, type: 'movie' | 'tv' | 'mi
                  type === 'tv' ? 'Séries' : 
                  'Filmes e Séries';
   
+  // URL padrão para listicles, processada para garantir tamanho adequado
+  const imageUrl = processImageUrl('https://via.placeholder.com/800x400?text=Listicle');
+  
   return {
     title: title,
     content: `
 # ${title}
 
-![Imagem Destaque](https://via.placeholder.com/800x400?text=Listicle)
+![Imagem Destaque](${imageUrl || 'https://via.placeholder.com/800x400?text=Listicle'})
 
 ## Introdução
 [Escreva uma introdução para sua lista]
@@ -182,7 +207,10 @@ export function createListicleTemplate(title: string, type: 'movie' | 'tv' | 'mi
 
 ## Conclusão
 [Faça um fechamento da sua lista]
-    `,    category
+    `,    
+    category,
+    urlImage: imageUrl,
+    imageUrl: imageUrl
   };
 }
 
@@ -231,4 +259,19 @@ function formatDate(dateString?: string): string {
   } catch (error) {
     return 'Data inválida';
   }
+}
+
+// Valida e processa URLs de imagens
+export function processImageUrl(url?: string): string | undefined {
+  if (!url) return undefined;
+  
+  let processedUrl = url;
+  
+  // Limitar o tamanho da URL para evitar problemas no backend
+  if (processedUrl.length > 1000) {
+    console.warn('URL de imagem muito longa, truncando para 1000 caracteres');
+    processedUrl = processedUrl.substring(0, 1000);
+  }
+  
+  return processedUrl;
 }

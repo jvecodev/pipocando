@@ -183,14 +183,27 @@ export default function BlogCardItem({
       watchlistService.addToWatchlist(post.tmdbData, post.tmdbType);
       setInWatchlist(true);
     }
-  };
-
-  // Determina a URL da imagem a ser usada
+  };  // Determina a URL da imagem a ser usada
   const getImageUrl = () => {
+    // Ordem de prioridade para compatibilidade:
+    // 1. urlImage (do banco de dados)
+    // 2. imageUrl (para compatibilidade com frontend antigo)
+    // 3. Imagem do TMDB se disponível
+    // 4. Placeholder como último recurso
+    
+    if (post.urlImage) {
+      return post.urlImage;
+    }
+    
+    if (post.imageUrl) {
+      return post.imageUrl;
+    }
+    
     if (post.tmdbData?.poster_path) {
       return tmdbService.getImageUrl(post.tmdbData.poster_path);
     }
-    return post.imageUrl || 'https://via.placeholder.com/300x450?text=Sem+Imagem';
+    
+    return 'https://via.placeholder.com/300x450?text=Sem+Imagem';
   };
 
   // Mock de autor para teste
@@ -269,12 +282,7 @@ export default function BlogCardItem({
           {post.title}
         </Typography>
 
-        {/* Descrição */}
-        {post.description && (
-          <StyledTypography variant="body2" color="text.secondary" mb={2}>
-            {post.description}
-          </StyledTypography>
-        )}
+       
 
         {/* Botões de ação */}
         <Box

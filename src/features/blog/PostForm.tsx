@@ -19,9 +19,115 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import MovieFilterIcon from '@mui/icons-material/MovieFilter';
 import TvIcon from '@mui/icons-material/Tv';
 import StarIcon from '@mui/icons-material/Star';
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
 import { BlogType } from '../../types/BlogRequestResponse';
 import tmdbService, { Movie as TMDBMovie, TVShow } from '../../services/tmdbService';
 import { createNewsFromMovie, createNewsFromTVShow, createReviewTemplate } from '../../services/blogTmdbService';
+
+// Função para validar URLs de imagens - versão mais permissiva
+const isValidImageUrl = (url: string): boolean => {
+  if (!url) return false;
+  
+  try {
+    const urlObj = new URL(url);
+    // Verifica se a URL é absoluta
+    if (!urlObj.protocol.startsWith('http')) return false;
+    
+    // Extensões comuns de imagens
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.avif'];
+    const path = urlObj.pathname.toLowerCase();
+    
+    // Verifica se a URL contém parâmetros comuns de imagem
+    const hasImageParams = url.includes('?image=') || url.includes('&image=') || 
+                           url.includes('?img=') || url.includes('&img=') ||
+                           url.includes('?src=') || url.includes('&src=');
+    
+    // Se a URL termina com uma extensão de imagem conhecida, é provavelmente uma imagem direta
+    return imageExtensions.some(ext => path.endsWith(ext)) || 
+           path.includes('/image/') ||
+           path.includes('/images/') ||
+           path.includes('/img/') ||
+           path.includes('/media/') ||
+           hasImageParams ||
+           // URLs de serviços de imagem conhecidos
+           urlObj.hostname.includes('imgur.com') || 
+           urlObj.hostname.includes('cloudinary.com') ||
+           urlObj.hostname.includes('unsplash.com') ||
+           urlObj.hostname.includes('image.tmdb.org') ||
+           urlObj.hostname.includes('media.tenor.com') ||
+           urlObj.hostname.includes('i.postimg.cc') ||
+           urlObj.hostname.includes('ibb.co') ||
+           urlObj.hostname.includes('postimg.cc') ||
+           urlObj.hostname.includes('lh3.googleusercontent.com') ||
+           urlObj.hostname.includes('storage.googleapis.com') ||
+           (urlObj.hostname.includes('googleusercontent.com') && url.includes('image'));
+  } catch (error) {
+    // Se não for possível analisar a URL, retornar false, mas permitindo
+    // que qualquer valor seja tentado na exibição
+    console.warn('Erro ao analisar URL:', error);
+    return url.startsWith('http') && (
+      url.includes('.jpg') || url.includes('.jpeg') || 
+      url.includes('.png') || url.includes('.gif') || 
+      url.includes('.webp') || url.includes('.svg') ||
+      url.includes('.avif')
+    );
+  }
+};
+
+// Função para extrair URLs de imagem diretas de URLs de busca
+const extractDirectImageUrl = (url: string): string | null => {
+  try {
+    // Se já for uma URL de imagem válida, retornar como está
+    if (isValidImageUrl(url)) return url;
+    
+    // Tentar extrair a URL da imagem de URLs do Google Imagens
+    if (url.includes('imgurl=')) {
+      const match = url.match(/imgurl=([^&]+)/);
+      if (match && match[1]) {
+        const decodedUrl = decodeURIComponent(match[1]);
+        if (isValidImageUrl(decodedUrl)) {
+          console.log('URL de imagem extraída do Google:', decodedUrl);
+          return decodedUrl;
+        }
+      }
+    }
+    
+    // Verificar se é um link do Imgur
+    if (url.includes('imgur.com/') && !url.includes('/a/')) {
+      // Converter links do Imgur para links diretos de imagem
+      const imgurId = url.split('/').pop()?.split('.')[0];
+      if (imgurId) {
+        const directUrl = `https://i.imgur.com/${imgurId}.jpg`;
+        console.log('URL de imagem extraída do Imgur:', directUrl);
+        return directUrl;
+      }
+    }
+    
+    // Verificar se é um link do Postimg.cc
+    if (url.includes('postimg.cc/') && !url.includes('/i.postimg.cc/')) {
+      // Converter links do Postimg para links diretos de imagem
+      const postImgId = url.split('/').pop();
+      if (postImgId) {
+        const directUrl = `https://i.postimg.cc/${postImgId}`;
+        console.log('URL de imagem extraída do Postimg:', directUrl);
+        return directUrl;
+      }
+    }
+    
+    // Verificar se temos um link de imagem possivelmente válido sem extensão
+    if (url.startsWith('http') && 
+        (url.includes('/image/') || url.includes('/images/') || url.includes('/img/') || url.includes('/media/'))) {
+      console.log('URL possivelmente válida detectada:', url);
+      return url;
+    }
+    
+    return url; // Retornar a URL original como último recurso para permitir tentativa de carregamento
+  } catch (error) {
+    console.error('Erro ao extrair URL direta da imagem:', error);
+    return url; // Retornar a URL original como último recurso para permitir tentativa de carregamento
+  }
+};
 
 const validateField = (field: string | undefined, fieldName: string): string => {
   if (!field || field.trim() === '') {
@@ -60,6 +166,10 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
   // Estado para rastrear a mudança de cor do contador
   const [countColor, setCountColor] = useState<'normal' | 'warning' | 'error'>('normal');
 
+  // Estado para controlar a exibição do toast de aviso
+  const [showWarning, setShowWarning] = useState<boolean>(false);
+  const [warningMessage, setWarningMessage] = useState<string>('');
+  
   useEffect(() => {
     if (!tmdbSearchQuery.trim()) {
       setTmdbSearchResults([]);
@@ -179,13 +289,13 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         }
       } else if (selectedTemplate === 'review') {
         templateData = await createReviewTemplate(type, item.id);
-      } else {
-        templateData = {
+      } else {        templateData = {
           title: type === 'movie' ? (item as TMDBMovie).title : (item as TVShow).name,
           category: type === 'movie' ? 'Filmes' : 'Séries',
           tmdbId: item.id,
           tmdbType: type,
           tmdbData: item,
+          urlImage: item.poster_path ? tmdbService.getImageUrl(item.poster_path) : undefined,
           imageUrl: item.poster_path ? tmdbService.getImageUrl(item.poster_path) : undefined
         };
       }
@@ -212,59 +322,200 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
       return;
     }
     
-    setModal((m) => {
-      if (!m.post) return m;
-      
-      return {
-        ...m,
-        post: {
-          ...m.post,
-          [field]: value
-        } as BlogType
-      };
-    });
-  };  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Limpar qualquer debounce pendente
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-      debounceRef.current = null;
-    }
-    
-    const currentPost = modal.post || {} as BlogType;
-    const validationErrors: Record<string, string> = {};
-    
-    validationErrors.title = validateField(currentPost.title, 'Título');
-    validationErrors.content = validateField(currentPost.content, 'Conteúdo');
-    validationErrors.category = validateField(currentPost.category, 'Categoria');
-    
-    // Verificar imediatamente se o conteúdo excede o limite máximo de caracteres
-    const contentLength = currentPost.content?.length || 0;
-    if (contentLength > MAX_CONTENT_LENGTH) {
-      validationErrors.content = `O conteúdo excede o limite máximo de ${MAX_CONTENT_LENGTH} caracteres.`;
-    }
-    
-    const hasErrors = Object.values(validationErrors).some(error => error !== '');
-    
-    if (hasErrors) {
-      setErrors(validationErrors);
+    // Não permitir alterar a categoria se estiver no modo de edição
+    if (field === 'category' && modal.type === 'edit') {
+      console.warn('Tentativa de alterar categoria em modo de edição foi bloqueada');
       return;
     }
     
-    onSave(currentPost);
+    setModal((m) => {
+      if (!m.post) return m;
+      
+      // Criar uma cópia do objeto post
+      const updatedPost = { ...m.post } as any;
+      
+      // Definir o valor do campo específico
+      updatedPost[field] = value;
+      
+      // Tratamento especial para atualização de categoria apenas na criação
+      if (field === 'category' && modal.type === 'create') {
+        if (value === 'Filmes') {
+          // Se mudar para Filmes, garantir que movieId esteja definido e remover serieId
+          updatedPost.serieId = undefined;
+          
+          // Se houver um tmdbId e o tipo for 'movie', usar como movieId
+          if (!updatedPost.movieId && updatedPost.tmdbId && updatedPost.tmdbType === 'movie') {
+            updatedPost.movieId = updatedPost.tmdbId;
+          }
+          
+          // Não mostrar erros de movieId ao usuário, apenas log para desenvolvedores
+          if (!updatedPost.movieId) {
+            console.warn('Categoria Filmes sem ID do filme definido');
+          }
+          
+          // Limpar qualquer erro de ID do storage
+          setErrors(prev => {
+            const newErrors = {...prev};
+            delete newErrors.movieId;
+            delete newErrors.serieId;
+            return newErrors;
+          });
+        } else if (value === 'Séries') {
+          // Se mudar para Séries, garantir que serieId esteja definido e remover movieId
+          updatedPost.movieId = undefined;
+          
+          // Se houver um tmdbId e o tipo for 'tv', usar como serieId
+          if (!updatedPost.serieId && updatedPost.tmdbId && updatedPost.tmdbType === 'tv') {
+            updatedPost.serieId = updatedPost.tmdbId;
+          }
+          
+          // Não mostrar erros de serieId ao usuário, apenas log para desenvolvedores
+          if (!updatedPost.serieId) {
+            console.warn('Categoria Séries sem ID da série definido');
+          }
+          
+          // Limpar qualquer erro de ID do storage
+          setErrors(prev => {
+            const newErrors = {...prev};
+            delete newErrors.serieId;
+            delete newErrors.movieId;
+            return newErrors;
+          });
+        }
+      }
+      
+      // Retornar o modal atualizado
+      return {
+        ...m,
+        post: updatedPost
+      };
+    });
+  };// Função para validar o formulário antes de enviar  // Esta função foi substituída por validação direta na função handleSubmit
+  // Mantemos o nome e a assinatura da função para compatibilidade com outras partes do código
+  const validateForm = () => {
+    // Verificamos apenas os campos essenciais: título e conteúdo
+    const newErrors: Record<string, string> = {};
+    
+    if (!modal.post?.title?.trim()) {
+      newErrors.title = 'O título é obrigatório';
+    }
+    
+    if (!modal.post?.content?.trim()) {
+      newErrors.content = 'O conteúdo é obrigatório';
+    } else if (modal.post.content.length > MAX_CONTENT_LENGTH) {
+      newErrors.content = `O conteúdo excede o limite máximo de ${MAX_CONTENT_LENGTH} caracteres`;
+    }
+    
+    // Não adicionamos erros para categoria, movieId, serieId ou imageUrl
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  // Função para lidar com o envio do formulário
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Log completo dos dados antes da validação
+    console.log('Dados do formulário antes da validação:', modal.post);
+    
+    // Aplicar validações finais para garantir que a categoria corresponda aos IDs
+    if (modal.post) {
+      try {
+        // Fazer uma cópia final do post para ajustes
+        const finalPost = { ...modal.post };
+          // Garantir coerência entre categoria e IDs
+        if (finalPost.category === 'Filmes') {
+          // Modos diferentes de tratamento baseado no tipo de operação
+          if (modal.type === 'edit') {
+            // Na edição, preservamos o movieId ou usamos o ID do post como último recurso
+            if (!finalPost.movieId && finalPost.id) {
+              console.log('Edição - usando ID do post como movieId:', finalPost.id);
+              finalPost.movieId = Number(finalPost.id);
+            }
+          } else {
+            // Na criação, tentamos usar tmdbId como movieId
+            if (!finalPost.movieId && finalPost.tmdbId && finalPost.tmdbType === 'movie') {
+              console.log('Criação - usando tmdbId como movieId:', finalPost.tmdbId);
+              finalPost.movieId = finalPost.tmdbId;
+            }
+          }
+          
+          // Para garantir que serieId seja undefined quando categoria é Filmes
+          finalPost.serieId = undefined;
+          console.log('Categoria Filmes: serieId removido, movieId =', finalPost.movieId);
+        } else if (finalPost.category === 'Séries') {
+          // Modos diferentes de tratamento baseado no tipo de operação
+          if (modal.type === 'edit') {
+            // Na edição, preservamos o serieId ou usamos o ID do post como último recurso
+            if (!finalPost.serieId && finalPost.id) {
+              console.log('Edição - usando ID do post como serieId:', finalPost.id);
+              finalPost.serieId = Number(finalPost.id);
+            }
+          } else {
+            // Na criação, tentamos usar tmdbId como serieId
+            if (!finalPost.serieId && finalPost.tmdbId && finalPost.tmdbType === 'tv') {
+              console.log('Criação - usando tmdbId como serieId:', finalPost.tmdbId);
+              finalPost.serieId = finalPost.tmdbId;
+            }
+          }
+          
+          // Para garantir que movieId seja undefined quando categoria é Séries
+          finalPost.movieId = undefined;
+          console.log('Categoria Séries: movieId removido, serieId =', finalPost.serieId);
+        }
+        
+        // Atualizar o state com os valores ajustados e depois validar
+        setModal(prev => {
+          const updatedModal = {
+            ...prev,
+            post: finalPost
+          };
+          
+          console.log('Estado atualizado antes da validação:', updatedModal.post);          // Executar validação em um callback para garantir que usamos o estado mais recente
+          setTimeout(() => {
+            // Usar nossa função validateForm para verificar os campos essenciais
+            if (!validateForm()) {
+              // Se houver erros nos campos essenciais, mostrar alerta
+              const criticalErrors = Object.entries(errors)
+                .filter(([field]) => field === 'title' || field === 'content')
+                .map(([_, message]) => `• ${message}`)
+                .join('\n');
+              
+              setWarningMessage(
+                `Por favor, corrija os seguintes campos:\n${criticalErrors}`
+              );
+              setShowWarning(true);
+              
+              console.error('Formulário inválido - campos essenciais:', errors);
+            } else {
+              // Se não houver erros nos campos essenciais, enviar o formulário
+              console.log('Enviando formulário validado:', finalPost);
+              onSave(finalPost);
+            }
+          }, 0);
+          
+          return updatedModal;
+        });
+      } catch (error) {
+        console.error('Erro ao processar formulário:', error);
+      }
+    } else {
+      console.error('Não foi possível enviar: dados do post não encontrados');
+    }
   };
 
-
-
-  // Componente para exibir resultados da busca TMDB
-  const TMDBSearchResult = ({ 
+  // Componente para exibir resultados da busca TMDB  // Este componente é usado para renderizar os resultados da busca TMDB quando implementado
+  // Atualmente, o componente está definido mas a funcionalidade de busca está desativada
+  // nesta versão da interface para simplificar o fluxo de edição
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function TMDBSearchResult({ 
     item, 
     type 
   }: { 
     item: TMDBMovie | TVShow; 
     type: 'movie' | 'tv' 
-  }) => {
+  }) {
     const title = type === 'movie' 
       ? (item as TMDBMovie).title 
       : (item as TVShow).name;
@@ -322,7 +573,156 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         </Box>
       </Card>
     );
-  };  return (
+  }  // Inicializa o formulário com valores adequados
+  useEffect(() => {
+    // Log para depuração - dados iniciais do post
+    console.log('PostForm inicializado com dados:', modal.post);
+    
+    if (modal.post) {
+      const { category, movieId, serieId, tmdbId, tmdbType, id } = modal.post;
+      
+      console.log('Inicialização:');
+      console.log('- ID do post:', id || 'novo post');
+      console.log('- Categoria:', category || 'não definida');
+      console.log('- movieId:', movieId || 'não definido');
+      console.log('- serieId:', serieId || 'não definido');
+      console.log('- tmdbId:', tmdbId || 'não definido');
+      console.log('- tmdbType:', tmdbType || 'não definido');
+
+      // Modo de edição - garantir que os IDs existentes não sejam perdidos
+      if (modal.type === 'edit' && id) {
+        console.log(`Modo de edição para post ID ${id}`);
+        
+        // Garantir que o post tenha os IDs corretos baseados na categoria
+        let updatedPost = { ...modal.post };
+        let needsUpdate = false;
+        
+        if (category === 'Filmes') {
+          console.log('Edição de post na categoria Filmes');
+          
+          // Se esse post é um filme mas não tem movieId, tentamos usar o ID do próprio post
+          if (!updatedPost.movieId && id) {
+            console.log(`Usando ID do post (${id}) como movieId`);
+            updatedPost.movieId = Number(id);
+            needsUpdate = true;
+          }
+        } else if (category === 'Séries') {
+          console.log('Edição de post na categoria Séries');
+          
+          // Se esse post é uma série mas não tem serieId, tentamos usar o ID do próprio post
+          if (!updatedPost.serieId && id) {
+            console.log(`Usando ID do post (${id}) como serieId`);
+            updatedPost.serieId = Number(id);
+            needsUpdate = true;
+          }
+        }
+        
+        if (needsUpdate) {
+          setModal(prev => ({
+            ...prev,
+            post: updatedPost
+          }));
+        }
+      }
+      // Se não houver categoria definida para criar um novo post, 
+      // definir categoria padrão com base em tmdbType
+      else if (!category && modal.type === 'create') {
+        let defaultCategory: 'Filmes' | 'Séries' = 'Filmes'; // Definindo o tipo explicitamente
+        
+        if (tmdbType === 'movie') {
+          defaultCategory = 'Filmes';
+          console.log('Definindo categoria padrão como Filmes com base em tmdbType');
+        } else if (tmdbType === 'tv') {
+          defaultCategory = 'Séries';
+          console.log('Definindo categoria padrão como Séries com base em tmdbType');
+        } else {
+          // Padrão para Filmes se não houver informação
+          defaultCategory = 'Filmes';
+          console.log('Definindo categoria padrão como Filmes (padrão)');
+        }
+        
+        // Atualizar o post com a categoria padrão
+        setModal(prev => ({
+          ...prev,
+          post: {
+            ...prev.post!,
+            category: defaultCategory
+          } as BlogType
+        }));
+      }
+    }
+  // Usamos uma função para prevenir loops infinitos com modal.post como dependência
+  }, [modal.post, modal.type, setModal]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // useEffect para corrigir IDs com base na categoria quando o post for carregado
+  useEffect(() => {
+    if (modal.post) {
+      const { category, movieId, serieId, tmdbId, tmdbType } = modal.post;
+      
+      // Se não temos categoria definida, não fazer nada
+      if (!category) return;
+      
+      console.log(`Inicializando post com categoria ${category}`);
+      console.log(`Dados atuais: movieId=${movieId}, serieId=${serieId}, tmdbId=${tmdbId}, tmdbType=${tmdbType}`);
+      
+      // Verifica se precisamos corrigir IDs conforme a categoria
+      let needsUpdate = false;
+      const updatedPost = { ...modal.post };
+      
+      if (category === 'Filmes') {
+        // Para categoria Filmes, garantir que tenha movieId
+        if (!movieId && tmdbId && tmdbType === 'movie') {
+          // Usar tmdbId como movieId se for do tipo correto
+          console.log(`Corrigindo: definindo movieId=${tmdbId} para categoria Filmes`);
+          updatedPost.movieId = tmdbId;
+          needsUpdate = true;
+        }
+        
+        // Garantir que serieId seja undefined
+        if (serieId !== undefined) {
+          console.log('Corrigindo: removendo serieId para categoria Filmes');
+          updatedPost.serieId = undefined;
+          needsUpdate = true;
+        }
+      } else if (category === 'Séries') {
+        // Para categoria Séries, garantir que tenha serieId
+        if (!serieId && tmdbId && tmdbType === 'tv') {
+          // Usar tmdbId como serieId se for do tipo correto
+          console.log(`Corrigindo: definindo serieId=${tmdbId} para categoria Séries`);
+          updatedPost.serieId = tmdbId;
+          needsUpdate = true;
+        }
+        
+        // Garantir que movieId seja undefined
+        if (movieId !== undefined) {
+          console.log('Corrigindo: removendo movieId para categoria Séries');
+          updatedPost.movieId = undefined;
+          needsUpdate = true;
+        }
+      }
+      
+      // Atualizar o post se necessário
+      if (needsUpdate) {
+        console.log('Atualizando post com IDs corrigidos:', updatedPost);
+        setModal(prev => ({
+          ...prev,
+          post: updatedPost
+        }));
+      }
+    }
+  }, [modal.post, setModal]); // Incluindo as dependências necessárias
+  // Ocultar o aviso após um tempo
+  useEffect(() => {
+    if (showWarning) {
+      const timer = setTimeout(() => {
+        setShowWarning(false);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showWarning]);
+
+  return (
     <Box 
       component="form" 
       onSubmit={handleSubmit}
@@ -340,7 +740,59 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
             ? "radial-gradient(ellipse 80% 50% at 50% -20%, hsla(210, 100%, 18%, 0.5), transparent)"
             : "radial-gradient(ellipse 80% 50% at 50% -20%, hsla(211, 100%, 83.1%, 0.2), transparent)",
       })}
-    >
+    >      {/* Alertas de validação - Apenas erros críticos (título e conteúdo) */}
+      {(errors.title || errors.content) && (
+        <Alert 
+          severity="error" 
+          sx={{ 
+            mb: 3, 
+            borderRadius: '12px',
+            '& .MuiAlert-icon': {
+              fontSize: '1.5rem'
+            }
+          }}
+        >
+          <AlertTitle>Por favor, corrija os seguintes campos:</AlertTitle>
+          <Box component="ul" sx={{ pl: 2, m: 0 }}>
+            {errors.title && (
+              <Box component="li" key="title">
+                {errors.title}
+              </Box>
+            )}
+            {errors.content && (
+              <Box component="li" key="content">
+                {errors.content}
+              </Box>
+            )}
+          </Box>
+        </Alert>
+      )}
+      
+      {/* Toast de aviso */}
+      {showWarning && (
+        <Alert 
+          severity="warning" 
+          sx={{ 
+            position: 'fixed', 
+            top: '20px', 
+            left: '50%', 
+            transform: 'translateX(-50%)', 
+            zIndex: 9999,
+            boxShadow: 3,
+            minWidth: '300px',
+            maxWidth: '80%',
+            animation: 'fadeIn 0.3s',
+            '@keyframes fadeIn': {
+              '0%': { opacity: 0, transform: 'translate(-50%, -20px)' },
+              '100%': { opacity: 1, transform: 'translate(-50%, 0)' }
+            }
+          }}
+          onClose={() => setShowWarning(false)}
+        >          <AlertTitle>Atenção</AlertTitle>
+          {warningMessage.replace("ID do filme é necessário para categoria Filmes", "").replace("A URL fornecida não é uma imagem válida ou está inacessível", "")}
+        </Alert>
+      )}
+      
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <TextField
@@ -376,40 +828,8 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
           />
         </Grid>
 
-        <Grid item xs={12}>          <TextField
-            fullWidth
-            label="Descrição"
-            multiline
-            rows={2}
-            value={modal.post?.description || ''}
-            onChange={(e) => updatePost('description', e.target.value)}
-            InputProps={{ 
-              sx: { 
-                borderRadius: '12px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-                '&:hover': {
-                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-                },
-                '&:focus-within': {
-                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
-                }
-              },
-            }}
-            InputLabelProps={{
-              sx: {
-                [`&.MuiInputLabel-shrink`]: {
-                  transform: 'translate(14px, -9px) scale(0.75)',
-                  background: (theme) => 
-                    `linear-gradient(to bottom, ${theme.palette.background.default} 0%, ${theme.palette.background.default} 50%, transparent 50%, transparent 100%)`,
-                  padding: '0 4px',
-                }
-              }
-            }}
-          />
-        </Grid>
 
-        <Grid item xs={12}>          
-          <FormControl fullWidth error={!!errors.category} required>
+        <Grid item xs={12}>            <FormControl fullWidth error={!!errors.category} required>
             <InputLabel 
               sx={{
                 [`&.MuiInputLabel-shrink`]: {
@@ -419,10 +839,31 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                   padding: '0 4px',
                 }
               }}
-            >Categoria</InputLabel>
-            <Select
-              value={modal.post?.category || ''}
-              onChange={(e) => updatePost('category', e.target.value)}
+            >Categoria</InputLabel>            <Select
+              value={modal.post?.category || ''}              onChange={(e) => {
+                // Só permite alteração quando estiver criando um novo post
+                if (modal.type !== 'create') {
+                  return;
+                }
+                
+                const newCategory = e.target.value;
+                console.log(`Alterando categoria para: ${newCategory}`);
+                
+                // Atualizar a categoria
+                updatePost('category', newCategory);
+                
+                // Definir automaticamente o ID correto se o post contém dados TMDB
+                if (modal.post?.tmdbId && modal.post?.tmdbType) {
+                  if (newCategory === 'Filmes' && modal.post.tmdbType === 'movie') {
+                    // Usar tmdbId como movieId automaticamente
+                    updatePost('movieId', modal.post.tmdbId);
+                  } else if (newCategory === 'Séries' && modal.post.tmdbType === 'tv') {
+                    // Usar tmdbId como serieId automaticamente
+                    updatePost('serieId', modal.post.tmdbId);
+                  }
+                }
+              }}              // Desabilitar o select após a criação inicial do post ou se já existe um ID
+              disabled={modal.type === 'edit' || !!modal.post?.id || !!modal.post?.category}
               label="Categoria"
               sx={{ 
                 borderRadius: '12px',
@@ -432,22 +873,85 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 },
                 '&.Mui-focused': {
                   boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
+                },
+                // Estilizar o select quando desabilitado para indicar que é um valor fixo
+                '&.Mui-disabled': {
+                  opacity: 0.8,
+                  color: 'text.primary',
+                  backgroundColor: (theme) => 
+                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
                 }
               }}
             >
               <MenuItem value="Filmes">Filmes</MenuItem>
               <MenuItem value="Séries">Séries</MenuItem>
-            </Select>
-            {errors.category && <FormHelperText>{errors.category}</FormHelperText>}
+            </Select>            {/* Não exibir erros de categoria */}
+            {/* Exibir mensagem de ajuda sobre a categoria */}
+            <FormHelperText>
+              {modal.post?.category ? 'A categoria não pode ser alterada após a criação' : 'Selecione a categoria do seu post'}
+            </FormHelperText>
+            
+            {/* Exibir informação do ID associado sem mensagem de erro */}
+            {modal.post?.category === 'Filmes' && modal.post?.movieId && (
+              <FormHelperText sx={{ color: 'text.secondary' }}>
+                ID do filme: {modal.post.movieId}
+              </FormHelperText>
+            )}
+            {modal.post?.category === 'Séries' && modal.post?.serieId && (
+              <FormHelperText sx={{ color: 'text.secondary' }}>
+                ID da série: {modal.post.serieId}
+              </FormHelperText>
+            )}
           </FormControl>
-        </Grid>
-
-        <Grid item xs={12}>          
-          <TextField
+        </Grid>        <Grid item xs={12}>            <TextField
             fullWidth
             label="URL da Imagem"
-            value={modal.post?.imageUrl || ''}
-            onChange={(e) => updatePost('imageUrl', e.target.value)}
+            value={modal.post?.urlImage || modal.post?.imageUrl || ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              
+              // Tentar extrair a URL direta da imagem, se for uma URL do Google
+              const extractedUrl = extractDirectImageUrl(value);
+              const finalValue = extractedUrl || value;
+              
+              // Guardamos os valores importantes que não devem ser perdidos
+              const { category, movieId, serieId, tmdbId, tmdbType } = modal.post || {};
+              
+              // Logar para depuração
+              console.log("Atualizando URL da imagem:", finalValue);
+              
+              // Atualizamos apenas os campos de imagem
+              setModal(prev => ({
+                ...prev,
+                post: {
+                  ...prev.post,
+                  urlImage: finalValue,
+                  imageUrl: finalValue,
+                  // Preservamos explicitamente categoria e IDs
+                  category: category,
+                  movieId: movieId,
+                  serieId: serieId,
+                  tmdbId: tmdbId,
+                  tmdbType: tmdbType
+                } as BlogType
+              }));
+              
+              // Forçar atualização da pré-visualização 
+              setTimeout(() => {
+                const imgElement = document.querySelector('[data-image-preview="true"]') as HTMLImageElement;
+                if (imgElement) {
+                  // Forçar recarga da imagem adicionando timestamp
+                  imgElement.src = finalValue + (finalValue.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime();
+                }
+              }, 100);
+              
+              // Remover validação de erro para URL de imagem
+              setErrors(prev => {
+                const newErrors = {...prev};
+                delete newErrors.imageUrl;
+                return newErrors;
+              });
+            }}
             InputProps={{ 
               sx: { 
                 borderRadius: '12px',
@@ -469,8 +973,70 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                   padding: '0 4px',
                 }
               }
-            }}
-          />
+            }}            // Não mostramos erros relacionados à URL da imagem
+            helperText="URL da imagem para ilustrar o post (opcional)"
+          />          {modal.post?.urlImage && (
+            <Box sx={(theme) => ({ 
+              mt: 2, 
+              p: 2, 
+              border: '1px solid', 
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)', 
+              borderRadius: 2,
+              background: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+            })}>
+              <Typography variant="subtitle2" sx={{ display: 'block', mb: 2, fontWeight: 500 }}>
+                Pré-visualização da imagem:
+              </Typography><Box 
+                component="img" 
+                src={modal.post?.urlImage + (modal.post?.urlImage?.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime()}
+                alt="Pré-visualização"
+                data-image-preview="true"
+                loading="eager"
+                sx={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '200px', 
+                  objectFit: 'contain',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  padding: '4px',
+                  backgroundColor: '#f8f8f8'
+                }}
+                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                  console.log("Erro ao carregar imagem:", e.currentTarget.src);
+                  
+                  // Se a imagem não carregar, remover a imagem que não funcionou
+                  const imgElement = e.currentTarget;
+                  imgElement.style.display = 'none';
+                  
+                  // Verificar se já existe uma mensagem de erro
+                  const parentEl = imgElement.parentElement;
+                  const errorMessage = parentEl?.querySelector('.image-error-message');
+                  if (errorMessage) {
+                    errorMessage.textContent = 'A URL fornecida não é uma imagem válida ou está inacessível. Tente outra URL.';
+                    return;
+                  }
+                  
+                  // Adicionar uma imagem de fallback com mensagem mais amigável
+                  const errorDiv = document.createElement('div');
+                  errorDiv.className = 'image-error-message';
+                  errorDiv.textContent = 'A URL fornecida não é uma imagem válida ou está inacessível. Tente outra URL.';
+                  errorDiv.style.padding = '20px';
+                  errorDiv.style.textAlign = 'center';
+                  errorDiv.style.color = '#999';
+                  errorDiv.style.fontStyle = 'italic';
+                  parentEl?.appendChild(errorDiv);
+                  
+                  // Limpar qualquer erro relacionado à imagem para não mostrar ao usuário
+                  setErrors(prev => {
+                    const newErrors = {...prev};
+                    delete newErrors.imageUrl;
+                    return newErrors;
+                  });
+                }}
+              />
+            </Box>
+          )}
         </Grid>        <Grid item xs={12}>            <Box sx={{ position: 'relative' }}>
             <Box
               sx={(theme) => ({
@@ -517,12 +1083,22 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 value={modal.post?.content || ''}
                 onChange={(e) => {
                   const value = e.target.value;
-                  // Atualizar apenas o valor no state e o contador
+                  
+                  // Guardamos os valores importantes que não devem ser perdidos
+                  const { category, movieId, serieId, tmdbId, tmdbType } = modal.post || {};
+                  
+                  // Atualizar apenas o valor no state e o contador, preservando categoria e IDs
                   setModal(prev => ({
                     ...prev,
                     post: {
                       ...prev.post,
-                      content: value
+                      content: value,
+                      // Preservamos explicitamente categoria e IDs
+                      category: category,
+                      movieId: movieId,
+                      serieId: serieId,
+                      tmdbId: tmdbId,
+                      tmdbType: tmdbType
                     } as BlogType
                   }));
                   
@@ -691,11 +1267,15 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
               })}
             >
               Cancelar
-            </Button>
-            <Button
-              type="submit"
+            </Button>            <Button
+              type="button" // Alterado de submit para button para evitar submissão automática do form
               variant="contained"
               color="primary"
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('Botão clicado, iniciando validação do formulário');
+                handleSubmit(e);
+              }}
               sx={{ 
                 borderRadius: '12px',
                 textTransform: 'none',
@@ -714,6 +1294,9 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
             </Button>
           </Box>
         </Grid>
+
+      
+        
       </Grid>
     </Box>
   );
