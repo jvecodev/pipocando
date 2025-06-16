@@ -271,18 +271,55 @@ export default function BlogCardItem({
       </Box>
 
       <StyledCardContent>
-        {/* Título do post */}
-        <Typography
-          gutterBottom
-          variant="h6"
-          component="h2"
-          fontWeight="bold"
-          sx={{ mb: 1 }}
-        >
-          {post.title}
-        </Typography>
-
-       
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <Typography
+            variant="h6"
+            component="h2"
+            fontWeight="bold"
+            sx={{ mr: 1 }}
+          >
+            {post.title}
+          </Typography>
+          {onEditClick && (
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditClick(post);
+              }}
+              size="small"
+              aria-label="editar"
+              sx={{ 
+                ml: 1,
+                backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                '&:hover': {
+                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                }
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          )}
+          {onDeleteClick && (
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteClick(post);
+              }}
+              size="small"
+              aria-label="deletar"
+              color="error"
+              sx={{ 
+                ml: 1,
+                backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                '&:hover': {
+                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                }
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
 
         {/* Botões de ação */}
         <Box
@@ -309,48 +346,6 @@ export default function BlogCardItem({
               {inWatchlist ? <BookmarkIcon /> : <BookmarkBorderIcon />}
             </IconButton>
           )}
-          
-          <Box>
-            {onEditClick && (
-              <IconButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditClick(post);
-                }}
-                size="small"
-                aria-label="editar"
-                sx={{ 
-                  ml: 1,
-                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                  '&:hover': {
-                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                  }
-                }}
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-            )}
-            {onDeleteClick && (
-              <IconButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteClick(post);
-                }}
-                size="small"
-                aria-label="deletar"
-                color="error"
-                sx={{ 
-                  ml: 1,
-                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                  '&:hover': {
-                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                  }
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            )}
-          </Box>
         </Box>
       </StyledCardContent>
 

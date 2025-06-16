@@ -51,16 +51,16 @@ export const begeAreia = "#C8B994";
 
 // Adaptação das cores antigas para a nova paleta
 export const brand = {
-  50: cremePipoca,
-  100: cremeSuave,
-  200: begeAreia,
-  300: "#C8B994",
-  400: carameloPipoca,
-  500: carameloEscuro,
-  600: "#8D4200",
-  700: borgonhaFundo,
-  800: "#5E001D",
-  900: "#450015",
+  50: "#800020",
+  100: "#800020",
+  200: "#800020",
+  300: "#800020",
+  400: "#800020",
+  500: "#800020",
+  600: "#800020",
+  700: "#800020",
+  800: "#800020",
+  900: "#800020",
 };
 
 export const gray = {
