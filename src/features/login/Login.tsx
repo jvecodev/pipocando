@@ -20,6 +20,10 @@ import { login } from '../../services/authService';
 import { PerfilTypeEnum } from '../../types/PerfilType';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -68,6 +72,7 @@ export default function SignIn(props: Record<string, unknown>) {
   const [emailErrorMessage, setEmailErrorMessage] = React.useState<string>('');
   const [passwordError, setPasswordError] = React.useState<boolean>(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState<string>('');
+  const [showPassword, setShowPassword] = React.useState<boolean>(false);
   const [open, setOpen] = React.useState<boolean>(false);
   const navigate = useNavigate();
   const { setUser } = useUser();
@@ -93,26 +98,23 @@ export default function SignIn(props: Record<string, unknown>) {
 
     try {
       const loginRequest = { 
-        email: email, // Fixed: removed .value
-        password: password // Fixed: removed .value
+        email: email, 
+        password: password
       };
       
       const response = await login(loginRequest);
       console.log('Login response:', response);
       
-      // Atualizar dados do usuário
       const userData = {
-        id: response.userId.toString(), // Convertendo para string para corresponder ao tipo PerfilType
+        id: response.userId.toString(), 
         name: response.userName,
-        email: email, // Fixed: removed .value
+        email: email, 
         perfil: response.role === 'ADMIN' ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
         role: response.role
       };
       
-      // Definir no contexto
       setUser(userData);
       
-      // Armazenar no localStorage
       localStorage.setItem('user', JSON.stringify(userData));
       
       navigate('/');
@@ -148,6 +150,14 @@ export default function SignIn(props: Record<string, unknown>) {
     }
 
     return isValid;
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword((show) => !show);
+  };
+
+  const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
   };
 
   return (
@@ -198,7 +208,7 @@ export default function SignIn(props: Record<string, unknown>) {
                 helperText={passwordErrorMessage}
                 name="password"
                 placeholder="••••••"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 autoComplete="current-password"
                 autoFocus
@@ -206,6 +216,20 @@ export default function SignIn(props: Record<string, unknown>) {
                 fullWidth
                 variant="outlined"
                 color={passwordError ? 'error' : 'primary'}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </FormControl>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

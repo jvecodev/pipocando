@@ -62,7 +62,7 @@ function Header() {
     // localStorage.removeItem('username');
     setUserName(null);
     handleClose();
-    window.location.reload();
+    window.location.href = "/";
   };
 
   return (
