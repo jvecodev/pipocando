@@ -23,7 +23,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, ...props }) => {
           width: "100%",
           backgroundRepeat: "no-repeat",
           backgroundImage:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(211, 100.00%, 83.10%), transparent)",
+            "radial-gradient(ellipse 80% 50% at 50% -20%, #800020, transparent)",
           ...theme.applyStyles("dark", {
             backgroundImage:
               "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
