@@ -4,7 +4,7 @@ import { typographyClasses } from '@mui/material/Typography';
 import { buttonBaseClasses } from '@mui/material/ButtonBase';
 import { chipClasses } from '@mui/material/Chip';
 import { iconButtonClasses } from '@mui/material/IconButton';
-import { gray, red, green } from '../themePrimitives';
+import { gray, red, green, brand, cremePipoca, carameloPipoca, carameloEscuro, borgonhaFundo, cremeSuave, begeAreia } from '../themePrimitives';
 
 /* eslint-disable import/prefer-default-export */
 export const dataDisplayCustomizations: Components<Theme> = {
@@ -92,33 +92,46 @@ export const dataDisplayCustomizations: Components<Theme> = {
     },
     styleOverrides: {
       root: ({ theme }) => ({
-        border: '1px solid',
-        borderRadius: '999px',
-        [`& .${chipClasses.label}`]: {
-          fontWeight: 600,
-        },
+        borderRadius: 16,
+        fontWeight: 500,
+        borderWidth: 1,
+        borderStyle: 'solid',
         variants: [
           {
             props: {
+              variant: 'filled',
+            },
+            style: {
+              backgroundColor: begeAreia,
+              color: gray[800],
+              ...theme.applyStyles('dark', {
+                backgroundColor: carameloEscuro,
+                color: cremePipoca,
+              }),
+            },
+          },
+          {
+            props: {
+              variant: 'outlined',
               color: 'default',
             },
             style: {
-              borderColor: gray[200],
-              backgroundColor: gray[100],
+              borderColor: begeAreia,
+              backgroundColor: cremeSuave,
               [`& .${chipClasses.label}`]: {
-                color: gray[500],
+                color: gray[700],
               },
               [`& .${chipClasses.icon}`]: {
-                color: gray[500],
+                color: gray[700],
               },
               ...theme.applyStyles('dark', {
-                borderColor: gray[700],
-                backgroundColor: gray[800],
+                borderColor: carameloEscuro,
+                backgroundColor: '#2A1E14',
                 [`& .${chipClasses.label}`]: {
-                  color: gray[300],
+                  color: cremeSuave,
                 },
                 [`& .${chipClasses.icon}`]: {
-                  color: gray[300],
+                  color: cremeSuave,
                 },
               }),
             },
@@ -138,7 +151,7 @@ export const dataDisplayCustomizations: Components<Theme> = {
               },
               ...theme.applyStyles('dark', {
                 borderColor: green[800],
-                backgroundColor: green[900],
+                backgroundColor: alpha(green[900], 0.8),
                 [`& .${chipClasses.label}`]: {
                   color: green[300],
                 },
@@ -153,46 +166,28 @@ export const dataDisplayCustomizations: Components<Theme> = {
               color: 'error',
             },
             style: {
-              borderColor: red[100],
-              backgroundColor: red[50],
+              borderColor: borgonhaFundo,
+              backgroundColor: alpha(borgonhaFundo, 0.1),
               [`& .${chipClasses.label}`]: {
-                color: red[500],
+                color: borgonhaFundo,
               },
               [`& .${chipClasses.icon}`]: {
-                color: red[500],
+                color: borgonhaFundo,
               },
               ...theme.applyStyles('dark', {
-                borderColor: red[800],
-                backgroundColor: red[900],
+                borderColor: borgonhaFundo,
+                backgroundColor: alpha(borgonhaFundo, 0.3),
                 [`& .${chipClasses.label}`]: {
-                  color: red[200],
+                  color: alpha(cremePipoca, 0.8),
                 },
                 [`& .${chipClasses.icon}`]: {
-                  color: red[300],
+                  color: alpha(cremePipoca, 0.8),
                 },
               }),
             },
           },
-          {
-            props: { size: 'small' },
-            style: {
-              maxHeight: 20,
-              [`& .${chipClasses.label}`]: {
-                fontSize: theme.typography.caption.fontSize,
-              },
-              [`& .${svgIconClasses.root}`]: {
-                fontSize: theme.typography.caption.fontSize,
-              },
-            },
-          },
-          {
-            props: { size: 'medium' },
-            style: {
-              [`& .${chipClasses.label}`]: {
-                fontSize: theme.typography.caption.fontSize,
-              },
-            },
-          },
+          
+          // Mais variantes de Chip...
         ],
       }),
     },

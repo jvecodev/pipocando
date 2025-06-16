@@ -32,6 +32,7 @@ import {
 import { TVShow, WatchProviders, Video } from "../../services/tmdbService";
 import tmdbService from "../../services/tmdbService";
 import watchlistService from "../../services/watchlistService";
+import { carameloPipoca, carameloEscuro, borgonhaFundo, cremeSuave, begeAreia } from "../../shared-theme/themePrimitives";
 
 interface TVShowCardProps {
   tvShow: TVShow;
@@ -81,8 +82,8 @@ const TVShowCard: React.FC<TVShowCardProps> = ({
   };
   const handleTrailerClick = async () => {
     try {
-      setTrailerOpen(true); 
-      setTrailer(null); 
+      setTrailerOpen(true);
+      setTrailer(null);
 
       const videos = await tmdbService.getTVShowVideos(tvShow.id);
       const foundTrailer = tmdbService.findOfficialTrailer(videos);
@@ -378,10 +379,9 @@ const TVShowCard: React.FC<TVShowCardProps> = ({
             borderRadius: 2,
             overflow: "hidden",
             boxShadow: (theme) =>
-              `0 16px 32px 0 ${
-                theme.palette.mode === "light"
-                  ? "rgba(0, 0, 0, 0.3)"
-                  : "rgba(0, 0, 0, 0.8)"
+              `0 16px 32px 0 ${theme.palette.mode === "light"
+                ? "rgba(0, 0, 0, 0.3)"
+                : "rgba(0, 0, 0, 0.8)"
               }`,
           },
         }}
@@ -474,7 +474,8 @@ const TVShowCard: React.FC<TVShowCardProps> = ({
         {trailer && (
           <DialogActions
             sx={{
-              bgcolor: "primary.dark",
+              // Alterando de "primary.dark" para um tom de bege
+              bgcolor: theme => theme.palette.mode === 'dark' ? carameloEscuro : begeAreia,
               justifyContent: "space-between",
               px: 2,
             }}
