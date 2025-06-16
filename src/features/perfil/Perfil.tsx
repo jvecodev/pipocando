@@ -566,15 +566,21 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
 
         setSavingUser(true);
         try {
-            // Enviar solicitação para atualizar o usuário
-            const updatedUserData = await updateUser(userToEdit.id, {
+            // Preparar os dados para envio
+            const userData = {
                 name: userToEdit.name,
                 email: userToEdit.email,
-                perfil: userToEdit.perfil,
+                role: userToEdit.perfil, // Alterado para role
                 active: userToEdit.active
-            });
+            };
 
-            // Atualizar a lista de usuários localmente sem precisar fazer uma nova chamada à API
+            // Log para diagnóstico
+            console.log(`Enviando atualização para usuário ${userToEdit.id}:`, userData);
+
+            // Enviar solicitação para atualizar o usuário
+            const updatedUserData = await updateUser(userToEdit.id, userData);
+
+            // Atualizar a lista de usuários localmente sem precisar fazer nova chamada à API
             setUsers(currentUsers =>
                 currentUsers.map(u =>
                     u.id === userToEdit.id
@@ -590,14 +596,17 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             );
 
             // Se o usuário que está sendo editado é o mesmo que está logado, atualizar também o contexto
-            // Corrigir comparação convertendo ambos para o mesmo tipo
             if (user && Number(user.id) === userToEdit.id) {
+                // Preservar token e outras informações importantes
+                const token = localStorage.getItem('token');
+                const userId = localStorage.getItem('userId');
+                const userRole = localStorage.getItem('userRole');
+
                 const updatedUser = {
                     ...user,
                     name: updatedUserData.name || user.name,
                     email: updatedUserData.email || user.email,
                     perfil: updatedUserData.role || user.perfil
-                    // Remover a propriedade active que não existe no tipo PerfilType
                 };
 
                 // Atualizar o contexto do usuário
@@ -606,12 +615,37 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                 // Atualizar localStorage com o usuário atualizado
                 localStorage.setItem('user', JSON.stringify(updatedUser));
                 if (updatedUser.name) localStorage.setItem('userName', updatedUser.name);
+
+                // Restaurar informações de autenticação
+                if (token) localStorage.setItem('token', token);
+                if (userId) localStorage.setItem('userId', userId);
+                if (userRole) localStorage.setItem('userRole', userRole);
             }
 
             setUserManagementSuccessMessage(`Usuário "${userToEdit.name}" atualizado com sucesso!`);
             setUserManagementSuccess(true);
             handleCloseEditModal();
         } catch (error: any) {
+            // Verificar se é erro de autenticação
+            if (error.message && error.message.includes('Sessão expirada')) {
+                // Limpar dados de autenticação
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('user');
+
+                // Limpar contexto do usuário
+                setUser(null);
+
+                // Redirecionar para login com mensagem de erro
+                navigate('/login?message=' + encodeURIComponent(
+                    "Sua sessão expirou. Por favor, faça login novamente."
+                ));
+                return;
+            }
+
+            console.error("Erro ao atualizar usuário:", error);
             setUserManagementError(error.message || "Erro ao atualizar usuário");
         } finally {
             setSavingUser(false);

@@ -271,9 +271,26 @@ export interface AdminUserUpdate {
 // Função para atualizar um usuário (como admin)
 export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
   try {
+    // Verificação do ID
+    if (!userId) {
+      throw new Error("ID do usuário é necessário para atualização");
+    }
+
+    // Preparar dados para envio com tipagem correta
+    const dataToSend = {
+      name: userData.name,
+      email: userData.email,
+      role: userData.perfil, // Observe que o backend pode esperar 'role' em vez de 'perfil'
+      active: userData.active,
+    };
+
+    // Log para diagnóstico
+    console.log(`Atualizando usuário ${userId} com dados:`, dataToSend);
+
+    // Fazer requisição para a API com o endpoint correto
     const response = await axios.put(
-      `${API_URL}/v1/user/${userId}`, // Ajuste o endpoint conforme necessário
-      userData,
+      `${API_URL}/v1/user/${userId}`, // Usando o endpoint correto
+      dataToSend,
       {
         headers: {
           "Content-Type": "application/json",
@@ -283,12 +300,13 @@ export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
     );
 
     console.log("Usuário atualizado com sucesso:", response.data);
-    return response.data; // Retorna os dados atualizados
+    return response.data;
   } catch (error) {
     console.error("Erro ao atualizar usuário:", error);
 
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 401) {
+        // Verificar se o token expirou
         throw new Error("Sessão expirada. Por favor, faça login novamente.");
       } else if (error.response?.status === 403) {
         throw new Error("Você não tem permissão para atualizar este usuário.");
