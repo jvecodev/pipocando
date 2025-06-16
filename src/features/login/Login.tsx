@@ -17,8 +17,8 @@ import ForgotPassword from './ForgotPassword';
 import AppTheme from '../../shared-theme/AppTheme';
 import ColorModeSelect from '../../shared-theme/ColorModeSelect';
 import { login } from '../../services/authService';
+import { PerfilTypeEnum } from '../../types/PerfilType';
 import { useNavigate } from 'react-router-dom';
-import { PerfilType, PerfilTypeEnum } from '../../types/PerfilType';
 import { useUser } from '../../context/UserContext';
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -92,25 +92,34 @@ export default function SignIn(props: Record<string, unknown>) {
     const password = data.get('password') as string;
 
     try {
-      const response = await login({ email, password });
-      console.log('Login realizado com sucesso:', {
-        token: response.token,
-        name: response.name,
-        role: response.role,
-      });
-      localStorage.setItem('token', response.token);
-      if (response.name) {
-        localStorage.setItem('username', response.name);
-      }
-      setUser({
-        id: '',
-        name: response.name,
-        email: email,
-        perfil: response.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
-      });
+      const loginRequest = { 
+        email: email, // Fixed: removed .value
+        password: password // Fixed: removed .value
+      };
+      
+      const response = await login(loginRequest);
+      console.log('Login response:', response);
+      
+      // Atualizar dados do usuário
+      const userData = {
+        id: Number(response.userId),
+        name: response.userName,
+        email: email, // Fixed: removed .value
+        perfil: response.role === 'ADMIN' ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
+        role: response.role
+      };
+      
+      // Definir no contexto
+      setUser(userData);
+      
+      // Armazenar no localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      
       navigate('/');
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
+      setEmailError(true);
+      setEmailErrorMessage(error.message || 'Credenciais inválidas');
     }
   };
 

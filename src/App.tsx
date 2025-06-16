@@ -9,6 +9,7 @@ import Movies from "./features/movies/Movies";
 import Series from "./features/series/Series";
 import FAQ from "./features/faq/FAQ";
 import { UserProvider } from "./context/UserContext";
+import Perfil from "./features/perfil/Perfil";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/series" element={<Series />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/blog" element={<Blog />} />
+        <Route path="/perfil" element={<Perfil />} />
       </Routes>
     </Router>
   </UserProvider>

@@ -36,7 +36,17 @@ function Header() {
   const open = Boolean(anchorEl);
 
   React.useEffect(() => {
-    setUserName(localStorage.getItem('username'));
+    // Obter nome do usuário do objeto 'user' no localStorage
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setUserName(userData.name);
+      } catch (e) {
+        console.error('Erro ao recuperar dados do usuário:', e);
+        setUserName(null);
+      }
+    }
   }, []);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -47,7 +57,9 @@ function Header() {
   };
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('username');
+    localStorage.removeItem('user');
+    // Remova esta linha se estiver usando a opção 2
+    // localStorage.removeItem('username');
     setUserName(null);
     handleClose();
     window.location.reload();
