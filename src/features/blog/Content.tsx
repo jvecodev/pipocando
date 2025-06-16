@@ -191,7 +191,7 @@ export default function Content() {
 
   const handleCategoryChange = (event: SelectChangeEvent<string>) => {
     setCategory(event.target.value);
-    setPage(1); // Reset page when changing category
+    setPage(1); 
   };
 
   const handleModalClose = () => {
@@ -201,7 +201,7 @@ export default function Content() {
     
     try {
       await deletePost(Number(postToDelete.id), user);
-      setPage(1); // Reset to first page after deletion
+      setPage(1);
       fetchPosts();
       setDeleteModalOpen(false);
       setPostToDelete(null);
@@ -220,10 +220,8 @@ export default function Content() {
         throw new Error('Usuário não autenticado. Faça login para salvar a publicação.');
       }
       
-      // Processa a URL da imagem
       let imageUrl = post.urlImage || post.imageUrl;
       
-      // Se a URL for muito longa, pode causar problemas no backend
       if (imageUrl && imageUrl.length > 1000) {
         imageUrl = imageUrl.substring(0, 1000);
       }
@@ -235,7 +233,6 @@ export default function Content() {
      
       if (modal.type === 'create') {
         if (category === 'Filmes' && !post.movieId) {
-          // Durante a criação, tentamos usar o tmdbId se disponível
           if (post.tmdbId && post.tmdbType === 'movie') {
             post.movieId = post.tmdbId;
             console.log('Usando tmdbId como movieId:', post.tmdbId);
@@ -243,49 +240,54 @@ export default function Content() {
             throw new Error('Para a categoria Filmes, é necessário informar o ID do filme.');
           }
         } else if (category === 'Séries' && !post.serieId) {
-          // Durante a criação, tentamos usar o tmdbId se disponível
           if (post.tmdbId && post.tmdbType === 'tv') {
             post.serieId = post.tmdbId;
             console.log('Usando tmdbId como serieId:', post.tmdbId);
           } else {
             throw new Error('Para a categoria Séries, é necessário informar o ID da série.');
           }
-        }
-      } else {
-        // Em modo de edição, garantimos que não perdemos os IDs existentes
+        }      } else {
         console.log('Modo de edição: preservando IDs existentes');
+      }          // Monta o payload conforme a categoria
+      // Garantir que sempre tenhamos um userId válido
+      let originalUserId;
+      if (modal.type === 'edit') {
+        // Se post.userId existir e for válido, usa ele; senão, mantém o usuário atual
+        originalUserId = post.userId && post.userId !== null ? Number(post.userId) : Number(user.id);
+        console.log(`Modo edição: post.userId=${post.userId}, usando userId=${originalUserId}`);
+      } else {
+        originalUserId = Number(user.id);
       }
-          // Monta o payload conforme a categoria
+      
       const payload: any = {
         title: post.title,
         content: post.content,
-        userId: Number(user.id),
-        urlImage: imageUrl, // Usa a URL processada
+        userId: originalUserId, // Sempre enviar userId válido para o backend
+        urlImage: imageUrl,
         category: category,
       };
       
-      // Sempre incluir os IDs conforme a categoria
+      // Log para confirmar o userId que está sendo enviado
+      if (modal.type === 'edit') {
+        console.log(`Editando post: enviando userId=${originalUserId} para o backend`);
+      } else {
+        console.log(`Criando post: enviando userId=${originalUserId} (usuário logado) para o backend`);
+      }
+      
       if (category === 'Filmes') {
-        // Usa o ID existente do post ou o tmdbId se disponível
         payload.movieId = post.movieId || (post.tmdbId && post.tmdbType === 'movie' ? post.tmdbId : undefined);
         
-        // Para categoria Filmes, garantimos que serieId seja undefined
         payload.serieId = undefined;
         
-        // Log para debug
         console.log(`Categoria Filmes: usando movieId=${payload.movieId}`);
       } else if (category === 'Séries') {
-        // Usa o ID existente do post ou o tmdbId se disponível
         payload.serieId = post.serieId || (post.tmdbId && post.tmdbType === 'tv' ? post.tmdbId : undefined);
         
-        // Para categoria Séries, garantimos que movieId seja undefined
         payload.movieId = undefined;
         
-        // Log para debug
         console.log(`Categoria Séries: usando serieId=${payload.serieId}`);
-      }      // Ajuste especial para modo de edição
+      }      
       if (modal.type === 'edit' && post.id) {
-        // Garantir que movieId ou serieId estejam definidos na edição
         if (category === 'Filmes' && !payload.movieId) {
           console.log('Edição: Definindo movieId com ID do post:', post.id);
           payload.movieId = Number(post.id);
@@ -293,10 +295,14 @@ export default function Content() {
           console.log('Edição: Definindo serieId com ID do post:', post.id);
           payload.serieId = Number(post.id);
         }
-      }
-
-      // Log para debug
+      }      
       console.log('Payload de salvamento:', payload);
+      
+      if (modal.type === 'edit') {
+        console.log(`Editando post: mantendo userId original (${payload.userId}) ao invés do userId do editor (${user.id})`);
+      } else {
+        console.log(`Criando post: usando userId do criador (${payload.userId})`);
+      }
 
       if (modal.type === 'create') {
         await createPost(payload);
