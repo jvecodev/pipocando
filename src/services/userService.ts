@@ -1,6 +1,6 @@
 import axios from "axios";
 import { environment } from "../environment/environment";
-import { User } from "../context/UserContext";
+import { RegisterRequest } from "../types/RegisterRequest";
 
 const API_URL = environment.API_URL;
 
@@ -70,12 +70,9 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
 
     if (axios.isAxiosError(error)) {
       if (error.response) {
-        // Server responded with an error status
         console.error("Resposta de erro do servidor:", error.response.data);
 
-        // Trate especificamente o erro de senha incorreta
         if (error.response.status === 400 || error.response.status === 401) {
-          // Verifica se há informações sobre senha na mensagem de erro
           const errorMessage = error.response.data.message || error.response.data.error || "";
           if (errorMessage.toLowerCase().includes("senha") || 
               errorMessage.toLowerCase().includes("password") || 
@@ -96,7 +93,6 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
           error.response.data.message || error.response.data.error || "Erro ao atualizar o perfil"
         );
       } else if (error.request) {
-        // The request was made but no response was received
         console.error("Nenhuma resposta recebida:", error.request);
         throw new Error(
           "Servidor não respondeu. Verifique sua conexão de internet."
@@ -199,7 +195,7 @@ export const deleteUser = async (userId: string | number) => {
   }
 };
 
-export const createUser = async (userData: Omit<User, "id">) => {
+export const createUser = async (userData: RegisterRequest) => {
   try {
     const response = await axios.post(`${API_URL}/v1/user`, userData, {
       headers: {

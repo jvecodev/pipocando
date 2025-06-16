@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import {
     Typography,
@@ -17,7 +17,6 @@ import {
     Divider,
     Stack,
     Chip,
-    Modal,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -39,20 +38,16 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SecurityIcon from '@mui/icons-material/Security';
-import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
 import WarningIcon from '@mui/icons-material/Warning';
 import GroupIcon from '@mui/icons-material/Group';
-import { UserContext } from '../../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import { updateUserProfile, deleteUserAccount, getAllUsers, deleteUser, updateUser, deleteUserAdmin } from '../../services/userService';
+import { updateUserProfile, deleteUserAccount, getAllUsers, updateUser, deleteUserAdmin } from '../../services/userService';
 import AppTheme from '../../shared-theme/AppTheme';
 import Header from '../../organisms/header/Header';
 import { styled } from '@mui/material/styles';
-import axios from 'axios';
-import { ProfileUpdateData } from '../../services/userService';
 import { PerfilTypeEnum } from '../../types/PerfilType';
-import DeleteConfirmationModal from '../../organisms/dialog/DeleteConfirmationModal';
 
 // Modificamos a interface para incluir perfil
 interface ProfileData {
@@ -110,7 +105,7 @@ const SectionHeader = styled(Box)(({ theme }) => ({
 }));
 
 export default function Perfil(props: { disableCustomTheme?: boolean }) {
-    const { user, setUser } = useContext(UserContext);
+    const { user, setUser } = useUser();
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
@@ -166,33 +161,8 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
     const [userManagementError, setUserManagementError] = useState("");
     const [userManagementSuccessMessage, setUserManagementSuccessMessage] = useState("");
 
-    useEffect(() => {
-        console.log("UserContext data:", user);
-
-        // Redirecionar se não estiver autenticado
-        if (!user) {
-            navigate('/login');
-            return;
-        }
-
-        // Preencher dados do usuário, garantindo que ID não é undefined
-        setFormData({
-            id: user.id ?? '', // Usando o operador de coalescência nula para fornecer um valor padrão
-            name: user.name || '',
-            email: user.email || '',
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-        });
-
-        // Carregar lista de usuários se for ADMIN
-        if (user.perfil === PerfilTypeEnum.ADMIN) {
-            fetchUsers();
-        }
-    }, [user, navigate]);
-
-    // Função fetchUsers modificada para normalizar os valores de perfil
-    const fetchUsers = async () => {
+    // Função fetchUsers modificada para normalizar os valores de perfil com useCallback
+    const fetchUsers = useCallback(async () => {
         if (user?.perfil !== PerfilTypeEnum.ADMIN) return;
 
         setUsersLoading(true);
@@ -216,7 +186,32 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
         } finally {
             setUsersLoading(false);
         }
-    };
+    }, [user]);
+
+    useEffect(() => {
+        console.log("UserContext data:", user);
+
+        // Redirecionar se não estiver autenticado
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        // Preencher dados do usuário, garantindo que ID não é undefined
+        setFormData({
+            id: user.id ?? '', // Usando o operador de coalescência nula para fornecer um valor padrão
+            name: user.name || '',
+            email: user.email || '',
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+        });
+
+        // Carregar lista de usuários se for ADMIN
+        if (user.perfil === PerfilTypeEnum.ADMIN) {
+            fetchUsers();
+        }
+    }, [user, navigate, fetchUsers]);
 
     const handleChangePage = (event: unknown, newPage: number) => {
         setPage(newPage);
@@ -1273,6 +1268,49 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 {userManagementError}
                             </Alert>
                         </Snackbar>
+
+                        {/* Modal de confirmação de exclusão de usuário */}
+                        <Dialog
+                            open={deleteUserModalOpen}
+                            onClose={handleCloseDeleteUserModal}
+                            PaperProps={{
+                                sx: {
+                                    borderRadius: 3,
+                                    width: '100%',
+                                    maxWidth: 400
+                                }
+                            }}
+                        >
+                            <DialogTitle sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1.5
+                            }}>
+                                <WarningIcon color="error" />
+                                Confirmar Exclusão
+                            </DialogTitle>
+                            <DialogContent>
+                                <DialogContentText>
+                                    Tem certeza que deseja excluir o usuário <strong>{userToDelete?.name}</strong>? Esta ação não pode ser desfeita.
+                                </DialogContentText>
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={handleCloseDeleteUserModal} color="inherit">
+                                    Cancelar
+                                </Button>
+                                <Button 
+                                    onClick={handleDeleteUser} 
+                                    color="error" 
+                                    variant="contained" 
+                                    autoFocus
+                                    disabled={deletingUser}
+                                    startIcon={deletingUser ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    {deletingUser ? 'Excluindo...' : 'Excluir'}
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
                     </Box>
                 </Container>
             </Box>

@@ -102,7 +102,7 @@ export default function SignIn(props: Record<string, unknown>) {
       
       // Atualizar dados do usuário
       const userData = {
-        id: Number(response.userId),
+        id: response.userId.toString(), // Convertendo para string para corresponder ao tipo PerfilType
         name: response.userName,
         email: email, // Fixed: removed .value
         perfil: response.role === 'ADMIN' ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
@@ -208,10 +208,20 @@ export default function SignIn(props: Record<string, unknown>) {
                 color={passwordError ? 'error' : 'primary'}
               />
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Lembrar deste dispositivo"
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <FormControlLabel
+                control={<Checkbox value="remember" color="primary" />}
+                label="Lembrar deste dispositivo"
+              />
+              <Link 
+                component="button"
+                variant="body2"
+                onClick={handleClickOpen}
+                sx={{ textAlign: 'right' }}
+              >
+                Esqueceu a senha?
+              </Link>
+            </Box>
             <ForgotPassword open={open} handleClose={handleClose} />
             <Button
               type="submit"

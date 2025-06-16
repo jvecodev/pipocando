@@ -6,7 +6,8 @@ interface UserContextType {
   setUser: (user: PerfilType | null) => void;
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+// Exportar o contexto
+export const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<PerfilType | null>(() => {
