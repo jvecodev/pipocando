@@ -7,7 +7,7 @@ import { menuItemClasses } from '@mui/material/MenuItem';
 import { selectClasses } from '@mui/material/Select';
 import { tabClasses } from '@mui/material/Tab';
 import UnfoldMoreRoundedIcon from '@mui/icons-material/UnfoldMoreRounded';
-import { gray, brand } from '../themePrimitives';
+import { gray, brand, carameloPipoca, carameloEscuro, borgonhaFundo, cremeSuave, begeAreia } from '../themePrimitives';
 
 /* eslint-disable import/prefer-default-export */
 export const navigationCustomizations: Components<Theme> = {
@@ -40,9 +40,11 @@ export const navigationCustomizations: Components<Theme> = {
         borderRadius: theme.shape.borderRadius,
         border: `1px solid ${theme.palette.divider}`,
         backgroundImage: 'none',
-        background: 'hsl(0, 0%, 100%)',
+        background: theme.palette.mode === 'dark' ? '#3A2D1E' : cremeSuave,
         boxShadow:
-          'hsla(220, 30%, 5%, 0.07) 0px 4px 16px 0px, hsla(220, 25%, 10%, 0.07) 0px 8px 16px -5px',
+          theme.palette.mode === 'dark'
+            ? `${alpha(borgonhaFundo, 0.2)} 0px 4px 16px 0px, ${alpha(carameloEscuro, 0.3)} 0px 8px 16px -5px`
+            : `${alpha(begeAreia, 0.2)} 0px 4px 16px 0px, ${alpha(cremeSuave, 0.3)} 0px 8px 16px -5px`,
         [`& .${buttonBaseClasses.root}`]: {
           '&.Mui-selected': {
             backgroundColor: alpha(theme.palette.action.selected, 0.3),
