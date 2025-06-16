@@ -186,6 +186,26 @@ const Movies: React.FC = () => {
         >
           Descubra onde assistir seus filmes favoritos e adicione-os à sua lista de interesse.
         </Typography>
+        <TextField
+          fullWidth
+          placeholder="Buscar filmes..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            maxWidth: 500,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 3,
+              backgroundColor: "background.paper",
+            },
+          }}
+        />
         <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 2 }}>
           {/* Botões podem ser personalizados conforme necessidade */}
         </Box>
