@@ -1,5 +1,4 @@
 import { createTheme, alpha, PaletteMode, Shadows } from "@mui/material/styles";
-import { dark } from "@mui/material/styles/createPalette";
 
 declare module "@mui/material/Paper" {
   interface PaperPropsVariantOverrides {
@@ -95,6 +94,14 @@ export const red = {
   800: "hsl(0, 95%, 12%)",
   900: "hsl(0, 93%, 6%)",
 };
+
+// Cores tema pipoca
+export const cremePipoca = "#FFF8DC"; // Cornsilk
+export const carameloPipoca = "#D2B48C"; // Tan
+export const carameloEscuro = "#8B4513"; // SaddleBrown
+export const borgonhaFundo = "#800020"; // Dark red (same as brand)
+export const cremeSuave = "#F5F5DC"; // Beige
+export const begeAreia = "#F4A460"; // SandyBrown
 
 export const getDesignTokens = (mode: PaletteMode) => {
   customShadows[1] =
@@ -418,3 +425,21 @@ const defaultShadows: Shadows = [
   ...defaultTheme.shadows.slice(2),
 ];
 export const shadows = defaultShadows;
+
+// Função para estender o tema baseado no modo
+export const extendTheme = (mode: PaletteMode) => {
+  const tokens = getDesignTokens(mode);
+  
+  return createTheme({
+    cssVariables: {
+      colorSchemeSelector: 'data-mui-color-scheme',
+    },
+    colorSchemes: {
+      light: colorSchemes.light,
+      dark: colorSchemes.dark,
+    },
+    typography,
+    shadows: tokens.shadows,
+    shape: tokens.shape,
+  });
+};

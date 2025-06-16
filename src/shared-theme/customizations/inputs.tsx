@@ -7,7 +7,7 @@ import { toggleButtonClasses } from '@mui/material/ToggleButton';
 import CheckBoxOutlineBlankRoundedIcon from '@mui/icons-material/CheckBoxOutlineBlankRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
-import { brand, gray, green, orange, red, cremePipoca, carameloPipoca, carameloEscuro, borgonhaFundo, cremeSuave, begeAreia } from '../themePrimitives';
+import { brand, gray, cremePipoca, carameloPipoca, carameloEscuro, borgonhaFundo, cremeSuave } from '../themePrimitives';
 
 /* eslint-disable import/prefer-default-export */
 export const inputsCustomizations: Components<Theme> = {
