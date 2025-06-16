@@ -24,6 +24,16 @@ declare module "@mui/material/styles/createPalette" {
 
   interface Palette {
     baseShadow: string;
+    brand: {
+      red: string;
+      orange: string;
+      cremePipoca: string;
+      carameloPipoca: string;
+      carameloEscuro: string;
+      borgonhaFundo: string;
+      cremeSuave: string;
+      begeAreia: string;
+    };
   }
 }
 
@@ -31,69 +41,78 @@ const defaultTheme = createTheme();
 
 const customShadows: Shadows = [...defaultTheme.shadows];
 
+// Novas cores da paleta Pipocando
+export const cremePipoca = "#F2F1E4";
+export const carameloPipoca = "#D68400";
+export const carameloEscuro = "#A94F00";
+export const borgonhaFundo = "#7B0026";
+export const cremeSuave = "#E3DABE";
+export const begeAreia = "#C8B994";
+
+// Adaptação das cores antigas para a nova paleta
 export const brand = {
-  50: "hsl(210, 100%, 95%)",
-  100: "hsl(210, 100%, 92%)",
-  200: "hsl(210, 100%, 80%)",
-  300: "hsl(210, 100%, 65%)",
-  400: "hsl(210, 98%, 48%)",
-  500: "hsl(210, 98%, 42%)",
-  600: "hsl(210, 98%, 55%)",
-  700: "hsl(210, 100%, 35%)",
-  800: "hsl(210, 100%, 16%)",
-  900: "hsl(210, 100%, 21%)",
+  50: cremePipoca,
+  100: cremeSuave,
+  200: begeAreia,
+  300: "#C8B994",
+  400: carameloPipoca,
+  500: carameloEscuro,
+  600: "#8D4200",
+  700: borgonhaFundo,
+  800: "#5E001D",
+  900: "#450015",
 };
 
 export const gray = {
-  50: "hsl(220, 35%, 97%)",
-  100: "hsl(220, 30%, 94%)",
-  200: "hsl(220, 20%, 88%)",
-  300: "hsl(220, 20%, 80%)",
-  400: "hsl(220, 20%, 65%)",
-  500: "hsl(220, 20%, 42%)",
-  600: "hsl(220, 20%, 35%)",
-  700: "hsl(220, 20%, 25%)",
-  800: "hsl(220, 30%, 6%)",
-  900: "hsl(0, 0.00%, 0.00%)",
+  50: cremePipoca,
+  100: cremeSuave,
+  200: begeAreia,
+  300: "#BAAD89",
+  400: "#9D9178",
+  500: "#7D7460",
+  600: "#5D574A",
+  700: "#403D34",
+  800: "#252320",
+  900: "#0A0908",
 };
 
 export const green = {
-  50: "hsl(120, 80%, 98%)",
-  100: "hsl(120, 75%, 94%)",
-  200: "hsl(120, 75%, 87%)",
-  300: "hsl(120, 61%, 77%)",
-  400: "hsl(120, 44%, 53%)",
-  500: "hsl(120, 59%, 30%)",
-  600: "hsl(120, 70%, 25%)",
-  700: "hsl(120, 75%, 16%)",
-  800: "hsl(120, 84%, 10%)",
-  900: "hsl(120, 87%, 6%)",
+  50: "#F5F9E8",
+  100: "#EBF2D1",
+  200: "#D7E5A3",
+  300: "#C3D875",
+  400: "#AFCB47",
+  500: "#8DA438",
+  600: "#6A7B2A",
+  700: "#46521C",
+  800: "#23290E",
+  900: "#111405",
 };
 
 export const orange = {
-  50: "hsl(45, 100%, 97%)",
-  100: "hsl(45, 92%, 90%)",
-  200: "hsl(45, 94%, 80%)",
-  300: "hsl(45, 90%, 65%)",
-  400: "hsl(45, 90%, 40%)",
-  500: "#D28500",
-  600: "hsl(45, 91%, 25%)",
-  700: "hsl(45, 94%, 20%)",
-  800: "hsl(45, 95%, 16%)",
-  900: "hsl(45, 93%, 12%)",
+  50: "#FEF6E8",
+  100: "#FDECD0",
+  200: "#FBD8A1",
+  300: carameloPipoca, // Usando o caramelo pipoca como base
+  400: "#D68400", // Caramelo principal
+  500: carameloEscuro, // Caramelo Escuro
+  600: "#874000",
+  700: "#653000",
+  800: "#432000",
+  900: "#211000",
 };
 
 export const red = {
-  50: "hsl(0, 100%, 97%)",
-  100: "hsl(0, 92%, 90%)",
-  200: "hsl(0, 94%, 80%)",
-  300: "hsl(0, 90%, 65%)",
-  400: "hsl(0, 90%, 40%)",
-  500: "hsl(0, 90%, 30%)",
-  600: "hsl(0, 91%, 25%)",
-  700: "#800020",
-  800: "hsl(0, 95%, 12%)",
-  900: "hsl(0, 93%, 6%)",
+  50: "#FFF0F2",
+  100: "#FFE1E5",
+  200: "#FFC3CB",
+  300: "#FFA5B1",
+  400: "#FF8797",
+  500: "#E5254A",
+  600: borgonhaFundo, // Usando o borgonha como base
+  700: "#580019", // Mais escuro que o borgonha
+  800: "#350010",
+  900: "#130006",
 };
 
 export const getDesignTokens = (mode: PaletteMode) => {
@@ -107,51 +126,56 @@ export const getDesignTokens = (mode: PaletteMode) => {
       mode,
       primary: {
         light: brand[200],
-        main: brand[400],
-        dark: brand[700],
-        contrastText: brand[50],
+        main: carameloPipoca,
+        dark: carameloEscuro,
+        contrastText: cremePipoca,
         ...(mode === "dark" && {
-          contrastText: brand[50],
-          light: brand[300],
-          main: brand[400],
-          dark: brand[700],
+          contrastText: cremePipoca,
+          light: carameloPipoca,
+          main: carameloEscuro,
+          dark: "#8D4200",
         }),
       },
       info: {
         light: brand[100],
-        main: brand[300],
+        main: begeAreia,
         dark: brand[600],
-        contrastText: gray[50],
+        contrastText: gray[800],
         ...(mode === "dark" && {
-          contrastText: brand[300],
-          light: brand[500],
-          main: brand[700],
-          dark: brand[900],
+          contrastText: begeAreia,
+          light: carameloEscuro,
+          main: carameloPipoca,
+          dark: "#8D4200",
         }),
       },
       brand:{
-        red: red[700],
-        orange: "#D28500",
-
+        red: borgonhaFundo,
+        orange: carameloPipoca,
+        cremePipoca: cremePipoca,
+        carameloPipoca: carameloPipoca,
+        carameloEscuro: carameloEscuro,
+        borgonhaFundo: borgonhaFundo,
+        cremeSuave: cremeSuave,
+        begeAreia: begeAreia
       },
       warning: {
         light: orange[300],
-        main: orange[400],
-        dark: orange[800],
+        main: carameloPipoca,
+        dark: carameloEscuro,
         ...(mode === "dark" && {
-          light: orange[400],
-          main: orange[500],
-          dark: orange[700],
+          light: carameloPipoca,
+          main: carameloEscuro,
+          dark: "#8D4200",
         }),
       },
       error: {
         light: red[300],
-        main: red[400],
+        main: borgonhaFundo,
         dark: red[800],
         ...(mode === "dark" && {
-          light: red[400],
-          main: red[500],
-          dark: red[700],
+          light: borgonhaFundo,
+          main: "#9E0033",
+          dark: "#700025",
         }),
       },
       success: {
@@ -167,30 +191,31 @@ export const getDesignTokens = (mode: PaletteMode) => {
       grey: {
         ...gray,
       },
-      divider: mode === "dark" ? alpha(gray[700], 0.6) : alpha(gray[300], 0.4),
+      divider: mode === "dark" ? alpha(begeAreia, 0.3) : alpha(begeAreia, 0.2),
       background: {
-        default: "hsl(0, 0%, 99%)",
-        paper: "hsl(220, 35%, 97%)",
+        default: cremePipoca,
+        paper: cremeSuave,
         ...(mode === "dark" && {
-          default: brand[900],
-          paper: "hsl(220, 34.40%, 12.00%)",
+          default: "#2A1E14",  // Mantenho a cor base escura
+          paper: "#3A2D1E",    // Mantenho a cor base escura
+          // Podemos adicionar gradientes por meio do getThemedComponents se necessário
         }),
       },
       text: {
         primary: gray[800],
         secondary: gray[600],
-        warning: orange[400],
+        warning: carameloPipoca,
         ...(mode === "dark" && {
-          primary: "hsl(0, 0%, 100%)",
-          secondary: gray[400],
+          primary: cremePipoca,
+          secondary: cremeSuave,
         }),
       },
       action: {
-        hover: alpha(gray[200], 0.2),
-        selected: `${alpha(gray[200], 0.3)}`,
+        hover: alpha(begeAreia, 0.2),
+        selected: `${alpha(begeAreia, 0.3)}`,
         ...(mode === "dark" && {
-          hover: alpha(gray[600], 0.2),
-          selected: alpha(gray[600], 0.3),
+          hover: alpha(begeAreia, 0.3),
+          selected: alpha(begeAreia, 0.4),
         }),
       },
     },
@@ -208,38 +233,43 @@ export const getDesignTokens = (mode: PaletteMode) => {
         lineHeight: 1.2,
       },
       h3: {
-        fontSize: defaultTheme.typography.pxToRem(30),
-        lineHeight: 1.2,
+        fontSize: defaultTheme.typography.pxToRem(28),
+        fontWeight: 600,
+        lineHeight: 1.3,
       },
       h4: {
         fontSize: defaultTheme.typography.pxToRem(24),
-        fontWeight: 600,
-        lineHeight: 1.5,
+        fontWeight: 500,
+        lineHeight: 1.4,
       },
       h5: {
         fontSize: defaultTheme.typography.pxToRem(20),
-        fontWeight: 600,
+        fontWeight: 500,
+        lineHeight: 1.4,
       },
       h6: {
         fontSize: defaultTheme.typography.pxToRem(18),
-        fontWeight: 600,
+        fontWeight: 500,
+        lineHeight: 1.5,
       },
       subtitle1: {
-        fontSize: defaultTheme.typography.pxToRem(18),
+        fontSize: defaultTheme.typography.pxToRem(16),
+        lineHeight: 1.6,
+        fontWeight: 400,
       },
       subtitle2: {
         fontSize: defaultTheme.typography.pxToRem(14),
-        fontWeight: 500,
+        lineHeight: 1.6,
+        fontWeight: 400,
       },
       body1: {
-        fontSize: defaultTheme.typography.pxToRem(14),
+        fontSize: defaultTheme.typography.pxToRem(16),
+        lineHeight: 1.6,
+        fontWeight: 400,
       },
       body2: {
         fontSize: defaultTheme.typography.pxToRem(14),
-        fontWeight: 400,
-      },
-      caption: {
-        fontSize: defaultTheme.typography.pxToRem(12),
+        lineHeight: 1.6,
         fontWeight: 400,
       },
     },
@@ -254,29 +284,35 @@ export const colorSchemes = {
   light: {
     palette: {
       brand: {
-       main: red[700],
-       light: orange[700],
+       main: borgonhaFundo,
+       light: carameloPipoca,
+       cremePipoca: cremePipoca,
+       carameloPipoca: carameloPipoca,
+       carameloEscuro: carameloEscuro,
+       borgonhaFundo: borgonhaFundo,
+       cremeSuave: cremeSuave,
+       begeAreia: begeAreia
       },
       primary: {
         light: brand[200],
-        main: brand[400],
-        dark: brand[700],
-        contrastText: brand[50],
+        main: carameloPipoca,
+        dark: carameloEscuro,
+        contrastText: cremePipoca,
       },
       info: {
-        light: brand[100],
-        main: brand[300],
+        light: begeAreia,
+        main: begeAreia,
         dark: gray[600],
-        contrastText: gray[50],
+        contrastText: gray[800],
       },
       warning: {
         light: orange[300],
-        main: orange[500],
-        dark: orange[800],
+        main: carameloPipoca,
+        dark: carameloEscuro,
       },
       error: {
         light: red[300],
-        main: red[400],
+        main: borgonhaFundo,
         dark: red[800],
       },
       success: {
@@ -287,19 +323,19 @@ export const colorSchemes = {
       grey: {
         ...gray,
       },
-      divider: alpha(gray[300], 0.4),
+      divider: alpha(begeAreia, 0.2),
       background: {
-        default: "hsl(0, 0%, 99%)",
-        paper: "hsl(220, 35%, 97%)",
+        default: cremePipoca,
+        paper: cremeSuave,
       },
       text: {
         primary: gray[800],
         secondary: gray[600],
-        warning: orange[400],
+        warning: carameloPipoca,
       },
       action: {
-        hover: alpha(gray[200], 0.2),
-        selected: `${alpha(gray[200], 0.3)}`,
+        hover: alpha(begeAreia, 0.2),
+        selected: `${alpha(begeAreia, 0.3)}`,
       },
       baseShadow:
         "hsla(220, 30%, 5%, 0.07) 0px 4px 16px 0px, hsla(220, 25%, 10%, 0.07) 0px 8px 16px -5px",
@@ -308,26 +344,26 @@ export const colorSchemes = {
   dark: {
     palette: {
       primary: {
-        contrastText: brand[50],
-        light: brand[300],
-        main: brand[400],
-        dark: brand[700],
+        contrastText: cremePipoca,
+        light: carameloPipoca,
+        main: carameloEscuro,
+        dark: "#8D4200",
       },
       info: {
-        contrastText: brand[300],
-        light: brand[500],
-        main: brand[700],
-        dark: brand[900],
+        contrastText: begeAreia,
+        light: carameloEscuro,
+        main: carameloPipoca,
+        dark: "#8D4200",
       },
       warning: {
-        light: orange[400],
-        main: orange[500],
-        dark: orange[700],
+        light: carameloPipoca,
+        main: carameloEscuro,
+        dark: "#8D4200",
       },
       error: {
-        light: red[400],
-        main: red[500],
-        dark: red[700],
+        light: borgonhaFundo,
+        main: "#9E0033",
+        dark: "#700025",
       },
       success: {
         light: green[400],
@@ -337,18 +373,18 @@ export const colorSchemes = {
       grey: {
         ...gray,
       },
-      divider: alpha(gray[700], 0.6),
+      divider: alpha(begeAreia, 0.3),
       background: {
-        default: gray[900],
-        paper: "hsl(220, 30%, 7%)",
+        default: "#2A1E14",
+        paper: "#3A2D1E",
       },
       text: {
-        primary: "hsl(0, 0%, 100%)",
-        secondary: gray[400],
+        primary: cremePipoca,
+        secondary: cremeSuave,
       },
       action: {
-        hover: alpha(gray[600], 0.2),
-        selected: alpha(gray[600], 0.3),
+        hover: alpha(begeAreia, 0.3),
+        selected: alpha(begeAreia, 0.4),
       },
       baseShadow:
         "hsla(220, 30%, 5%, 0.7) 0px 4px 16px 0px, hsla(220, 25%, 10%, 0.8) 0px 8px 16px -5px",
@@ -356,65 +392,72 @@ export const colorSchemes = {
   },
 };
 
-export const typography = {
-  fontFamily: "Inter, sans-serif",
+export const getThemedComponents = (theme: any) => {
+  const components = {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          scrollbarColor: "#6b6b6b #2b2b2b",
+          "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
+            backgroundColor: theme.palette.mode === "dark" ? "#2b2b2b" : "#fafafa",
+            width: 12,
+          },
+          "&::-webkit-scrollbar-track, & *::-webkit-scrollbar-track": {
+            backgroundColor: theme.palette.mode === "dark" ? "#2b2b2b" : "#fafafa",
+          },
+          "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
+            borderRadius: 8,
+            backgroundColor: theme.palette.mode === "dark" ? "#6b6b6b" : "#c5c5c5",
+            minHeight: 24,
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      defaultProps: {
+        elevation: 0,
+      },
+      styleOverrides: {
+        root: ({ theme }: any) => ({
+          borderRadius: theme.shape.borderRadius,
+          ...(theme.palette.mode === "dark" && {
+            borderColor: alpha(begeAreia, 0.1),
+          }),
+        }),
+      },
+      variants: [
+        {
+          props: { variant: "highlighted" },
+          style: ({ theme }: any) => ({
+            backgroundColor: alpha(begeAreia, 0.1),
+          }),
+        },
+      ],
+    },
+  };
 
-  h1: {
-    fontSize: defaultTheme.typography.pxToRem(48),
-    fontWeight: 600,
-    lineHeight: 1.2,
-    letterSpacing: -0.5,
-  },
-  h2: {
-    fontSize: defaultTheme.typography.pxToRem(36),
-    fontWeight: 600,
-    lineHeight: 1.2,
-  },
-  h3: {
-    fontSize: defaultTheme.typography.pxToRem(30),
-    lineHeight: 1.2,
-  },
-  h4: {
-    fontSize: defaultTheme.typography.pxToRem(24),
-    fontWeight: 600,
-    lineHeight: 1.5,
-  },
-  h5: {
-    fontSize: defaultTheme.typography.pxToRem(20),
-    fontWeight: 600,
-  },
-  h6: {
-    fontSize: defaultTheme.typography.pxToRem(18),
-    fontWeight: 600,
-  },
-  subtitle1: {
-    fontSize: defaultTheme.typography.pxToRem(18),
-  },
-  subtitle2: {
-    fontSize: defaultTheme.typography.pxToRem(14),
-    fontWeight: 500,
-  },
-  body1: {
-    fontSize: defaultTheme.typography.pxToRem(14),
-  },
-  body2: {
-    fontSize: defaultTheme.typography.pxToRem(14),
-    fontWeight: 400,
-  },
-  caption: {
-    fontSize: defaultTheme.typography.pxToRem(12),
-    fontWeight: 400,
-  },
+  return components;
 };
 
-export const shape = {
-  borderRadius: 8,
-};
+// Método auxiliar para aplicação de estilos baseados no modo
+declare module "@mui/material/styles" {
+  interface Theme {
+    applyStyles: (mode: string, styles: Record<string, any>) => Record<string, any>;
+  }
+}
 
-// @ts-ignore
-const defaultShadows: Shadows = [
-  "none",
-  "var(--template-palette-baseShadow)",
-  ...defaultTheme.shadows.slice(2),
-];
-export const shadows = defaultShadows;
+export const extendTheme = (colorScheme: string) => {
+  const themeOptions = getDesignTokens(colorScheme as PaletteMode);
+  let theme = createTheme(themeOptions);
+
+  theme = {
+    ...theme,
+    applyStyles: (mode: string, styles: Record<string, any>) => {
+      return mode === colorScheme ? styles : {};
+    },
+  };
+
+  return createTheme(theme, {
+    components: getThemedComponents(theme),
+  });
+};

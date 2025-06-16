@@ -77,13 +77,13 @@ interface UserEditData {
     active: boolean;
 }
 
-// Styled card similar ao BlogCard
-const StyledCard = styled(Card)<{ component?: React.ElementType }>(({ theme }) => ({
+// Ajuste do estilo do cartão para usar a nova paleta de cores
+const StyledCard = styled(Card)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     padding: 0,
     height: '100%',
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: theme.palette.background.paper, // Já usará o cremeSuave definido no tema
     borderRadius: '16px',
     overflow: 'hidden',
     boxShadow: 'rgba(0, 0, 0, 0.04) 0px 5px 22px, rgba(0, 0, 0, 0.03) 0px 0px 0px 0.5px',
@@ -1298,10 +1298,10 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 <Button onClick={handleCloseDeleteUserModal} color="inherit">
                                     Cancelar
                                 </Button>
-                                <Button 
-                                    onClick={handleDeleteUser} 
-                                    color="error" 
-                                    variant="contained" 
+                                <Button
+                                    onClick={handleDeleteUser}
+                                    color="error"
+                                    variant="contained"
                                     autoFocus
                                     disabled={deletingUser}
                                     startIcon={deletingUser ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
