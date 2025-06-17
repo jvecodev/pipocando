@@ -969,7 +969,6 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                 </CardContent>
                             </StyledCard>
 
-                            {/* Botões de ação */}
                             <Box
                                 sx={{
                                     display: 'flex',
@@ -991,6 +990,8 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                         py: 1.5,
                                         px: 4,
                                         borderRadius: 2,
+                                        color: 'hsl(0, 0.00%, 100.00%)',
+                                        backgroundColor: 'hsl(0, 0.00%, 9.40%)',
                                         '&:hover': {
                                             backgroundColor: 'hsl(49, 72.90%, 65.30%)'
                                         },
@@ -1178,6 +1179,7 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                                                             fontWeight: 600,
                                                                             fontSize: '0.75rem',
                                                                             padding: '0 2px',
+                                                                            
                                                                             borderRadius: '16px',
                                                                             '& .MuiChip-label': {
                                                                                 padding: '0 8px'
