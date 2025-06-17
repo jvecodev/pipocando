@@ -676,6 +676,7 @@ export default function Content() {
                 sx={{ 
                   px: 4,
                   py: 1.5,
+                  color: '#000',
                   fontSize: '1.1rem',
                   fontWeight: 'bold',
                   borderRadius: '12px'
