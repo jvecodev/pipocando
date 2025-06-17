@@ -15,18 +15,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, ...props }) => {
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
-      <Header />
-      <Box 
+      <Header />      <Box 
         sx={(theme) => ({
           pt: { xs: 14, sm: 20 }, 
           py: { xs: 8, sm: 16 },
           width: "100%",
           backgroundRepeat: "no-repeat",
           backgroundImage:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, #800020, transparent)",
+            "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(128, 0, 32, 0.1), transparent)",
           ...theme.applyStyles("dark", {
             backgroundImage:
-              "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
+              "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(33, 150, 243, 0.08), transparent)",
           }),
         })}
       >

@@ -154,8 +154,7 @@ export const navigationCustomizations: Components<Theme> = {
         backgroundColor: theme.palette.background.default,
       }),
     },
-  },
-  MuiPaginationItem: {
+  },  MuiPaginationItem: {
     styleOverrides: {
       root: ({ theme }) => ({
         '&.Mui-selected': {
@@ -163,6 +162,7 @@ export const navigationCustomizations: Components<Theme> = {
           backgroundColor: theme.palette.grey[900],
         },
         ...theme.applyStyles('dark', {
+          color: '#ffffff', // Fonte branca no modo escuro
           '&.Mui-selected': {
             color: 'black',
             backgroundColor: theme.palette.grey[50],

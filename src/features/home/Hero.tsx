@@ -39,17 +39,16 @@ export default function Hero() {
   const handleOpenTerms = () => setOpenTerms(true);
   const handleCloseTerms = () => setOpenTerms(false)
 
-  return (
-    <Box
+  return (    <Box
       id="hero"
       sx={(theme) => ({
         width: "100%",
         backgroundRepeat: "no-repeat",
         backgroundImage:
-          "radial-gradient(ellipse 80% 50% at 50% -20%, #800020, transparent)",
+          "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(128, 0, 32, 0.1), transparent)",
         ...theme.applyStyles("dark", {
           backgroundImage:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
+            "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(33, 150, 243, 0.08), transparent)",
         }),
       })}
     >

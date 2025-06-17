@@ -42,7 +42,6 @@ import { createNewsFromMovie, createNewsFromTVShow, createReviewTemplate } from 
 import { generateWatchlistPostSuggestions } from '../../services/blogTmdbService';
 import { useNavigate } from 'react-router-dom';
 
-// Categorias disponíveis
 const CATEGORIES = [
   { label: 'Todas as categorias', value: 'all' },
   { label: 'Filmes', value: 'Filmes' },
@@ -167,7 +166,6 @@ export default function Content() {
       });
   }, [search, category]);
 
-  // Resetar página ao trocar busca/filtro e buscar posts
   React.useEffect(() => {
     setPage(1);
     fetchPosts();
@@ -249,10 +247,8 @@ export default function Content() {
         }      } else {
         console.log('Modo de edição: preservando IDs existentes');
       }          // Monta o payload conforme a categoria
-      // Garantir que sempre tenhamos um userId válido
       let originalUserId;
       if (modal.type === 'edit') {
-        // Se post.userId existir e for válido, usa ele; senão, mantém o usuário atual
         originalUserId = post.userId && post.userId !== null ? Number(post.userId) : Number(user.id);
         console.log(`Modo edição: post.userId=${post.userId}, usando userId=${originalUserId}`);
       } else {
@@ -267,7 +263,6 @@ export default function Content() {
         category: category,
       };
       
-      // Log para confirmar o userId que está sendo enviado
       if (modal.type === 'edit') {
         console.log(`Editando post: enviando userId=${originalUserId} para o backend`);
       } else {
@@ -428,7 +423,8 @@ export default function Content() {
               position: 'absolute',
               top: 8,
               left: 8,
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              color: 'black',
             }}
           />
           <Box
@@ -452,7 +448,7 @@ export default function Content() {
         </Box>
         
         <CardContent sx={{ flexGrow: 1 }}>
-          <Typography variant="h6" component="h3" gutterBottom fontWeight="bold" noWrap>
+          <Typography variant="h6" component="h3" gutterBottom fontWeight="bold"  noWrap>
             {type === 'movie' ? (item as Movie).title : (item as TVShow).name}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{
@@ -466,11 +462,22 @@ export default function Content() {
           </Typography>
         </CardContent>
         
-        <CardActions sx={{ display: 'flex', justifyContent: 'space-between', px: 2, pb: 2 }}>          <Button 
+        <CardActions sx={{ display: 'flex', justifyContent: 'space-between', px: 2, pb: 2 }}>
+          <Button 
             variant="contained" 
             size="small" 
             onClick={() => handleCreatePost(item, type)}
             startIcon={<AddIcon />}
+            sx={{
+              color: '#fff',
+              backgroundColor: 'transparent',
+              border: '1px solid #fff',
+              '&:hover': {
+          backgroundColor: 'rgba(255,255,255,0.08)',
+          borderColor: '#fff',
+              },
+              boxShadow: 'none'
+            }}
           >
             Criar Post
           </Button>
@@ -532,7 +539,7 @@ export default function Content() {
           <Tab 
             icon={<TrendingUpIcon />} 
             iconPosition="start" 
-            label="Tendências TMDB" 
+            label="Tendências" 
             {...a11yProps(1)}
           />
         </Tabs>
@@ -725,9 +732,7 @@ export default function Content() {
                   </Grid>
                 );
               })}
-            </Grid>
-
-            {totalPages > 1 && (
+            </Grid>            {totalPages > 1 && (
               <Box
                 sx={{
                   display: 'flex',
@@ -741,6 +746,13 @@ export default function Content() {
                   onChange={handlePageChange}
                   color="primary"
                   size="large"
+                  sx={(theme) => ({
+                    '& .MuiPaginationItem-root': {
+                      ...(theme.palette.mode === 'dark' && {
+                        color: '#ffffff', 
+                      }),
+                    },
+                  })}
                 />
               </Box>
             )}
@@ -748,7 +760,6 @@ export default function Content() {
         )}
       </TabPanel>
 
-      {/* Aba de Tendências TMDB */}
       <TabPanel value={tabIndex} index={1}>
         {loadingTrending ? (
           <Grid container spacing={3}>
@@ -837,7 +848,6 @@ export default function Content() {
           </Box>
         ) : (
           <>
-            {/* Filmes em tendência */}
             <Box mb={6}>
               <Typography variant="h5" component="h2" gutterBottom fontWeight="bold" sx={{ 
                 display: 'flex', 
@@ -857,7 +867,6 @@ export default function Content() {
               </Grid>
             </Box>
 
-            {/* Séries em tendência */}
             <Box mb={6}>
               <Typography variant="h5" component="h2" gutterBottom fontWeight="bold" sx={{ 
                 display: 'flex', 
@@ -877,7 +886,6 @@ export default function Content() {
               </Grid>
             </Box>
 
-            {/* Sugestões da watchlist */}
             {watchlistSuggestions && watchlistSuggestions.reviewSuggestions.length > 0 && (
               <Box mb={6}>
                 <Typography variant="h5" component="h2" gutterBottom fontWeight="bold" sx={{ 
@@ -941,7 +949,7 @@ export default function Content() {
       
       <StandardModal
         open={modal.open}
-        title={modal.type === 'create' ? 'Nova Publicação baseada em TMDB' : 'Editar Publicação'}
+        title={modal.type === 'create' ? 'Nova Publicação ' : 'Editar Publicação'}
         onClose={handleModalClose}
       >
         <PostForm
@@ -951,7 +959,6 @@ export default function Content() {
         />
       </StandardModal>
 
-      {/* Modal de confirmação para excluir post */}
       <DeleteConfirmationModal
         open={deleteModalOpen}
         title="Excluir publicação"

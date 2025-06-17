@@ -262,7 +262,7 @@ export default function BlogCardItem({
               sx={{
                 fontWeight: 600,
                 backdropFilter: 'blur(8px)',
-                color: '#fff',
+                color: 'black',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
               }}
             />
@@ -349,7 +349,6 @@ export default function BlogCardItem({
         </Box>
       </StyledCardContent>
 
-      {/* Autor e data */}
       <AuthorDisplay authors={authors} date={post.createdAt} />
     </StyledCard>
   );

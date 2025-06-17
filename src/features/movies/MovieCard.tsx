@@ -387,7 +387,7 @@ const MovieCard: React.FC<MovieCardProps> = ({
             <Box
               sx={{
                 position: 'relative',
-                paddingBottom: '56.25%', // 16:9 aspect ratio
+                paddingBottom: '56.25%', 
                 height: 0,
                 overflow: 'hidden',
               }}

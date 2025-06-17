@@ -165,7 +165,7 @@ const Movies: React.FC = () => {
   };
 
   return (
-    <MainLayout>      {/* Hero Section */}
+    <MainLayout>      
       <Box sx={{ textAlign: 'left', mb: 6, mt: { xs: 6, md: 12 } }}>
         <Typography
           variant="h2"
@@ -207,7 +207,6 @@ const Movies: React.FC = () => {
           }}
         />
         <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 2 }}>
-          {/* Botões podem ser personalizados conforme necessidade */}
         </Box>
       </Box>
 

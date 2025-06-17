@@ -177,18 +177,14 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
   }, [tmdbSearchQuery]);  // Função para verificar e atualizar o comprimento do conteúdo  // Referência para armazenar o temporizador de debounce
   const debounceRef = React.useRef<any>(null);
 
-  // Função simplificada que apenas atualiza o contador (operação leve)
   const updateCounter = (text: string) => {
     const length = text?.length || 0;
     setContentLength(length);
   };
   
-  // Função para verificar limites e atualizar estados (potencialmente pesada)
-  // Separada para uso com debounce
   const validateContentLength = React.useCallback((text: string) => {
     const length = text?.length || 0;
     
-    // Atualizar cor do contador baseado na porcentagem de uso
     const percentage = (length / MAX_CONTENT_LENGTH) * 100;
     if (percentage > 100) {
       setCountColor('error');
@@ -200,11 +196,9 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
     
     const isExceeding = length > MAX_CONTENT_LENGTH;
     
-    // Atualizar estado de erro apenas se necessário
     if (isExceeding) {
       setExceedsMaxLength(true);
       setErrors(prev => {
-        // Se já temos o erro, não atualize o estado
         if (prev.content && prev.content.includes('limite máximo')) {
           return prev;
         }
@@ -216,7 +210,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
     } else {
       setExceedsMaxLength(false);
       setErrors(prev => {
-        // Se não temos erro de limite, não atualize o estado
         if (!prev.content || !prev.content.includes('limite máximo')) {
           return prev;
         }
@@ -229,17 +222,13 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
     return isExceeding;
   }, []);
   
-  // Função que combina as duas operações com debounce para as validações pesadas
   const checkContentLength = React.useCallback((text: string) => {
-    // Sempre atualize o contador imediatamente (operação leve)
     updateCounter(text);
     
-    // Limpar o temporizador anterior para evitar múltiplas validações
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
     
-    // Executar validações com debounce para evitar loops de atualização
     debounceRef.current = setTimeout(() => {
       validateContentLength(text);
     }, 300);
@@ -247,10 +236,8 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
     return text.length > MAX_CONTENT_LENGTH;
   }, [validateContentLength]);
   
-  // Inicializar o contador de caracteres e verificar se excede o limite  
   useEffect(() => {
     const content = modal.post?.content || '';
-    // Usar nossa função de verificação que já cuida de tudo
     checkContentLength(content);
   }, [modal.post?.content, checkContentLength]);
 
@@ -849,10 +836,8 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 const newCategory = e.target.value;
                 console.log(`Alterando categoria para: ${newCategory}`);
                 
-                // Atualizar a categoria
                 updatePost('category', newCategory);
                 
-                // Definir automaticamente o ID correto se o post contém dados TMDB
                 if (modal.post?.tmdbId && modal.post?.tmdbType) {
                   if (newCategory === 'Filmes' && modal.post.tmdbType === 'movie') {
                     // Usar tmdbId como movieId automaticamente
@@ -862,7 +847,7 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                     updatePost('serieId', modal.post.tmdbId);
                   }
                 }
-              }}              // Desabilitar o select após a criação inicial do post ou se já existe um ID
+              }}             
               disabled={modal.type === 'edit' || !!modal.post?.id || !!modal.post?.category}
               label="Categoria"
               sx={{ 
@@ -874,7 +859,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 '&.Mui-focused': {
                   boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
                 },
-                // Estilizar o select quando desabilitado para indicar que é um valor fixo
                 '&.Mui-disabled': {
                   opacity: 0.8,
                   color: 'text.primary',
@@ -886,7 +870,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
               <MenuItem value="Filmes">Filmes</MenuItem>
               <MenuItem value="Séries">Séries</MenuItem>
             </Select>            {/* Não exibir erros de categoria */}
-            {/* Exibir mensagem de ajuda sobre a categoria */}
             <FormHelperText>
               {modal.post?.category ? 'A categoria não pode ser alterada após a criação' : 'Selecione a categoria do seu post'}
             </FormHelperText>
@@ -910,24 +893,19 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
             onChange={(e) => {
               const value = e.target.value;
               
-              // Tentar extrair a URL direta da imagem, se for uma URL do Google
               const extractedUrl = extractDirectImageUrl(value);
               const finalValue = extractedUrl || value;
               
-              // Guardamos os valores importantes que não devem ser perdidos
               const { category, movieId, serieId, tmdbId, tmdbType } = modal.post || {};
               
-              // Logar para depuração
               console.log("Atualizando URL da imagem:", finalValue);
               
-              // Atualizamos apenas os campos de imagem
               setModal(prev => ({
                 ...prev,
                 post: {
                   ...prev.post,
                   urlImage: finalValue,
                   imageUrl: finalValue,
-                  // Preservamos explicitamente categoria e IDs
                   category: category,
                   movieId: movieId,
                   serieId: serieId,
@@ -936,16 +914,13 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 } as BlogType
               }));
               
-              // Forçar atualização da pré-visualização 
               setTimeout(() => {
                 const imgElement = document.querySelector('[data-image-preview="true"]') as HTMLImageElement;
                 if (imgElement) {
-                  // Forçar recarga da imagem adicionando timestamp
                   imgElement.src = finalValue + (finalValue.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime();
                 }
               }, 100);
               
-              // Remover validação de erro para URL de imagem
               setErrors(prev => {
                 const newErrors = {...prev};
                 delete newErrors.imageUrl;
@@ -973,7 +948,7 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                   padding: '0 4px',
                 }
               }
-            }}            // Não mostramos erros relacionados à URL da imagem
+            }}            
             helperText="URL da imagem para ilustrar o post (opcional)"
           />          {modal.post?.urlImage && (
             <Box sx={(theme) => ({ 
@@ -1005,11 +980,9 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                   console.log("Erro ao carregar imagem:", e.currentTarget.src);
                   
-                  // Se a imagem não carregar, remover a imagem que não funcionou
                   const imgElement = e.currentTarget;
                   imgElement.style.display = 'none';
                   
-                  // Verificar se já existe uma mensagem de erro
                   const parentEl = imgElement.parentElement;
                   const errorMessage = parentEl?.querySelector('.image-error-message');
                   if (errorMessage) {
@@ -1017,7 +990,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                     return;
                   }
                   
-                  // Adicionar uma imagem de fallback com mensagem mais amigável
                   const errorDiv = document.createElement('div');
                   errorDiv.className = 'image-error-message';
                   errorDiv.textContent = 'A URL fornecida não é uma imagem válida ou está inacessível. Tente outra URL.';
@@ -1027,7 +999,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                   errorDiv.style.fontStyle = 'italic';
                   parentEl?.appendChild(errorDiv);
                   
-                  // Limpar qualquer erro relacionado à imagem para não mostrar ao usuário
                   setErrors(prev => {
                     const newErrors = {...prev};
                     delete newErrors.imageUrl;
@@ -1084,16 +1055,13 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 onChange={(e) => {
                   const value = e.target.value;
                   
-                  // Guardamos os valores importantes que não devem ser perdidos
                   const { category, movieId, serieId, tmdbId, tmdbType } = modal.post || {};
                   
-                  // Atualizar apenas o valor no state e o contador, preservando categoria e IDs
                   setModal(prev => ({
                     ...prev,
                     post: {
                       ...prev.post,
                       content: value,
-                      // Preservamos explicitamente categoria e IDs
                       category: category,
                       movieId: movieId,
                       serieId: serieId,
@@ -1102,11 +1070,9 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                     } as BlogType
                   }));
                   
-                  // Usar a função otimizada com debounce para evitar loops
                   checkContentLength(value);
                 }}
                 onBlur={(e) => {
-                  // Ao perder o foco, verificar imediatamente sem debounce
                   if (debounceRef.current) {
                     clearTimeout(debounceRef.current);
                     debounceRef.current = null;
@@ -1246,48 +1212,52 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
               onClick={() => setModal({ open: false, type: null })}
               variant="outlined"
               sx={(theme) => ({ 
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 4,
-                py: 1.2,
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-                transition: 'all 0.2s',
-                border: '1px solid',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 4,
+              py: 1.2,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s',
+              border: '1px solid',
+              borderColor: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.2)' 
+                : 'rgba(0, 0, 0, 0.2)',
+              color: '#fff',
+              '&:hover': {
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                transform: 'translateY(-2px)',
                 borderColor: theme.palette.mode === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.2)' 
-                  : 'rgba(0, 0, 0, 0.2)',
-                '&:hover': {
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  transform: 'translateY(-2px)',
-                  borderColor: theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.3)' 
-                    : 'rgba(0, 0, 0, 0.3)',
-                }
+                ? 'rgba(255, 255, 255, 0.3)' 
+                : 'rgba(0, 0, 0, 0.3)',
+              }
               })}
             >
               Cancelar
-            </Button>            <Button
-              type="button" // Alterado de submit para button para evitar submissão automática do form
+            </Button>
+            <Button
+              type="button" 
               variant="contained"
               color="primary"
               onClick={(e) => {
-                e.preventDefault();
-                console.log('Botão clicado, iniciando validação do formulário');
-                handleSubmit(e);
+              e.preventDefault();
+              console.log('Botão clicado, iniciando validação do formulário');
+              handleSubmit(e);
               }}
               sx={{ 
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 4,
-                py: 1.2,
-                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
-                  transform: 'translateY(-2px)'
-                }
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 4,
+              py: 1.2,
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.2s',
+              color: '#000',
+              '&:hover': {
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+                transform: 'translateY(-2px)',
+                color: '#000'
+              }
               }}
             >
               {modal.type === 'create' ? 'Criar' : 'Atualizar'}

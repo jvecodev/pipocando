@@ -43,6 +43,20 @@ export const brand = {
   900: "#800020",
 };
 
+// Paleta de cores para o modo escuro - apenas branco
+export const brandDark = {
+  50: "#ffffff",
+  100: "#ffffff",
+  200: "#ffffff",
+  300: "#ffffff",
+  400: "#ffffff",
+  500: "#ffffff",
+  600: "#ffffff",
+  700: "#ffffff",
+  800: "#ffffff",
+  900: "#ffffff",
+};
+
 export const gray = {
   50: "hsl(220, 35%, 97%)",
   100: "hsl(220, 30%, 94%)",
@@ -95,11 +109,25 @@ export const red = {
   900: "hsl(0, 93%, 6%)",
 };
 
+export const redDark = {
+  50: "hsl(0, 100%, 97%)",
+  100: "hsl(0, 92%, 90%)",
+  200: "hsl(0, 94%, 80%)",
+  300: "hsl(0, 90%, 65%)",
+  400: "hsl(0, 90%, 40%)",
+  500: "hsl(0, 90%, 30%)",
+  600: "hsl(0, 91%, 25%)",
+  700: "#ffffff",
+  800: "hsl(0, 95%, 12%)",
+  900: "hsl(0, 93%, 6%)",
+};
+
 // Cores tema pipoca
 export const cremePipoca = "#FFF8DC"; // Cornsilk
 export const carameloPipoca = "#D2B48C"; // Tan
 export const carameloEscuro = "#8B4513"; // SaddleBrown
 export const borgonhaFundo = "#800020"; // Dark red (same as brand)
+export const borgonhaFundoDark = "#ffffff"; // Apenas branco para modo escuro
 export const cremeSuave = "#F5F5DC"; // Beige
 export const begeAreia = "#F4A460"; // SandyBrown
 
@@ -311,20 +339,19 @@ export const colorSchemes = {
       baseShadow:
         "hsla(220, 30%, 5%, 0.07) 0px 4px 16px 0px, hsla(220, 25%, 10%, 0.07) 0px 8px 16px -5px",
     },
-  },
-  dark: {
+  },  dark: {
     palette: {
       primary: {
-        contrastText: brand[50],
-        light: brand[300],
-        main: brand[400],
-        dark: brand[700],
+        contrastText: brandDark[50],
+        light: brandDark[300],
+        main: brandDark[400],
+        dark: brandDark[700],
       },
       info: {
-        contrastText: brand[300],
-        light: brand[500],
-        main: brand[700],
-        dark: brand[900],
+        contrastText: brandDark[300],
+        light: brandDark[500],
+        main: brandDark[700],
+        dark: brandDark[900],
       },
       warning: {
         light: orange[400],

@@ -3,4 +3,5 @@
 
 export const COLORS = {
   main: '#800020', // cor padrão para "azul"
+  mainDark: '#ffffff', // apenas branco para modo escuro
 };

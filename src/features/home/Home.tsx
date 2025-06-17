@@ -23,7 +23,6 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
       if (searchParams.get('accountDeleted') === 'true') {
           setShowAccountDeletedMessage(true);
           
-          // Remove o parâmetro da URL sem recarregar a página
           const newUrl = window.location.pathname;
           window.history.replaceState({}, document.title, newUrl);
       }

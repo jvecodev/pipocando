@@ -163,8 +163,8 @@ const Movies: React.FC = () => {
 
   return (
     <MainLayout>
-      {/* Hero Section */}
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
+    
+      <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography
           variant="h2"
           component="h1"
