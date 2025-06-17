@@ -48,6 +48,8 @@ import AppTheme from '../../shared-theme/AppTheme';
 import Header from '../../organisms/header/Header';
 import { styled } from '@mui/material/styles';
 import { PerfilTypeEnum } from '../../types/PerfilType';
+import AlertTitle from '@mui/material/Alert';
+import { ProfileUpdateData } from '../../services/userService';
 
 // Modificamos a interface para incluir perfil
 interface ProfileData {
@@ -374,39 +376,61 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             return;
         }
 
+        // Verificar se o nome está sendo alterado
+        const isChangingName = user && formData.name !== user.name;
+
+        // Se estiver alterando o nome, mostrar um alerta de confirmaçã
+
         setLoading(true);
         setError("");
         setSuccess(false);
 
         try {
-            const dataToUpdate = {
-                id: user?.id ? Number(user.id) : 0,
+            // Preparar dados para atualização
+            const dataToUpdate: ProfileUpdateData = {
+                id: Number(user?.id),
                 name: formData.name,
                 email: formData.email,
-                currentPassword: formData.currentPassword || undefined,
-                newPassword: formData.newPassword || undefined
             };
 
-            // Remove undefined fields and empty strings
-            Object.keys(dataToUpdate).forEach(key => {
-                const value = dataToUpdate[key as keyof typeof dataToUpdate];
-                if (value === undefined || (typeof value === 'string' && value.trim() === '')) {
-                    delete dataToUpdate[key as keyof typeof dataToUpdate];
-                }
-            });
+            // Adicionar senha apenas se estiver sendo alterada
+            const isChangingPassword = formData.currentPassword && formData.newPassword;
+            if (isChangingPassword) {
+                dataToUpdate.currentPassword = formData.currentPassword;
+                dataToUpdate.newPassword = formData.newPassword;
+            }
 
-            try {
-                // Salvar completo estado de autenticação
-                const authState = {
-                    token: localStorage.getItem('token'),
-                    userId: localStorage.getItem('userId'),
-                    userName: localStorage.getItem('userName'),
-                    userRole: localStorage.getItem('userRole')
-                };
+            // Enviar para API
+            const response = await updateUserProfile(dataToUpdate);
 
-                const response = await updateUserProfile(dataToUpdate);
+            // Preparar mensagem de sucesso para redirecionar
+            let successMessage = isChangingPassword
+                ? "Senha atualizada com sucesso!"
+                : "Informações pessoais atualizadas com sucesso!";
 
-                // Atualizar contexto do usuário com novos dados mantendo todos os campos existentes
+            if (isChangingName) {
+                // Limpar dados de autenticação
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('user');
+
+                // Limpar contexto do usuário
+                setUser(null);
+
+                // Redirecionar para login com mensagem de sucesso
+                navigate('/login?message=' + encodeURIComponent(
+                    "Seu nome foi atualizado com sucesso! Por favor, faça login novamente."
+                ));
+            } else {
+                // Para atualizações que não alteram o nome
+                // Preservar informações de autenticação atuais
+                const token = localStorage.getItem('token');
+                const userId = localStorage.getItem('userId');
+                const userRole = localStorage.getItem('userRole');
+
+                // Atualizar o contexto do usuário
                 if (user) {
                     const updatedUser = {
                         ...user,
@@ -414,58 +438,52 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                         email: response.email || user.email
                     };
 
+                    // Atualizar o contexto do usuário
                     setUser(updatedUser);
 
                     // Atualizar localStorage com o usuário atualizado
                     localStorage.setItem('user', JSON.stringify(updatedUser));
-
-                    // Restaurar TODOS os dados de autenticação
-                    if (authState.token) localStorage.setItem('token', authState.token);
-                    if (authState.userId) localStorage.setItem('userId', authState.userId);
-                    if (authState.userName) localStorage.setItem('userName', authState.userName);
-                    if (authState.userRole) localStorage.setItem('userRole', authState.userRole);
+                    localStorage.setItem('userName', updatedUser.name);
                 }
+
+                // Restaurar dados de autenticação
+                if (token) localStorage.setItem('token', token);
+                if (userId) localStorage.setItem('userId', userId);
+                if (userRole) localStorage.setItem('userRole', userRole);
 
                 setSuccess(true);
 
                 // Limpar campos de senha após atualização
-                setFormData(prev => ({
-                    ...prev,
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: ''
-                }));
-
-                // Mensagem de sucesso
-                setSuccessMessage("Perfil atualizado com sucesso!");
-            } catch (error: any) {
-                console.error("Erro ao atualizar perfil:", error);
-
-                // Verificar erro específico de senha atual inválida
-                if (error.message.includes("Senha atual inválida") ||
-                    error.message.includes("Invalid request") ||
-                    error.message.toLowerCase().includes("current password")) {
-
-                    setPasswordError(true);
-                    setPasswordErrorMessage("Senha atual inválida");
-
-                    // Exibir alerta mais visível
-                    setError("Senha atual inválida. Por favor, verifique e tente novamente.");
-
-                    // Limpa apenas a senha atual para nova tentativa, preservando os outros campos
+                if (isChangingPassword) {
                     setFormData(prev => ({
                         ...prev,
-                        currentPassword: ''
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
                     }));
-                } else {
-                    setError(error.message || "Ocorreu um erro ao atualizar o perfil");
                 }
-            } finally {
-                setLoading(false);
+
+                setSuccessMessage(successMessage);
             }
         } catch (error: any) {
-            console.error("Erro geral:", error);
-            setError("Ocorreu um erro inesperado. Por favor, tente novamente.");
+            console.error("Erro ao atualizar perfil:", error);
+
+            // Verificar erro específico de senha atual inválida
+            if (error.message.includes("Senha atual inválida") ||
+                error.message.includes("Invalid request") ||
+                error.message.toLowerCase().includes("current password")) {
+
+                setPasswordError(true);
+                setPasswordErrorMessage("Senha atual inválida");
+                setError("Senha atual inválida. Por favor, verifique e tente novamente.");
+
+                setFormData(prev => ({
+                    ...prev,
+                    currentPassword: ''
+                }));
+            } else {
+                setError(error.message || "Ocorreu um erro ao atualizar o perfil");
+            }
         } finally {
             setLoading(false);
         }
@@ -548,17 +566,86 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
 
         setSavingUser(true);
         try {
-            await updateUser(userToEdit.id, {
+            // Preparar os dados para envio
+            const userData = {
                 name: userToEdit.name,
-                email: userToEdit.email
-            });
+                email: userToEdit.email,
+                role: userToEdit.perfil, // Alterado para role
+                active: userToEdit.active
+            };
 
-            // Atualizar a lista de usuários após edição
-            await fetchUsers();
+            // Log para diagnóstico
+            console.log(`Enviando atualização para usuário ${userToEdit.id}:`, userData);
+
+            // Enviar solicitação para atualizar o usuário
+            const updatedUserData = await updateUser(userToEdit.id, userData);
+
+            // Atualizar a lista de usuários localmente sem precisar fazer nova chamada à API
+            setUsers(currentUsers =>
+                currentUsers.map(u =>
+                    u.id === userToEdit.id
+                        ? {
+                            ...u,
+                            name: updatedUserData.name || u.name,
+                            email: updatedUserData.email || u.email,
+                            perfil: (updatedUserData.role || updatedUserData.perfil || '').toUpperCase(),
+                            active: updatedUserData.active !== undefined ? updatedUserData.active : u.active
+                        }
+                        : u
+                )
+            );
+
+            // Se o usuário que está sendo editado é o mesmo que está logado, atualizar também o contexto
+            if (user && Number(user.id) === userToEdit.id) {
+                // Preservar token e outras informações importantes
+                const token = localStorage.getItem('token');
+                const userId = localStorage.getItem('userId');
+                const userRole = localStorage.getItem('userRole');
+
+                const updatedUser = {
+                    ...user,
+                    name: updatedUserData.name || user.name,
+                    email: updatedUserData.email || user.email,
+                    perfil: updatedUserData.role || user.perfil
+                };
+
+                // Atualizar o contexto do usuário
+                setUser(updatedUser);
+
+                // Atualizar localStorage com o usuário atualizado
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                if (updatedUser.name) localStorage.setItem('userName', updatedUser.name);
+
+                // Restaurar informações de autenticação
+                if (token) localStorage.setItem('token', token);
+                if (userId) localStorage.setItem('userId', userId);
+                if (userRole) localStorage.setItem('userRole', userRole);
+            }
+
             setUserManagementSuccessMessage(`Usuário "${userToEdit.name}" atualizado com sucesso!`);
             setUserManagementSuccess(true);
             handleCloseEditModal();
         } catch (error: any) {
+            // Verificar se é erro de autenticação
+            if (error.message && error.message.includes('Sessão expirada')) {
+                // Limpar dados de autenticação
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('user');
+
+                // Limpar contexto do usuário
+                setUser(null);
+
+                // Redirecionar para login com mensagem de erro
+                navigate('/login?message=' + encodeURIComponent(
+                    "Sua sessão expirou. Por favor, faça login novamente."
+                ));
+                return;
+            }
+
+            console.error("Erro ao atualizar usuário:", error);
             setUserManagementError(error.message || "Erro ao atualizar usuário");
         } finally {
             setSavingUser(false);
@@ -582,15 +669,34 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
 
         setDeletingUser(true);
         try {
+            // Log para diagnóstico
+            console.log(`Tentando excluir usuário com ID: ${userToDelete.id}`);
+
+            // Enviar solicitação para excluir o usuário
             await deleteUserAdmin(userToDelete.id);
 
-            // Atualiza a lista de usuários após exclusão
-            fetchUsers();
+            // Atualizar a lista de usuários localmente sem precisar fazer nova chamada à API
+            setUsers(currentUsers => currentUsers.filter(u => u.id !== userToDelete.id));
+
+            // Exibir mensagem de sucesso
             setUserManagementSuccessMessage(`Usuário "${userToDelete.name}" excluído com sucesso!`);
             setUserManagementSuccess(true);
+
+            // Fechar o modal
             handleCloseDeleteUserModal();
         } catch (error: any) {
+            console.error("Erro ao excluir usuário:", error);
+
+            // Mostrar o erro sem redirecionar
             setUserManagementError(error.message || "Erro ao excluir usuário");
+
+            // Se o erro estiver relacionado à autenticação, permitir que o usuário escolha
+            if (error.message && error.message.includes('Sessão expirada')) {
+                setUserManagementError("Sua sessão pode ter expirado. Deseja fazer login novamente?");
+
+                // Adicionamos um botão ao Snackbar para permitir que o usuário escolha fazer login
+                // Este botão será criado na renderização do componente
+            }
         } finally {
             setDeletingUser(false);
         }
@@ -715,6 +821,11 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                                 }}
                                             />
                                         </FormControl>
+                                        {user && formData.name !== user.name && (
+                                            <Alert severity="info" sx={{ mb: 2 }}>
+                                                Alterar seu nome exigirá um novo login após a atualização.
+                                            </Alert>
+                                        )}
 
                                         <FormControl>
                                             <FormLabel htmlFor="email" sx={{ mb: 1, fontWeight: 500 }}>
@@ -1264,6 +1375,26 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                     borderRadius: 2
                                 }}
                                 variant="filled"
+                                action={
+                                    userManagementError && userManagementError.includes('sessão') ? (
+                                        <Button color="inherit" size="small" onClick={() => {
+                                            // Limpar dados de autenticação
+                                            localStorage.removeItem('token');
+                                            localStorage.removeItem('userId');
+                                            localStorage.removeItem('userName');
+                                            localStorage.removeItem('userRole');
+                                            localStorage.removeItem('user');
+
+                                            // Limpar contexto do usuário
+                                            setUser(null);
+
+                                            // Redirecionar para login
+                                            navigate('/login');
+                                        }}>
+                                            LOGIN
+                                        </Button>
+                                    ) : null
+                                }
                             >
                                 {userManagementError}
                             </Alert>
