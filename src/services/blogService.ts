@@ -6,8 +6,6 @@ const API_URL_V1 = `${environment.API_URL_V1}/post`;
 export function canEditPost(user: PerfilType | null, post: BlogType): boolean {
   if (!user) return false;
   if (user.perfil === PerfilTypeEnum.ADMIN) return true;
-  // Debug para garantir que os valores estão corretos
-  console.log('[canEditPost] user.id:', user.id, 'post.userId:', post.userId, 'result:', String(user.id) === String(post.userId));
   return String(user.id) === String(post.userId);
 }
 
@@ -65,12 +63,10 @@ export async function createPost(post: PostRequest) {
     
     // Log para debug dos IDs finais
     if (validatedPostData.category === 'Filmes') {
-      console.log(`Criando post de Filmes com movieId=${validatedPostData.movieId}`);
       if (!validatedPostData.movieId) {
         console.warn('ATENÇÃO: Post na categoria Filmes sem movieId definido');
       }
     } else if (validatedPostData.category === 'Séries') {
-      console.log(`Criando post de Séries com serieId=${validatedPostData.serieId}`);
       if (!validatedPostData.serieId) {
         console.warn('ATENÇÃO: Post na categoria Séries sem serieId definido');
       }
@@ -78,8 +74,6 @@ export async function createPost(post: PostRequest) {
     
     // Atualizar o postData com os valores validados
     Object.assign(postData, validatedPostData);
-
-    console.log('Dados enviados para criação:', postData);
 
     const res = await fetch(API_URL_V1, {
       method: 'POST',
@@ -151,12 +145,10 @@ export async function updatePost(id: number, post: Partial<BlogType>, user: Perf
     
     // Log para debug dos IDs finais
     if (validatedPostData.category === 'Filmes') {
-      console.log(`Atualizando post de Filmes com movieId=${validatedPostData.movieId}`);
       if (!validatedPostData.movieId) {
         console.warn('ATENÇÃO: Post na categoria Filmes continua sem movieId definido');
       }
     } else if (validatedPostData.category === 'Séries') {
-      console.log(`Atualizando post de Séries com serieId=${validatedPostData.serieId}`);
       if (!validatedPostData.serieId) {
         console.warn('ATENÇÃO: Post na categoria Séries continua sem serieId definido');
       }
@@ -164,9 +156,6 @@ export async function updatePost(id: number, post: Partial<BlogType>, user: Perf
     
     // Atualizar o postData com os valores validados
     Object.assign(postData, validatedPostData);
-    
-    // Para debug, verificar os dados que estão sendo enviados
-    console.log('Dados enviados para atualização:', postData);
     
     const res = await fetch(`${API_URL_V1}/${id}`, {
       method: 'PUT',
@@ -288,13 +277,10 @@ function ensureCategoryIdsAreValid(post: Partial<BlogType>, currentPost?: BlogTy
     // Para categoria Filmes, garantir que movieId esteja definido
     if (!updatedPost.movieId && currentPost?.movieId) {
       updatedPost.movieId = currentPost.movieId;
-      console.log('Usando movieId existente:', updatedPost.movieId);
     } else if (!updatedPost.movieId && updatedPost.id) {
       updatedPost.movieId = Number(updatedPost.id);
-      console.log('Usando ID do post como movieId:', updatedPost.movieId);
     } else if (!updatedPost.movieId && updatedPost.tmdbId && updatedPost.tmdbType === 'movie') {
       updatedPost.movieId = updatedPost.tmdbId;
-      console.log('Usando tmdbId como movieId:', updatedPost.movieId);
     }
     
     // Para categoria Filmes, remover serieId
@@ -303,13 +289,10 @@ function ensureCategoryIdsAreValid(post: Partial<BlogType>, currentPost?: BlogTy
     // Para categoria Séries, garantir que serieId esteja definido
     if (!updatedPost.serieId && currentPost?.serieId) {
       updatedPost.serieId = currentPost.serieId;
-      console.log('Usando serieId existente:', updatedPost.serieId);
     } else if (!updatedPost.serieId && updatedPost.id) {
       updatedPost.serieId = Number(updatedPost.id);
-      console.log('Usando ID do post como serieId:', updatedPost.serieId);
     } else if (!updatedPost.serieId && updatedPost.tmdbId && updatedPost.tmdbType === 'tv') {
       updatedPost.serieId = updatedPost.tmdbId;
-      console.log('Usando tmdbId como serieId:', updatedPost.serieId);
     }
     
     // Para categoria Séries, remover movieId
