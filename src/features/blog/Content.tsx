@@ -154,8 +154,13 @@ export default function Content() {
     })
       .then(data => {
         const allPosts = Array.isArray(data) ? data : [];
-        setPosts(allPosts);
-        setTotalPages(Math.max(1, Math.ceil(allPosts.length / ITEMS_PER_PAGE)));
+        // Garante que userId seja preenchido a partir de author.id se necessário
+        const postsWithUserId = allPosts.map((post: any) => ({
+          ...post,
+          userId: post.userId !== undefined && post.userId !== null ? post.userId : post.author?.id || null
+        }));
+        setPosts(postsWithUserId);
+        setTotalPages(Math.max(1, Math.ceil(postsWithUserId.length / ITEMS_PER_PAGE)));
       })
       .catch(e => {
         setPosts([]);
@@ -717,15 +722,16 @@ export default function Content() {
         ) : (
           <>
             <Grid container spacing={3}>              {currentPagePosts.map((post, index) => {
-                const canEdit = user && canEditPost(user, post);
-                const canDelete = user && canDeletePost(user, post);
-                
+                const userIdNum = user ? Number(user.id) : null;
+                const postUserIdNum = post.userId !== undefined && post.userId !== null ? Number(post.userId) : null;
+                const canEditOrDelete = user && (user.perfil === 'ADMIN' || userIdNum === postUserIdNum);
+                console.log('[BLOG CARD] user.id:', userIdNum, 'post.userId:', postUserIdNum, 'canEditOrDelete:', canEditOrDelete);
                 return (
                   <Grid item xs={12} sm={6} md={4} key={post.id}>
                     <BlogCardItem
                       post={post}
-                      onEditClick={canEdit ? handleEditClick : undefined}
-                      onDeleteClick={canDelete ? handleDeleteClick : undefined}
+                      onEditClick={canEditOrDelete ? handleEditClick : undefined}
+                      onDeleteClick={canEditOrDelete ? handleDeleteClick : undefined}
                       onCardClick={handleCardClick}
                       isFocused={focusedCardIndex === index}
                     />

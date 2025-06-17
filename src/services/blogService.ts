@@ -5,10 +5,10 @@ import { PerfilType, PerfilTypeEnum } from '../types/PerfilType';
 const API_URL_V1 = `${environment.API_URL_V1}/post`;
 export function canEditPost(user: PerfilType | null, post: BlogType): boolean {
   if (!user) return false;
-  
   if (user.perfil === PerfilTypeEnum.ADMIN) return true;
-  
-  return user.id === String(post.userId);
+  // Debug para garantir que os valores estão corretos
+  console.log('[canEditPost] user.id:', user.id, 'post.userId:', post.userId, 'result:', String(user.id) === String(post.userId));
+  return String(user.id) === String(post.userId);
 }
 
 export function canDeletePost(user: PerfilType | null, post: BlogType): boolean {
@@ -116,8 +116,11 @@ export async function updatePost(id: number, post: Partial<BlogType>, user: Perf
 
   try {
     // Buscar o post atual para garantir que temos todos os dados necessários
-    const currentPost = await getPostById(id);
-    
+    let currentPost = await getPostById(id);
+    // Garante que userId esteja presente para a verificação de permissão
+    if (currentPost && (currentPost.userId === undefined || currentPost.userId === null)) {
+      currentPost.userId = currentPost.author?.id ?? null;
+    }
     if (user && !canEditPost(user, currentPost)) {
       throw new Error('Você não tem permissão para editar esta publicação');
     }
@@ -198,8 +201,11 @@ export async function deletePost(id: number, user: PerfilType | null) {
     throw new Error('Usuário não autenticado. Faça login para excluir a publicação.');
   }
 
-  const currentPost = await getPostById(id);
-  
+  let currentPost = await getPostById(id);
+  // Garante que userId esteja presente para a verificação de permissão
+  if (currentPost && (currentPost.userId === undefined || currentPost.userId === null)) {
+    currentPost.userId = currentPost.author?.id ?? null;
+  }
   if (user && !canDeletePost(user, currentPost)) {
     throw new Error('Você não tem permissão para excluir esta publicação');
   }
