@@ -250,7 +250,7 @@ function Header() {
                   variant="contained" 
                   size="small"
                   sx={(theme) => ({
-                    color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+                    color: theme.palette.mode === 'dark' ? '#000' : '#fff',
                     backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.primary.main,
                     textTransform: 'none',
                     '&:hover': {
