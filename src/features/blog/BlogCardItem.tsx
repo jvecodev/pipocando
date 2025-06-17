@@ -320,6 +320,12 @@ export default function BlogCardItem({
             </IconButton>
           )}
         </Box>
+        {/* Adiciona o conteúdo do post */}
+        {post.content && (
+          <StyledTypography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            {post.content}
+          </StyledTypography>
+        )}
 
         {/* Botões de ação */}
         <Box

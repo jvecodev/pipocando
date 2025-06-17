@@ -222,6 +222,57 @@ export async function getPostById(id: number): Promise<BlogType> {
   return res.json();
 }
 
+// Adiciona um comentário a um post
+export async function addCommentToPost(postId: number, content: string, userId?: number, userName?: string) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_URL_V1}/${postId}/comment`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ content, userId, userName }),
+  });
+  if (!res.ok) throw new Error('Erro ao adicionar comentário');
+  return res.json();
+}
+
+// Lista os comentários de um post
+export async function getCommentsByPostId(postId: number) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_URL_V1}/${postId}/comment`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error('Erro ao buscar comentários');
+  return res.json();
+}
+
+// Atualiza um comentário
+export async function updateComment(commentId: number, content: string, userId: number) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${environment.API_URL_V1}/post/comment/${commentId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ content, userId }),
+  });
+  if (!res.ok) throw new Error('Erro ao atualizar comentário');
+  return res.json();
+}
+
+// Remove um comentário
+export async function deleteComment(commentId: number) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${environment.API_URL_V1}/post/comment/${commentId}`, {
+    method: 'DELETE',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error('Erro ao remover comentário');
+  return res.ok;
+}
+
 // Função utilitária para garantir que os IDs estão corretos baseados na categoria
 function ensureCategoryIdsAreValid(post: Partial<BlogType>, currentPost?: BlogType): Partial<BlogType> {
   const updatedPost = { ...post };

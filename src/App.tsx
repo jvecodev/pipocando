@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Blog from "./features/blog/Blog";
+import BlogDetail from "./features/blog/BlogDetail";
 import SignUp from "./features/sign-up/SignUp";
 import Login from "./features/login/Login";
 import Home from "./features/home/Home";
@@ -24,15 +25,16 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
 
           {/* Novas rotas */}
-        <Route path="/filmes" element={<Movies />} />
-        <Route path="/series" element={<Series />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/perfil" element={<Perfil />} />
-      </Routes>
-    </Router>
-  </UserProvider>
-);
+          <Route path="/filmes" element={<Movies />} />
+          <Route path="/series" element={<Series />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:postId" element={<BlogDetail />} />
+          <Route path="/perfil" element={<Perfil />} />
+        </Routes>
+      </Router>
+    </UserProvider>
+  );
 }
 
 export default App;
