@@ -146,7 +146,17 @@ const BlogDetail = () => {
             );
           })}
         </List>
-        <Box mt={2} display="flex" gap={2}>
+        <Box
+          mt={2}
+          display="flex"
+          gap={2}
+          sx={{
+            bgcolor: theme => theme.palette.mode === 'dark' ? '#23272f' : '#fff',
+            color: theme => theme.palette.mode === 'dark' ? '#fff' : '#000',
+            borderRadius: 2,
+            p: 2
+          }}
+        >
           <TextField
             label="Adicionar comentário"
             variant="outlined"
@@ -154,11 +164,29 @@ const BlogDetail = () => {
             value={newComment}
             onChange={e => setNewComment(e.target.value)}
             disabled={commentLoading}
+            InputProps={{
+              sx: {
+          bgcolor: theme => theme.palette.mode === 'dark' ? '#23272f' : '#fff',
+          color: theme => theme.palette.mode === 'dark' ? '#fff' : '#000'
+              }
+            }}
+            InputLabelProps={{
+              sx: {
+          color: theme => theme.palette.mode === 'dark' ? '#fff' : '#000'
+              }
+            }}
           />
           <Button
             variant="contained"
             onClick={handleAddComment}
             disabled={commentLoading || !newComment.trim()}
+            sx={{
+              bgcolor: theme => theme.palette.mode === 'dark' ? '#fff' : '#000',
+              color: theme => theme.palette.mode === 'dark' ? '#23272f' : '#fff',
+              '&:hover': {
+          bgcolor: theme => theme.palette.mode === 'dark' ? '#e0e0e0' : '#222'
+              }
+            }}
           >
             Comentar
           </Button>
