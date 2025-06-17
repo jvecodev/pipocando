@@ -82,9 +82,15 @@ function formatDate(dateString?: string): string {
 function AuthorDisplay({
   authors,
   date,
+  onEditClick,
+  onDeleteClick,
+  post
 }: {
   authors: { name: string; avatar: string }[];
   date?: string;
+  onEditClick?: (post: BlogType) => void;
+  onDeleteClick?: (post: BlogType) => void;
+  post: BlogType;
 }) {
   return (
     <Box
@@ -125,6 +131,34 @@ function AuthorDisplay({
             .substring(0, 30)}
           {authors.map((author) => author.name).join(', ').length > 30 && '...'}
         </Typography>
+        {/* Botões ao lado do nome do autor */}
+        {onEditClick && (
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditClick(post);
+            }}
+            size="small"
+            aria-label="editar"
+            sx={{ ml: 1 }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        )}
+        {onDeleteClick && (
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteClick(post);
+            }}
+            size="small"
+            aria-label="deletar"
+            color="error"
+            sx={{ ml: 1 }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        )}
       </Box>
       {date && (
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -280,46 +314,13 @@ export default function BlogCardItem({
           >
             {post.title}
           </Typography>
-          {onEditClick && (
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditClick(post);
-              }}
-              size="small"
-              aria-label="editar"
-              sx={{ 
-                ml: 1,
-                backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                '&:hover': {
-                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                }
-              }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          )}
-          {onDeleteClick && (
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteClick(post);
-              }}
-              size="small"
-              aria-label="deletar"
-              color="error"
-              sx={{ 
-                ml: 1,
-                backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                '&:hover': {
-                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                }
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          )}
         </Box>
+        {/* Adiciona o conteúdo do post */}
+        {post.content && (
+          <StyledTypography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            {post.content}
+          </StyledTypography>
+        )}
 
         {/* Botões de ação */}
         <Box
@@ -349,7 +350,14 @@ export default function BlogCardItem({
         </Box>
       </StyledCardContent>
 
-      <AuthorDisplay authors={authors} date={post.createdAt} />
+      {/* Autor e data */}
+      <AuthorDisplay 
+        authors={authors} 
+        date={post.createdAt} 
+        onEditClick={onEditClick}
+        onDeleteClick={onDeleteClick}
+        post={post}
+      />
     </StyledCard>
   );
 }

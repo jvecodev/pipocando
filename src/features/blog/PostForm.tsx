@@ -87,7 +87,6 @@ const extractDirectImageUrl = (url: string): string | null => {
       if (match && match[1]) {
         const decodedUrl = decodeURIComponent(match[1]);
         if (isValidImageUrl(decodedUrl)) {
-          console.log('URL de imagem extraída do Google:', decodedUrl);
           return decodedUrl;
         }
       }
@@ -99,7 +98,6 @@ const extractDirectImageUrl = (url: string): string | null => {
       const imgurId = url.split('/').pop()?.split('.')[0];
       if (imgurId) {
         const directUrl = `https://i.imgur.com/${imgurId}.jpg`;
-        console.log('URL de imagem extraída do Imgur:', directUrl);
         return directUrl;
       }
     }
@@ -110,7 +108,6 @@ const extractDirectImageUrl = (url: string): string | null => {
       const postImgId = url.split('/').pop();
       if (postImgId) {
         const directUrl = `https://i.postimg.cc/${postImgId}`;
-        console.log('URL de imagem extraída do Postimg:', directUrl);
         return directUrl;
       }
     }
@@ -118,7 +115,6 @@ const extractDirectImageUrl = (url: string): string | null => {
     // Verificar se temos um link de imagem possivelmente válido sem extensão
     if (url.startsWith('http') && 
         (url.includes('/image/') || url.includes('/images/') || url.includes('/img/') || url.includes('/media/'))) {
-      console.log('URL possivelmente válida detectada:', url);
       return url;
     }
     
@@ -403,9 +399,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Log completo dos dados antes da validação
-    console.log('Dados do formulário antes da validação:', modal.post);
-    
     // Aplicar validações finais para garantir que a categoria corresponda aos IDs
     if (modal.post) {
       try {
@@ -417,39 +410,33 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
           if (modal.type === 'edit') {
             // Na edição, preservamos o movieId ou usamos o ID do post como último recurso
             if (!finalPost.movieId && finalPost.id) {
-              console.log('Edição - usando ID do post como movieId:', finalPost.id);
               finalPost.movieId = Number(finalPost.id);
             }
           } else {
             // Na criação, tentamos usar tmdbId como movieId
             if (!finalPost.movieId && finalPost.tmdbId && finalPost.tmdbType === 'movie') {
-              console.log('Criação - usando tmdbId como movieId:', finalPost.tmdbId);
               finalPost.movieId = finalPost.tmdbId;
             }
           }
           
           // Para garantir que serieId seja undefined quando categoria é Filmes
           finalPost.serieId = undefined;
-          console.log('Categoria Filmes: serieId removido, movieId =', finalPost.movieId);
         } else if (finalPost.category === 'Séries') {
           // Modos diferentes de tratamento baseado no tipo de operação
           if (modal.type === 'edit') {
             // Na edição, preservamos o serieId ou usamos o ID do post como último recurso
             if (!finalPost.serieId && finalPost.id) {
-              console.log('Edição - usando ID do post como serieId:', finalPost.id);
               finalPost.serieId = Number(finalPost.id);
             }
           } else {
             // Na criação, tentamos usar tmdbId como serieId
             if (!finalPost.serieId && finalPost.tmdbId && finalPost.tmdbType === 'tv') {
-              console.log('Criação - usando tmdbId como serieId:', finalPost.tmdbId);
               finalPost.serieId = finalPost.tmdbId;
             }
           }
           
           // Para garantir que movieId seja undefined quando categoria é Séries
           finalPost.movieId = undefined;
-          console.log('Categoria Séries: movieId removido, serieId =', finalPost.serieId);
         }
         
         // Atualizar o state com os valores ajustados e depois validar
@@ -459,7 +446,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
             post: finalPost
           };
           
-          console.log('Estado atualizado antes da validação:', updatedModal.post);          // Executar validação em um callback para garantir que usamos o estado mais recente
           setTimeout(() => {
             // Usar nossa função validateForm para verificar os campos essenciais
             if (!validateForm()) {
@@ -477,7 +463,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
               console.error('Formulário inválido - campos essenciais:', errors);
             } else {
               // Se não houver erros nos campos essenciais, enviar o formulário
-              console.log('Enviando formulário validado:', finalPost);
               onSave(finalPost);
             }
           }, 0);
@@ -563,42 +548,28 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
   }  // Inicializa o formulário com valores adequados
   useEffect(() => {
     // Log para depuração - dados iniciais do post
-    console.log('PostForm inicializado com dados:', modal.post);
     
     if (modal.post) {
       const { category, movieId, serieId, tmdbId, tmdbType, id } = modal.post;
-      
-      console.log('Inicialização:');
-      console.log('- ID do post:', id || 'novo post');
-      console.log('- Categoria:', category || 'não definida');
-      console.log('- movieId:', movieId || 'não definido');
-      console.log('- serieId:', serieId || 'não definido');
-      console.log('- tmdbId:', tmdbId || 'não definido');
-      console.log('- tmdbType:', tmdbType || 'não definido');
 
       // Modo de edição - garantir que os IDs existentes não sejam perdidos
       if (modal.type === 'edit' && id) {
-        console.log(`Modo de edição para post ID ${id}`);
         
         // Garantir que o post tenha os IDs corretos baseados na categoria
         let updatedPost = { ...modal.post };
         let needsUpdate = false;
         
         if (category === 'Filmes') {
-          console.log('Edição de post na categoria Filmes');
           
           // Se esse post é um filme mas não tem movieId, tentamos usar o ID do próprio post
           if (!updatedPost.movieId && id) {
-            console.log(`Usando ID do post (${id}) como movieId`);
             updatedPost.movieId = Number(id);
             needsUpdate = true;
           }
         } else if (category === 'Séries') {
-          console.log('Edição de post na categoria Séries');
           
           // Se esse post é uma série mas não tem serieId, tentamos usar o ID do próprio post
           if (!updatedPost.serieId && id) {
-            console.log(`Usando ID do post (${id}) como serieId`);
             updatedPost.serieId = Number(id);
             needsUpdate = true;
           }
@@ -618,14 +589,11 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         
         if (tmdbType === 'movie') {
           defaultCategory = 'Filmes';
-          console.log('Definindo categoria padrão como Filmes com base em tmdbType');
         } else if (tmdbType === 'tv') {
           defaultCategory = 'Séries';
-          console.log('Definindo categoria padrão como Séries com base em tmdbType');
         } else {
           // Padrão para Filmes se não houver informação
           defaultCategory = 'Filmes';
-          console.log('Definindo categoria padrão como Filmes (padrão)');
         }
         
         // Atualizar o post com a categoria padrão
@@ -649,9 +617,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
       // Se não temos categoria definida, não fazer nada
       if (!category) return;
       
-      console.log(`Inicializando post com categoria ${category}`);
-      console.log(`Dados atuais: movieId=${movieId}, serieId=${serieId}, tmdbId=${tmdbId}, tmdbType=${tmdbType}`);
-      
       // Verifica se precisamos corrigir IDs conforme a categoria
       let needsUpdate = false;
       const updatedPost = { ...modal.post };
@@ -660,14 +625,12 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         // Para categoria Filmes, garantir que tenha movieId
         if (!movieId && tmdbId && tmdbType === 'movie') {
           // Usar tmdbId como movieId se for do tipo correto
-          console.log(`Corrigindo: definindo movieId=${tmdbId} para categoria Filmes`);
           updatedPost.movieId = tmdbId;
           needsUpdate = true;
         }
         
         // Garantir que serieId seja undefined
         if (serieId !== undefined) {
-          console.log('Corrigindo: removendo serieId para categoria Filmes');
           updatedPost.serieId = undefined;
           needsUpdate = true;
         }
@@ -675,14 +638,12 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
         // Para categoria Séries, garantir que tenha serieId
         if (!serieId && tmdbId && tmdbType === 'tv') {
           // Usar tmdbId como serieId se for do tipo correto
-          console.log(`Corrigindo: definindo serieId=${tmdbId} para categoria Séries`);
           updatedPost.serieId = tmdbId;
           needsUpdate = true;
         }
         
         // Garantir que movieId seja undefined
         if (movieId !== undefined) {
-          console.log('Corrigindo: removendo movieId para categoria Séries');
           updatedPost.movieId = undefined;
           needsUpdate = true;
         }
@@ -690,7 +651,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
       
       // Atualizar o post se necessário
       if (needsUpdate) {
-        console.log('Atualizando post com IDs corrigidos:', updatedPost);
         setModal(prev => ({
           ...prev,
           post: updatedPost
@@ -834,7 +794,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                 }
                 
                 const newCategory = e.target.value;
-                console.log(`Alterando categoria para: ${newCategory}`);
                 
                 updatePost('category', newCategory);
                 
@@ -898,8 +857,7 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
               
               const { category, movieId, serieId, tmdbId, tmdbType } = modal.post || {};
               
-              console.log("Atualizando URL da imagem:", finalValue);
-              
+              // Atualizamos apenas os campos de imagem
               setModal(prev => ({
                 ...prev,
                 post: {
@@ -978,8 +936,6 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
                   backgroundColor: '#f8f8f8'
                 }}
                 onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                  console.log("Erro ao carregar imagem:", e.currentTarget.src);
-                  
                   const imgElement = e.currentTarget;
                   imgElement.style.display = 'none';
                   
@@ -1240,9 +1196,8 @@ export default function PostForm({ modal, setModal, onSave }: PostFormProps) {
               variant="contained"
               color="primary"
               onClick={(e) => {
-              e.preventDefault();
-              console.log('Botão clicado, iniciando validação do formulário');
-              handleSubmit(e);
+                e.preventDefault();
+                handleSubmit(e);
               }}
               sx={{ 
               borderRadius: '12px',

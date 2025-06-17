@@ -26,32 +26,31 @@ const getUserId = () => {
 
 export const updateUserProfile = async (userData: ProfileUpdateData) => {
   try {
-    // Get user ID from localStorage if not provided
-    const userId = userData.id || getUserId();
-    
+    // Obter o ID do usuário (já está incluído no userData)
+    const userId = userData.id;
+
     if (!userId) {
-      console.error("ID do usuário não fornecido para atualização de perfil");
       throw new Error("ID do usuário é necessário para atualização do perfil");
     }
 
-    console.log("Atualizando perfil para o usuário com ID:", userId);
-
-    // Prepare the data to be sent
-    const dataToSend = {
+    // Preparar dados para envio com tipagem correta
+    const dataToSend: {
+      name: string;
+      email: string;
+      currentPassword?: string;
+      newPassword?: string;
+    } = {
       name: userData.name,
       email: userData.email,
-      currentPassword: userData.currentPassword,
-      newPassword: userData.newPassword,
     };
 
-    // Remove undefined fields
-    Object.keys(dataToSend).forEach((key) => {
-      if (dataToSend[key as keyof typeof dataToSend] === undefined) {
-        delete dataToSend[key as keyof typeof dataToSend];
-      }
-    });
+    // Adicionar campos de senha apenas se estiverem presentes
+    if (userData.currentPassword && userData.newPassword) {
+      dataToSend.currentPassword = userData.currentPassword;
+      dataToSend.newPassword = userData.newPassword;
+    }
 
-    // Make request to the API
+    // Fazer requisição para a API
     const response = await axios.put(
       `${API_URL}/v1/user/${userId}`,
       dataToSend,
@@ -63,7 +62,6 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
       }
     );
 
-    console.log("Resposta da API após atualização de perfil:", response.data);
     return response.data;
   } catch (error) {
     console.error("Erro ao atualizar perfil:", error);
@@ -73,10 +71,13 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
         console.error("Resposta de erro do servidor:", error.response.data);
 
         if (error.response.status === 400 || error.response.status === 401) {
-          const errorMessage = error.response.data.message || error.response.data.error || "";
-          if (errorMessage.toLowerCase().includes("senha") || 
-              errorMessage.toLowerCase().includes("password") || 
-              errorMessage.toLowerCase().includes("invalid request")) {
+          const errorMessage =
+            error.response.data.message || error.response.data.error || "";
+          if (
+            errorMessage.toLowerCase().includes("senha") ||
+            errorMessage.toLowerCase().includes("password") ||
+            errorMessage.toLowerCase().includes("invalid request")
+          ) {
             throw new Error("Senha atual inválida");
           }
         }
@@ -90,7 +91,9 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
         }
 
         throw new Error(
-          error.response.data.message || error.response.data.error || "Erro ao atualizar o perfil"
+          error.response.data.message ||
+            error.response.data.error ||
+            "Erro ao atualizar o perfil"
         );
       } else if (error.request) {
         console.error("Nenhuma resposta recebida:", error.request);
@@ -109,11 +112,11 @@ export const getUserProfile = async (userId?: string | number) => {
   try {
     // Use the provided userId or get it from localStorage
     const id = userId || getUserId();
-    
+
     if (!id) {
       throw new Error("ID do usuário é necessário para obter o perfil");
     }
-    
+
     const response = await axios.get(`${API_URL}/v1/user/${id}`, {
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
@@ -268,9 +271,26 @@ export interface AdminUserUpdate {
 // Função para atualizar um usuário (como admin)
 export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
   try {
+    // Verificação do ID
+    if (!userId) {
+      throw new Error("ID do usuário é necessário para atualização");
+    }
+
+    // Preparar dados para envio com tipagem correta
+    const dataToSend = {
+      name: userData.name,
+      email: userData.email,
+      role: userData.perfil, // Observe que o backend pode esperar 'role' em vez de 'perfil'
+      active: userData.active,
+    };
+
+    // Log para diagnóstico
+    console.log(`Atualizando usuário ${userId} com dados:`, dataToSend);
+
+    // Fazer requisição para a API com o endpoint correto
     const response = await axios.put(
-      `${API_URL}/v1/user/${userId}/admin`,
-      userData,
+      `${API_URL}/v1/user/${userId}`, // Usando o endpoint correto
+      dataToSend,
       {
         headers: {
           "Content-Type": "application/json",
@@ -279,12 +299,14 @@ export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
       }
     );
 
+    console.log("Usuário atualizado com sucesso:", response.data);
     return response.data;
   } catch (error) {
     console.error("Erro ao atualizar usuário:", error);
 
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 401) {
+        // Verificar se o token expirou
         throw new Error("Sessão expirada. Por favor, faça login novamente.");
       } else if (error.response?.status === 403) {
         throw new Error("Você não tem permissão para atualizar este usuário.");
@@ -301,24 +323,38 @@ export const updateUser = async (userId: number, userData: AdminUserUpdate) => {
   }
 };
 
+// Função para administradores excluírem usuários
 export const deleteUserAdmin = async (userId: number) => {
   try {
-    const response = await axios.delete(
-      `${API_URL}/v1/user/${userId}/admin`,
-      {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      }
-    );
+    // Verificar se o ID do usuário é válido
+    if (!userId) {
+      throw new Error("ID do usuário é necessário para exclusão");
+    }
+
+    // Obter token de autenticação
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("Autenticação necessária");
+    }
+
+    // Use o endpoint ADMIN específico que existe no backend
+    const response = await axios.delete(`${API_URL}/v1/user/${userId}/admin`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return response.data;
   } catch (error) {
     console.error("Erro ao excluir usuário:", error);
 
     if (axios.isAxiosError(error)) {
+      // Se houver um erro 401, sugerir reautenticação sem redirecionar
       if (error.response?.status === 401) {
-        throw new Error("Sessão expirada. Por favor, faça login novamente.");
+        throw new Error(
+          "Sessão expirada. Por favor, tente fazer login novamente."
+        );
       } else if (error.response?.status === 403) {
         throw new Error("Você não tem permissão para excluir este usuário.");
       } else if (error.response?.status === 404) {

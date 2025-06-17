@@ -41,6 +41,7 @@ import watchlistService from '../../services/watchlistService';
 import { createNewsFromMovie, createNewsFromTVShow, createReviewTemplate } from '../../services/blogTmdbService';
 import { generateWatchlistPostSuggestions } from '../../services/blogTmdbService';
 import { useNavigate } from 'react-router-dom';
+import BlogDetail from './BlogDetail';
 
 const CATEGORIES = [
   { label: 'Todas as categorias', value: 'all' },
@@ -152,8 +153,13 @@ export default function Content() {
     })
       .then(data => {
         const allPosts = Array.isArray(data) ? data : [];
-        setPosts(allPosts);
-        setTotalPages(Math.max(1, Math.ceil(allPosts.length / ITEMS_PER_PAGE)));
+        // Garante que userId seja preenchido a partir de author.id se necessário
+        const postsWithUserId = allPosts.map((post: any) => ({
+          ...post,
+          userId: post.userId !== undefined && post.userId !== null ? post.userId : post.author?.id || null
+        }));
+        setPosts(postsWithUserId);
+        setTotalPages(Math.max(1, Math.ceil(postsWithUserId.length / ITEMS_PER_PAGE)));
       })
       .catch(e => {
         setPosts([]);
@@ -233,24 +239,20 @@ export default function Content() {
         if (category === 'Filmes' && !post.movieId) {
           if (post.tmdbId && post.tmdbType === 'movie') {
             post.movieId = post.tmdbId;
-            console.log('Usando tmdbId como movieId:', post.tmdbId);
           } else {
             throw new Error('Para a categoria Filmes, é necessário informar o ID do filme.');
           }
         } else if (category === 'Séries' && !post.serieId) {
           if (post.tmdbId && post.tmdbType === 'tv') {
             post.serieId = post.tmdbId;
-            console.log('Usando tmdbId como serieId:', post.tmdbId);
           } else {
             throw new Error('Para a categoria Séries, é necessário informar o ID da série.');
           }
         }      } else {
-        console.log('Modo de edição: preservando IDs existentes');
       }          // Monta o payload conforme a categoria
       let originalUserId;
       if (modal.type === 'edit') {
         originalUserId = post.userId && post.userId !== null ? Number(post.userId) : Number(user.id);
-        console.log(`Modo edição: post.userId=${post.userId}, usando userId=${originalUserId}`);
       } else {
         originalUserId = Number(user.id);
       }
@@ -274,24 +276,19 @@ export default function Content() {
         
         payload.serieId = undefined;
         
-        console.log(`Categoria Filmes: usando movieId=${payload.movieId}`);
       } else if (category === 'Séries') {
         payload.serieId = post.serieId || (post.tmdbId && post.tmdbType === 'tv' ? post.tmdbId : undefined);
         
         payload.movieId = undefined;
         
-        console.log(`Categoria Séries: usando serieId=${payload.serieId}`);
       }      
       if (modal.type === 'edit' && post.id) {
         if (category === 'Filmes' && !payload.movieId) {
-          console.log('Edição: Definindo movieId com ID do post:', post.id);
           payload.movieId = Number(post.id);
         } else if (category === 'Séries' && !payload.serieId) {
-          console.log('Edição: Definindo serieId com ID do post:', post.id);
           payload.serieId = Number(post.id);
         }
       }      
-      console.log('Payload de salvamento:', payload);
       
       if (modal.type === 'edit') {
         console.log(`Editando post: mantendo userId original (${payload.userId}) ao invés do userId do editor (${user.id})`);
@@ -361,7 +358,6 @@ export default function Content() {
       setIsLoading(false);
     }
   };
- 
 
   const currentPagePosts = posts.slice(
     (page - 1) * ITEMS_PER_PAGE,
@@ -519,6 +515,11 @@ export default function Content() {
       return false;
     }
     return true;
+  };
+
+  // Adiciona navegação ao clicar no card do blog
+  const handleCardClick = (post: BlogType) => {
+    navigate(`/blog/${post.id}`);
   };
 
   return (
@@ -718,15 +719,16 @@ export default function Content() {
         ) : (
           <>
             <Grid container spacing={3}>              {currentPagePosts.map((post, index) => {
-                const canEdit = user && canEditPost(user, post);
-                const canDelete = user && canDeletePost(user, post);
-                
+                const userIdNum = user ? Number(user.id) : null;
+                const postUserIdNum = post.userId !== undefined && post.userId !== null ? Number(post.userId) : null;
+                const canEditOrDelete = user && (user.perfil === 'ADMIN' || userIdNum === postUserIdNum);
                 return (
                   <Grid item xs={12} sm={6} md={4} key={post.id}>
                     <BlogCardItem
                       post={post}
-                      onEditClick={canEdit ? handleEditClick : undefined}
-                      onDeleteClick={canDelete ? handleDeleteClick : undefined}
+                      onEditClick={canEditOrDelete ? handleEditClick : undefined}
+                      onDeleteClick={canEditOrDelete ? handleDeleteClick : undefined}
+                      onCardClick={handleCardClick}
                       isFocused={focusedCardIndex === index}
                     />
                   </Grid>
