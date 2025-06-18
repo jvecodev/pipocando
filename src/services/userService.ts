@@ -44,13 +44,11 @@ export const updateUserProfile = async (userData: ProfileUpdateData) => {
       email: userData.email,
     };
 
-    // Adicionar campos de senha apenas se estiverem presentes
     if (userData.currentPassword && userData.newPassword) {
       dataToSend.currentPassword = userData.currentPassword;
       dataToSend.newPassword = userData.newPassword;
     }
 
-    // Fazer requisição para a API
     const response = await axios.put(
       `${API_URL}/v1/user/${userId}`,
       dataToSend,

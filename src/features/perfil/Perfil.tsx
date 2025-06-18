@@ -376,34 +376,28 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
             return;
         }
 
-        // Verificar se o nome está sendo alterado
         const isChangingName = user && formData.name !== user.name;
 
-        // Se estiver alterando o nome, mostrar um alerta de confirmaçã
 
         setLoading(true);
         setError("");
         setSuccess(false);
 
         try {
-            // Preparar dados para atualização
             const dataToUpdate: ProfileUpdateData = {
                 id: Number(user?.id),
                 name: formData.name,
                 email: formData.email,
             };
 
-            // Adicionar senha apenas se estiver sendo alterada
             const isChangingPassword = formData.currentPassword && formData.newPassword;
             if (isChangingPassword) {
                 dataToUpdate.currentPassword = formData.currentPassword;
                 dataToUpdate.newPassword = formData.newPassword;
             }
 
-            // Enviar para API
             const response = await updateUserProfile(dataToUpdate);
 
-            // Preparar mensagem de sucesso para redirecionar
             let successMessage = isChangingPassword
                 ? "Senha atualizada com sucesso!"
                 : "Informações pessoais atualizadas com sucesso!";
@@ -609,10 +603,8 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                     perfil: updatedUserData.role || user.perfil
                 };
 
-                // Atualizar o contexto do usuário
                 setUser(updatedUser);
 
-                // Atualizar localStorage com o usuário atualizado
                 localStorage.setItem('user', JSON.stringify(updatedUser));
                 if (updatedUser.name) localStorage.setItem('userName', updatedUser.name);
 
@@ -1179,7 +1171,8 @@ export default function Perfil(props: { disableCustomTheme?: boolean }) {
                                                                             fontWeight: 600,
                                                                             fontSize: '0.75rem',
                                                                             padding: '0 2px',
-                                                                            
+                                                                            color: user.perfil === 'ADMIN' ? 'primary.contrastText' : 'black',
+                                                                            backgroundColor: user.perfil === 'ADMIN' ? 'transparent' : 'primary.main',
                                                                             borderRadius: '16px',
                                                                             '& .MuiChip-label': {
                                                                                 padding: '0 8px'
