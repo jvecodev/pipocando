@@ -752,7 +752,8 @@ export default function Content() {
                   sx={(theme) => ({
                     '& .MuiPaginationItem-root': {
                       ...(theme.palette.mode === 'dark' && {
-                        color: '#ffffff', 
+                        color: theme.palette.text.primary,
+                        backgroundColor: theme.palette.background.paper,
                       }),
                     },
                   })}

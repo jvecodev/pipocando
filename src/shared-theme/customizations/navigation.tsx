@@ -9,7 +9,6 @@ import { tabClasses } from '@mui/material/Tab';
 import UnfoldMoreRoundedIcon from '@mui/icons-material/UnfoldMoreRounded';
 import { gray, brand, cremeSuave, begeAreia, carameloEscuro, borgonhaFundo} from '../themePrimitives';
 
-/* eslint-disable import/prefer-default-export */
 export const navigationCustomizations: Components<Theme> = {
   MuiMenuItem: {
     styleOverrides: {
@@ -162,7 +161,8 @@ export const navigationCustomizations: Components<Theme> = {
           backgroundColor: theme.palette.grey[900],
         },
         ...theme.applyStyles('dark', {
-          color: '#ffffff', // Fonte branca no modo escuro
+          color: '#ffffff', 
+          
           '&.Mui-selected': {
             color: 'black',
             backgroundColor: theme.palette.grey[50],

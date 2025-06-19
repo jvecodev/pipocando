@@ -61,7 +61,6 @@ const StyledTypography = styled(Typography)({
   textOverflow: 'ellipsis',
 });
 
-// Formata a data no formato dd/mm/aaaa
 function formatDate(dateString?: string): string {
   if (!dateString) return '';
 
@@ -78,7 +77,6 @@ function formatDate(dateString?: string): string {
   }
 }
 
-// Componente para exibir o autor
 function AuthorDisplay({
   authors,
   date,
@@ -131,7 +129,6 @@ function AuthorDisplay({
             .substring(0, 30)}
           {authors.map((author) => author.name).join(', ').length > 30 && '...'}
         </Typography>
-        {/* Botões ao lado do nome do autor */}
         {onEditClick && (
           <IconButton
             onClick={(e) => {
@@ -169,10 +166,9 @@ function AuthorDisplay({
   );
 }
 
-// Função para determinar o ícone baseado na categoria
 function getCategoryIcon(category?: string) {
   if (category === 'Filmes') {
-    return <MovieIcon color="primary" />;
+    return <MovieIcon color="secondary" />;
   } else if (category === 'Séries') {
     return <TvIcon color="secondary" />;
   } else {
@@ -198,13 +194,11 @@ export default function BlogCardItem({
   const [inWatchlist, setInWatchlist] = useState(false);
   
   useEffect(() => {
-    // Verifica se o item está na watchlist quando o post é carregado
     if (post.tmdbId && post.tmdbType) {
       setInWatchlist(watchlistService.isInWatchlist(post.tmdbId, post.tmdbType));
     }
   }, [post.tmdbId, post.tmdbType]);
 
-  // Manipuladores para a watchlist
   const handleWatchlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -275,7 +269,6 @@ export default function BlogCardItem({
           }}
         />
         
-        {/* Badge para categoria */}
         <Box
           sx={{
             position: 'absolute',
@@ -292,12 +285,20 @@ export default function BlogCardItem({
               label={post.category}
               size="small"
               variant="filled"
-              color={post.category === 'Filmes' ? 'primary' : 'secondary'}
               sx={{
                 fontWeight: 600,
                 backdropFilter: 'blur(8px)',
-                color: 'black',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                color: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)',
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)',
+                
+                '&:hover': {
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                },
+                
               }}
             />
           )}

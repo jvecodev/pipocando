@@ -101,7 +101,7 @@ export default function Hero() {
             <Typography
               variant="subtitle1"
               sx={(theme) => ({
-                fontWeight: 700,
+                fontWeight: 500,
                 letterSpacing: 1,
                 fontSize: { xs: '1.1rem', md: '1.2rem' },
                 textShadow: '0 1px 8px rgba(128,0,32,0.10)',
@@ -113,7 +113,7 @@ export default function Hero() {
             <Button
               variant="outlined"
               sx={(theme) => ({
-                fontWeight: 700,
+                fontWeight: 500,
                 textTransform: 'none',
                 fontSize: { xs: '1rem', md: '1.1rem' },
                 px: 2,
@@ -127,8 +127,9 @@ export default function Hero() {
                   color: '#fff',
                   borderColor: '#fff',
                   '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
                     borderColor: '#fff',
+                    color:'black'
                   },
                 } : {
                   color: theme.palette.primary.main,

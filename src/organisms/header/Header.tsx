@@ -33,7 +33,6 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   border: "1px solid",
   borderColor: theme.palette.divider,
   backgroundColor: alpha(theme.palette.background.default, 0.4),
-  boxShadow: theme.shadows[1],
   padding: "8px 12px",
 }));
 
@@ -95,31 +94,33 @@ function Header() {
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
           >
             <Sitemark />            <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              <Button
+                <Button
                 component={Link}
                 to="/"
                 variant="text"
                 color="info"
-                size="small"
+                size="medium"
                 sx={(theme) => ({
                   color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                   textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
                   '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                   },
                 })}
-              >
+                >
                 Home
-              </Button>
+                </Button>
               <Button
                 component={Link}
                 to="/blog"
                 variant="text"
                 color="info"
-                size="small"
+                size="medium"
                 sx={(theme) => ({
                   color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                   textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
                   '&:hover': {
                     backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                   },
@@ -132,10 +133,11 @@ function Header() {
                 to="/filmes"
                 variant="text"
                 color="info"
-                size="small"
+                size="medium"
                 sx={(theme) => ({
                   color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                   textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
                   '&:hover': {
                     backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                   },
@@ -148,10 +150,11 @@ function Header() {
                 to="/series"
                 variant="text"
                 color="info"
-                size="small"
+                size="medium"
                 sx={(theme) => ({
                   color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                   textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
                   '&:hover': {
                     backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                   },
@@ -164,10 +167,11 @@ function Header() {
                 to="/faq"
                 variant="text"
                 color="info"
-                size="small"
+                size="medium"
                 sx={{ 
                   minWidth: 0,
                   textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
                   color: (theme) => theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                   '&:hover': {
                     backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
@@ -198,6 +202,7 @@ function Header() {
                     borderRadius: 2,
                     px: 2,
                     textTransform: 'none',
+                    fontSize: '1rem', // aumenta o tamanho da fonte
                     '&:hover': {
                       backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
                     },
@@ -277,7 +282,6 @@ function Header() {
           </Box>        </StyledToolbar>
       </Container>
 
-      {/* Mobile Menu Drawer */}
       <Drawer
         anchor="right"
         open={mobileMenuOpen}
