@@ -16,7 +16,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, ...props }) => {
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <Header />      <Box 
-        sx={(theme) => ({
+        sx={(theme) => ({   
           pt: { xs: 14, sm: 20 }, 
           py: { xs: 8, sm: 16 },
           width: "100%",

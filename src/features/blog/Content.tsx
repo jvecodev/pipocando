@@ -41,7 +41,7 @@ import watchlistService from '../../services/watchlistService';
 import { createNewsFromMovie, createNewsFromTVShow, createReviewTemplate } from '../../services/blogTmdbService';
 import { generateWatchlistPostSuggestions } from '../../services/blogTmdbService';
 import { useNavigate } from 'react-router-dom';
-import BlogDetail from './BlogDetail';
+import BlogDetailModal from './BlogDetailModal';
 
 const CATEGORIES = [
   { label: 'Todas as categorias', value: 'all' },
@@ -101,7 +101,6 @@ export default function Content() {
     reviewSuggestions: Array<{ item: any, type: 'movie' | 'tv' }>,
     listSuggestions: Array<{ theme: string, type: 'movie' | 'tv' }>
   } | null>(null);
-
   const [modal, setModal] = React.useState<{
     open: boolean;
     type: 'create' | 'edit' | 'delete' | null;
@@ -109,6 +108,12 @@ export default function Content() {
   }>({ open: false, type: null, post: null });
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const [postToDelete, setPostToDelete] = React.useState<BlogType | null>(null);
+  
+  // Estado para o modal de detalhes do blog
+  const [blogDetailModal, setBlogDetailModal] = React.useState<{
+    open: boolean;
+    postId: number | null;
+  }>({ open: false, postId: null });
 
   React.useEffect(() => {
     const loadTrending = async () => {
@@ -515,11 +520,9 @@ export default function Content() {
       return false;
     }
     return true;
-  };
-
-  // Adiciona navegação ao clicar no card do blog
+  };  // Abre o modal de detalhes ao clicar no card do blog
   const handleCardClick = (post: BlogType) => {
-    navigate(`/blog/${post.id}`);
+    setBlogDetailModal({ open: true, postId: Number(post.id) });
   };
 
   return (
@@ -754,8 +757,15 @@ export default function Content() {
                       ...(theme.palette.mode === 'dark' && {
                         color: theme.palette.text.primary,
                         backgroundColor: theme.palette.background.paper,
-                      }),
+                      }
+                    ),
+                      '&.Mui-selected': {
+                        backgroundColor: theme.palette.primary.main,
+                        color: '#000',
+                      },
+                    
                     },
+
                   })}
                 />
               </Box>
@@ -961,13 +971,17 @@ export default function Content() {
           setModal={setModal}
           onSave={handleSavePost}
         />
-      </StandardModal>
-
-      <DeleteConfirmationModal
+      </StandardModal>      <DeleteConfirmationModal
         open={deleteModalOpen}
         title="Excluir publicação"
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
+      />
+
+      <BlogDetailModal
+        open={blogDetailModal.open}
+        postId={blogDetailModal.postId}
+        onClose={() => setBlogDetailModal({ open: false, postId: null })}
       />
     </>
   );
