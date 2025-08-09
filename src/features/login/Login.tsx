@@ -17,9 +17,14 @@ import ForgotPassword from './ForgotPassword';
 import AppTheme from '../../shared-theme/AppTheme';
 import ColorModeSelect from '../../shared-theme/ColorModeSelect';
 import { login } from '../../services/authService';
-import { useNavigate } from 'react-router-dom';
-import { PerfilType, PerfilTypeEnum } from '../../types/PerfilType';
+import { PerfilTypeEnum } from '../../types/PerfilType';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import Alert from '@mui/material/Alert';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -68,9 +73,13 @@ export default function SignIn(props: Record<string, unknown>) {
   const [emailErrorMessage, setEmailErrorMessage] = React.useState<string>('');
   const [passwordError, setPasswordError] = React.useState<boolean>(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState<string>('');
+  const [showPassword, setShowPassword] = React.useState<boolean>(false);
   const [open, setOpen] = React.useState<boolean>(false);
   const navigate = useNavigate();
   const { setUser } = useUser();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const message = searchParams.get('message');
 
   const handleClickOpen = (): void => {
     setOpen(true);
@@ -92,25 +101,31 @@ export default function SignIn(props: Record<string, unknown>) {
     const password = data.get('password') as string;
 
     try {
-      const response = await login({ email, password });
-      console.log('Login realizado com sucesso:', {
-        token: response.token,
-        name: response.name,
-        role: response.role,
-      });
-      localStorage.setItem('token', response.token);
-      if (response.name) {
-        localStorage.setItem('username', response.name);
-      }
-      setUser({
-        id: '',
-        name: response.name,
-        email: email,
-        perfil: response.role === PerfilTypeEnum.ADMIN ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
-      });
+      const loginRequest = { 
+        email: email, 
+        password: password
+      };
+      
+      const response = await login(loginRequest);
+      console.log('Login response:', response);
+      
+      const userData = {
+        id: response.userId.toString(), 
+        name: response.userName,
+        email: email, 
+        perfil: response.role === 'ADMIN' ? PerfilTypeEnum.ADMIN : PerfilTypeEnum.USER,
+        role: response.role
+      };
+      
+      setUser(userData);
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      
       navigate('/');
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
+      setEmailError(true);
+      setEmailErrorMessage(error.message || 'Credenciais inválidas');
     }
   };
 
@@ -141,6 +156,14 @@ export default function SignIn(props: Record<string, unknown>) {
     return isValid;
   };
 
+  const handleClickShowPassword = () => {
+    setShowPassword((show) => !show);
+  };
+
+  const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  };
+
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
@@ -154,6 +177,11 @@ export default function SignIn(props: Record<string, unknown>) {
           >
             Login
           </Typography>
+          {message && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+                {decodeURIComponent(message)}
+            </Alert>
+          )}
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -189,7 +217,7 @@ export default function SignIn(props: Record<string, unknown>) {
                 helperText={passwordErrorMessage}
                 name="password"
                 placeholder="••••••"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 autoComplete="current-password"
                 autoFocus
@@ -197,12 +225,36 @@ export default function SignIn(props: Record<string, unknown>) {
                 fullWidth
                 variant="outlined"
                 color={passwordError ? 'error' : 'primary'}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Lembrar deste dispositivo"
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <FormControlLabel
+                control={<Checkbox value="remember" color="primary" />}
+                label="Lembrar deste dispositivo"
+              />
+              <Link 
+                component="button"
+                variant="body2"
+                onClick={handleClickOpen}
+                sx={{ textAlign: 'right' }}
+              >
+                Esqueceu a senha?
+              </Link>
+            </Box>
             <ForgotPassword open={open} handleClose={handleClose} />
             <Button
               type="submit"

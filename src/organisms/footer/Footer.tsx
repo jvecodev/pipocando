@@ -56,39 +56,38 @@ export default function Footer() {
             gap: 4,
             minWidth: { xs: "100%", sm: "60%" },
           }}
-        >
-          <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
+        >          <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
             <Sitemark />
             <Typography
               variant="body2"
               gutterBottom
-              sx={{ fontWeight: 600, mt: 2 }}
+              sx={(theme) => ({ 
+                fontWeight: 600, 
+                mt: 2,
+                color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+              })}
             >
               Participe da nossa comunidade!
             </Typography>
             <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
               Inscreva-se para receber atualizações, sobre o Pipocando.
             </Typography>
-            <Stack direction="row" spacing={1} useFlexGap>
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                sx={{ flexShrink: 0 }}
-              >
-                Entrar
-              </Button>
-            </Stack>
+          
           </Box>
-        </Box>
-        <Box
+        </Box>        <Box
           sx={{
             display: { xs: "none", sm: "flex" },
             flexDirection: "column",
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+          <Typography 
+            variant="body2" 
+            sx={(theme) => ({ 
+              fontWeight: "medium",
+              color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+            })}
+          >
             Product
           </Typography>
           <Link color="text.secondary" variant="body2" href="#">
@@ -109,7 +108,13 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+          <Typography 
+            variant="body2" 
+            sx={(theme) => ({ 
+              fontWeight: "medium",
+              color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+            })}
+          >
             Company
           </Typography>
           <Link color="text.secondary" variant="body2" href="#">
@@ -123,7 +128,13 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: "medium" }}>
+          <Typography 
+            variant="body2" 
+            sx={(theme) => ({ 
+              fontWeight: "medium",
+              color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+            })}
+          >
             Legal
           </Typography>
           <Link color="text.secondary" variant="body2" href="#">
@@ -146,15 +157,32 @@ export default function Footer() {
           borderTop: "1px solid",
           borderColor: "divider",
         }}
-      >
-        <div>
-          <Button onClick={handleOpenTerms} color="primary">
+      >        <div>
+          <Button 
+            onClick={handleOpenTerms} 
+            sx={(theme) => ({
+              color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+              },
+            })}
+          >
             Politicas de privacidade
           </Button>
           <Typography sx={{ display: "inline", mx: 0.5, opacity: 0.5 }}>
             &nbsp;•&nbsp;
           </Typography>
-          <Button onClick={handleOpenTerms} color="primary">
+          <Button 
+            onClick={handleOpenTerms} 
+            sx={(theme) => ({
+              color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+              },
+            })}
+          >
             Termos de uso
           </Button>
           <Copyright />

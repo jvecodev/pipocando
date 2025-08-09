@@ -1,5 +1,6 @@
 import * as React from 'react';
 import SvgIcon from '@mui/material/SvgIcon';
+import { useTheme } from '@mui/material/styles';
 
 export function SitemarkIcon() {
   return (
@@ -48,6 +49,9 @@ export function FacebookIcon() {
 }
 
 export function GoogleIcon() {
+  const theme = useTheme();
+  const fillColor = theme.palette.mode === 'dark' ? '#ffffff' : '#800020';
+  
   return (
     <SvgIcon>
       <svg
@@ -59,7 +63,7 @@ export function GoogleIcon() {
       >
         <path
           d="M15.68 8.18182C15.68 7.61455 15.6291 7.06909 15.5345 6.54545H8V9.64364H12.3055C12.1164 10.64 11.5491 11.4836 10.6982 12.0509V14.0655H13.2945C14.8073 12.6691 15.68 10.6182 15.68 8.18182Z"
-          fill="#4285F4"
+          fill={fillColor}
         />
         <path
           d="M8 16C10.16 16 11.9709 15.2873 13.2945 14.0655L10.6982 12.0509C9.98545 12.5309 9.07636 12.8218 8 12.8218C5.92 12.8218 4.15273 11.4182 3.52 9.52727H0.858182V11.5927C2.17455 14.2036 4.87273 16 8 16Z"
@@ -77,4 +81,3 @@ export function GoogleIcon() {
     </SvgIcon>
   );
 }
-  

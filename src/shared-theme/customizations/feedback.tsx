@@ -1,22 +1,14 @@
 import { Theme, alpha, Components } from '@mui/material/styles';
-import { gray, orange } from '../themePrimitives';
+import { cremePipoca, carameloEscuro, cremeSuave, begeAreia } from '../themePrimitives';
 
 /* eslint-disable import/prefer-default-export */
 export const feedbackCustomizations: Components<Theme> = {
   MuiAlert: {
     styleOverrides: {
       root: ({ theme }) => ({
-        borderRadius: 10,
-        backgroundColor: orange[100],
-        color: theme.palette.text.primary,
-        border: `1px solid ${alpha(orange[300], 0.5)}`,
-        '& .MuiAlert-icon': {
-          color: orange[500],
-        },
-        ...theme.applyStyles('dark', {
-          backgroundColor: `${alpha(orange[900], 0.5)}`,
-          border: `1px solid ${alpha(orange[800], 0.5)}`,
-        }),
+        borderRadius: 8,
+        border: '1px solid',
+        borderColor: theme.palette.divider,
       }),
     },
   },
@@ -27,6 +19,9 @@ export const feedbackCustomizations: Components<Theme> = {
           borderRadius: '10px',
           border: '1px solid',
           borderColor: theme.palette.divider,
+          // Adicionando um background sutil de bege
+          backgroundImage: theme.palette.mode === 'dark'            ? `linear-gradient(135deg, ${alpha(carameloEscuro, 0.95)}, ${alpha('#2A1E14', 0.9)})`
+            : `linear-gradient(135deg, ${alpha(cremePipoca, 0.95)}, ${alpha(cremeSuave, 0.9)})`,
         },
       }),
     },
@@ -36,9 +31,9 @@ export const feedbackCustomizations: Components<Theme> = {
       root: ({ theme }) => ({
         height: 8,
         borderRadius: 8,
-        backgroundColor: gray[200],
+        backgroundColor: begeAreia,
         ...theme.applyStyles('dark', {
-          backgroundColor: gray[800],
+          backgroundColor: carameloEscuro,
         }),
       }),
     },

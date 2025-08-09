@@ -1,0 +1,375 @@
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  Grid,
+  Tabs,
+  Tab,
+  TextField,
+  InputAdornment,
+  Pagination,
+  CircularProgress,
+  Alert,
+  Stack,
+} from "@mui/material";
+import {
+  Search as SearchIcon,
+  Tv as TvIcon,
+  Whatshot as WhatshotIcon,
+  Schedule as ScheduleIcon,
+  Star as StarIcon,
+  SentimentVeryDissatisfied as NoResultsIcon,
+} from "@mui/icons-material";
+import MainLayout from "../../layout/MainLayout";
+import TVShowCard from "./TVShowCard";
+import tmdbService, {
+  TVShow,
+  WatchProviders,
+} from "../../services/tmdbService";
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+const Series: React.FC = () => {
+  const [tabValue, setTabValue] = useState(0);
+  const [tvShows, setTVShows] = useState<TVShow[]>([]);
+  const [watchProviders, setWatchProviders] = useState<
+    Record<number, WatchProviders | null>
+  >({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [favorites, setFavorites] = useState<number[]>([]);
+
+  useEffect(() => {
+    // Carregar favoritos do localStorage
+    const savedFavorites = localStorage.getItem("favoriteTVShows");
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTVShows();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabValue, page]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      handleSearch();
+    } else {
+      loadTVShows();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  const loadTVShows = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      let response;
+
+      switch (tabValue) {
+        case 0:
+          response = await tmdbService.getPopularTVShows(page);
+          break;
+        case 1:
+          response = await tmdbService.getTopRatedTVShows(page);
+          break;
+        case 2:
+          response = await tmdbService.getOnTheAirTVShows(page);
+          break;
+        default:
+          response = await tmdbService.getPopularTVShows(page);
+      }
+
+      setTVShows(response.results);
+      setTotalPages(response.total_pages);
+
+      const providersPromises = response.results.map(async (tvShow) => {
+        try {
+          const providers = await tmdbService.getTVShowWatchProviders(
+            tvShow.id
+          );
+          return { tvShowId: tvShow.id, providers };
+        } catch (error) {
+          return { tvShowId: tvShow.id, providers: null };
+        }
+      });
+
+      const providersResults = await Promise.all(providersPromises);
+      const providersMap: Record<number, WatchProviders | null> = {};
+
+      providersResults.forEach(({ tvShowId, providers }) => {
+        providersMap[tvShowId] = providers;
+      });
+
+      setWatchProviders(providersMap);
+    } catch (err) {
+      setError(
+        "Erro ao carregar séries. Verifique sua conexão e tente novamente."
+      );
+      console.error("Erro ao carregar séries:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await tmdbService.searchTVShows(searchQuery, page);
+      setTVShows(response.results);
+      setTotalPages(response.total_pages);
+    } catch (err) {
+      setError("Erro ao buscar séries. Tente novamente.");
+      console.error("Erro na busca:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+    setPage(1);
+    setSearchQuery("");
+  };
+
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleFavoriteToggle = (tvShowId: number) => {
+    const newFavorites = favorites.includes(tvShowId)
+      ? favorites.filter((id) => id !== tvShowId)
+      : [...favorites, tvShowId];
+
+    setFavorites(newFavorites);
+    localStorage.setItem("favoriteTVShows", JSON.stringify(newFavorites));
+  };
+
+  return (
+    <MainLayout>
+      <Box sx={{ textAlign: 'left', mb: 6, mt: { xs: 6, md: 12 } }}>
+        <Typography
+          variant="h2"
+          component="h1"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            fontSize: { xs: '2.5rem', md: '4rem' },
+            color: 'text.primary',
+          }}
+        >
+          Séries
+        </Typography>
+        <Typography
+          variant="h5"
+          color="text.secondary"
+          sx={{ fontWeight: 500, maxWidth: 800, mb: 4 }}
+        >
+          Descubra onde assistir suas séries favoritas e adicione-as à sua lista de interesse.
+        </Typography>
+        <TextField
+          fullWidth
+          placeholder="Buscar séries..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            maxWidth: 500,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 3,
+              backgroundColor: "background.paper",
+            },
+          }}
+        />
+        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 2 }}>
+          {/* Botões podem ser personalizados conforme necessidade */}
+        </Box>
+      </Box>
+   
+      {!searchQuery && (
+        <Box sx={{ mb: 4 }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            centered={false}
+            sx={{
+              justifyContent: 'flex-start',
+              '& .MuiTabs-flexContainer': {
+                justifyContent: 'flex-start',
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'primary.main',
+                height: 3,
+                borderRadius: 1.5,
+              },
+              '& .MuiTab-root': {
+                fontSize: '1rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                minWidth: 120,
+                color: 'text.primary',
+                alignItems: 'flex-start',
+                transition: 'none',
+              },
+            }}
+          >
+            <Tab
+              icon={<WhatshotIcon />}
+              label="Populares"
+              iconPosition="start"
+              sx={{ textTransform: "none" }}
+            />
+            <Tab
+              icon={<StarIcon />}
+              label="Melhores Avaliados"
+              iconPosition="start"
+              sx={{ textTransform: "none" }}
+            />
+            <Tab
+              icon={<ScheduleIcon />}
+              label="Em Breve"
+              iconPosition="start"
+              sx={{ textTransform: "none" }}
+            />
+          </Tabs>
+        </Box>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
+      {loading ? (
+        <Box display="flex" justifyContent="center" py={8}>
+          <Stack spacing={2} alignItems="center">
+            <CircularProgress size={60} thickness={4} />
+            <Typography color="text.secondary">Carregando séries...</Typography>
+          </Stack>
+        </Box>
+      ) : (
+        <>
+          <TabPanel value={searchQuery ? 0 : tabValue} index={0}>
+            <Grid container spacing={3}>
+              {tvShows.map((tvShow) => (
+                <Grid item xs={12} sm={6} md={4} lg={4} key={tvShow.id}>
+                  <TVShowCard
+                    tvShow={tvShow}
+                    watchProviders={watchProviders[tvShow.id]}
+                    onFavoriteToggle={handleFavoriteToggle}
+                    isFavorite={favorites.includes(tvShow.id)}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </TabPanel>
+
+          {!searchQuery && (
+            <>
+              <TabPanel value={tabValue} index={1}>
+                <Grid container spacing={3}>
+                  {tvShows.map((tvShow) => (
+                    <Grid item xs={12} sm={6} md={4} lg={4} key={tvShow.id}>
+                      <TVShowCard
+                        tvShow={tvShow}
+                        watchProviders={watchProviders[tvShow.id]}
+                        onFavoriteToggle={handleFavoriteToggle}
+                        isFavorite={favorites.includes(tvShow.id)}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </TabPanel>
+
+              <TabPanel value={tabValue} index={2}>
+                <Grid container spacing={3}>
+                  {tvShows.map((tvShow) => (
+                    <Grid item xs={12} sm={6} md={4} lg={4} key={tvShow.id}>
+                      <TVShowCard
+                        tvShow={tvShow}
+                        watchProviders={watchProviders[tvShow.id]}
+                        onFavoriteToggle={handleFavoriteToggle}
+                        isFavorite={favorites.includes(tvShow.id)}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </TabPanel>
+            </>
+          )}
+
+          {tvShows.length === 0 && !loading && (
+            <Box textAlign="center" py={8}>
+              <NoResultsIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h5" color="text.secondary" gutterBottom sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2rem' }, mb: 2 }}>
+                Nenhuma série encontrada
+              </Typography>
+              <Typography color="text.secondary" sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' }, mb: 1, fontWeight: 500 }}>
+                {searchQuery    
+                  ? `Tente uma busca diferente para "${searchQuery}"`
+                  : "Tente novamente mais tarde"}
+              </Typography>
+            </Box>
+          )}
+
+          {totalPages > 1 && (
+            <Box display="flex" justifyContent="center" mt={6}>
+              <Pagination
+                count={Math.min(totalPages, 500)}
+                page={page}
+                onChange={handlePageChange}
+                color="primary"
+                size="large"
+                sx={{
+                  "& .MuiPaginationItem-root": {
+                    fontSize: "1rem",
+                  },
+                }}
+              />
+            </Box>
+          )}
+        </>
+      )}
+    </MainLayout>
+  );
+};
+
+export default Series;

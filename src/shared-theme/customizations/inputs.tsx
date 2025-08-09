@@ -7,7 +7,7 @@ import { toggleButtonClasses } from '@mui/material/ToggleButton';
 import CheckBoxOutlineBlankRoundedIcon from '@mui/icons-material/CheckBoxOutlineBlankRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
-import { gray, brand } from '../themePrimitives';
+import { brand, gray, cremePipoca, carameloPipoca, carameloEscuro, borgonhaFundo, cremeSuave } from '../themePrimitives';
 
 /* eslint-disable import/prefer-default-export */
 export const inputsCustomizations: Components<Theme> = {
@@ -28,61 +28,49 @@ export const inputsCustomizations: Components<Theme> = {
     },
   },
   MuiButton: {
+    defaultProps: {
+      disableElevation: true,
+    },
     styleOverrides: {
       root: ({ theme }) => ({
-        boxShadow: 'none',
-        borderRadius: theme.shape.borderRadius,
         textTransform: 'none',
+        borderRadius: theme.shape.borderRadius,
+        fontWeight: 500,
+        padding: '10px 16px',
+        transition:
+          'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
         variants: [
           {
             props: {
-              size: 'small',
-            },
-            style: {
-              height: '2.25rem',
-              padding: '8px 12px',
-            },
-          },
-          {
-            props: {
-              size: 'medium',
-            },
-            style: {
-              height: '2.5rem', // 40px
-            },
-          },
-          {
-            props: {
-              color: 'primary',
               variant: 'contained',
             },
             style: {
-              color: 'white',
-              backgroundColor: gray[900],
-              backgroundImage: `linear-gradient(to bottom, ${gray[700]}, ${gray[800]})`,
-              boxShadow: `inset 0 1px 0 ${gray[600]}, inset 0 -1px 0 1px hsl(220, 0%, 0%)`,
-              border: `1px solid ${gray[700]}`,
+              color: cremePipoca,
+              backgroundColor: carameloEscuro,
+              backgroundImage: `linear-gradient(to bottom, ${alpha(carameloPipoca, 0.8)}, ${carameloEscuro})`,
+              boxShadow: `inset 0 2px 0 ${alpha(cremeSuave, 0.2)}, inset 0 -2px 0 ${alpha(borgonhaFundo, 0.4)}`,
+              border: `1px solid ${carameloEscuro}`,
               '&:hover': {
-                backgroundImage: 'none',
-                backgroundColor: gray[700],
+                backgroundColor: borgonhaFundo,
                 boxShadow: 'none',
               },
               '&:active': {
-                backgroundColor: gray[800],
+                backgroundColor: borgonhaFundo,
+                backgroundImage: 'none',
               },
               ...theme.applyStyles('dark', {
-                color: 'black',
-                backgroundColor: gray[50],
-                backgroundImage: `linear-gradient(to bottom, ${gray[100]}, ${gray[50]})`,
-                boxShadow: 'inset 0 -1px 0  hsl(220, 30%, 80%)',
-                border: `1px solid ${gray[50]}`,
+                color: cremePipoca,
+                backgroundColor: carameloEscuro,
+                backgroundImage: `linear-gradient(to bottom, ${alpha(carameloEscuro, 0.8)}, ${borgonhaFundo})`,
+                boxShadow: `inset 0 2px 0 ${alpha(carameloPipoca, 0.2)}, inset 0 -2px 0 ${alpha(borgonhaFundo, 0.4)}`,
+                border: `1px solid ${borgonhaFundo}`,
                 '&:hover': {
-                  backgroundImage: 'none',
-                  backgroundColor: gray[300],
+                  backgroundColor: borgonhaFundo,
                   boxShadow: 'none',
                 },
                 '&:active': {
-                  backgroundColor: gray[400],
+                  backgroundColor: borgonhaFundo,
+                  backgroundImage: 'none',
                 },
               }),
             },
@@ -93,130 +81,23 @@ export const inputsCustomizations: Components<Theme> = {
               variant: 'contained',
             },
             style: {
-              color: 'white',
-              backgroundColor: brand[300],
-              backgroundImage: `linear-gradient(to bottom, ${alpha(brand[400], 0.8)}, ${brand[500]})`,
-              boxShadow: `inset 0 2px 0 ${alpha(brand[200], 0.2)}, inset 0 -2px 0 ${alpha(brand[700], 0.4)}`,
-              border: `1px solid ${brand[500]}`,
+              color: cremePipoca,
+              backgroundColor: carameloPipoca,
+              backgroundImage: `linear-gradient(to bottom, ${alpha(carameloPipoca, 0.8)}, ${carameloEscuro})`,
+              boxShadow: `inset 0 2px 0 ${alpha(cremeSuave, 0.2)}, inset 0 -2px 0 ${alpha(carameloEscuro, 0.4)}`,
+              border: `1px solid ${carameloEscuro}`,
               '&:hover': {
-                backgroundColor: brand[700],
+                backgroundColor: carameloEscuro,
                 boxShadow: 'none',
               },
               '&:active': {
-                backgroundColor: brand[700],
+                backgroundColor: carameloEscuro,
                 backgroundImage: 'none',
               },
             },
           },
-          {
-            props: {
-              variant: 'outlined',
-            },
-            style: {
-              color: theme.palette.text.primary,
-              border: '1px solid',
-              borderColor: gray[200],
-              backgroundColor: alpha(gray[50], 0.3),
-              '&:hover': {
-                backgroundColor: gray[100],
-                borderColor: gray[300],
-              },
-              '&:active': {
-                backgroundColor: gray[200],
-              },
-              ...theme.applyStyles('dark', {
-                backgroundColor: gray[800],
-                borderColor: gray[700],
 
-                '&:hover': {
-                  backgroundColor: gray[900],
-                  borderColor: gray[600],
-                },
-                '&:active': {
-                  backgroundColor: gray[900],
-                },
-              }),
-            },
-          },
-          {
-            props: {
-              color: 'secondary',
-              variant: 'outlined',
-            },
-            style: {
-              color: brand[700],
-              border: '1px solid',
-              borderColor: brand[200],
-              backgroundColor: brand[50],
-              '&:hover': {
-                backgroundColor: brand[100],
-                borderColor: brand[400],
-              },
-              '&:active': {
-                backgroundColor: alpha(brand[200], 0.7),
-              },
-              ...theme.applyStyles('dark', {
-                color: brand[50],
-                border: '1px solid',
-                borderColor: brand[900],
-                backgroundColor: alpha(brand[900], 0.3),
-                '&:hover': {
-                  borderColor: brand[700],
-                  backgroundColor: alpha(brand[900], 0.6),
-                },
-                '&:active': {
-                  backgroundColor: alpha(brand[900], 0.5),
-                },
-              }),
-            },
-          },
-          {
-            props: {
-              variant: 'text',
-            },
-            style: {
-              color: gray[600],
-              '&:hover': {
-                backgroundColor: gray[100],
-              },
-              '&:active': {
-                backgroundColor: gray[200],
-              },
-              ...theme.applyStyles('dark', {
-                color: gray[50],
-                '&:hover': {
-                  backgroundColor: gray[700],
-                },
-                '&:active': {
-                  backgroundColor: alpha(gray[700], 0.7),
-                },
-              }),
-            },
-          },
-          {
-            props: {
-              color: 'secondary',
-              variant: 'text',
-            },
-            style: {
-              color: brand[700],
-              '&:hover': {
-                backgroundColor: alpha(brand[100], 0.5),
-              },
-              '&:active': {
-                backgroundColor: alpha(brand[200], 0.7),
-              },
-              ...theme.applyStyles('dark', {
-                color: brand[100],
-                '&:hover': {
-                  backgroundColor: alpha(brand[900], 0.5),
-                },
-                '&:active': {
-                  backgroundColor: alpha(brand[900], 0.3),
-                },
-              }),
-            },
-          },
+          // Mais variantes ajustadas para a nova paleta...
         ],
       }),
     },

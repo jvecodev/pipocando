@@ -70,7 +70,7 @@ function Header() {
             <Button color="primary" variant="text" size="small">
               Entrar
             </Button>
-            <Button color="primary" variant="contained" size="small">
+            <Button color="secondary" variant="contained" size="small">
               Cadastrar
             </Button>
             <ColorModeIconDropdown />

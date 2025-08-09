@@ -39,17 +39,16 @@ export default function Hero() {
   const handleOpenTerms = () => setOpenTerms(true);
   const handleCloseTerms = () => setOpenTerms(false)
 
-  return (
-    <Box
+  return (    <Box
       id="hero"
       sx={(theme) => ({
         width: "100%",
         backgroundRepeat: "no-repeat",
         backgroundImage:
-          "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(211, 100.00%, 83.10%), transparent)",
+          "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(128, 0, 32, 0.1), transparent)",
         ...theme.applyStyles("dark", {
           backgroundImage:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
+            "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(33, 150, 243, 0.08), transparent)",
         }),
       })}
     >
@@ -57,7 +56,7 @@ export default function Hero() {
         sx={{
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
+          alignItems: "flex-start",
           pt: { xs: 14, sm: 20 },
           pb: { xs: 8, sm: 12 },
         }}
@@ -65,41 +64,89 @@ export default function Hero() {
         <Stack
           spacing={2}
           useFlexGap
-          sx={{ alignItems: "center", width: { xs: "100%", sm: "70%" } }}
+          sx={{ alignItems: "flex-start", width: { xs: "100%", sm: "70%" }, mt: { xs: 6, md: 12 }, mb: 6 }}
         >
-          <Typography variant="h1" gutterBottom>
-          Pipocando
-        </Typography>
           <Typography
+            variant="h2"
+            component="h1"
+            gutterBottom
             sx={{
-              textAlign: "center",
-              color: "text.secondary",
-              width: { sm: "100%", md: "80%", fontSize: "1.2rem" },
+              fontWeight: 'bold',
+              fontSize: { xs: '2.5rem', md: '4rem' },
+              color: 'text.primary',
+              textAlign: 'left',
             }}
           >
-            Bem-vindo ao Pipocando, um fórum de filmes onde os usuários podem
-            discutir sobre os lançamentos, comentar suas opiniões, e
-            compartilhar recomendações.
+            Pipocando
+          </Typography>
+          <Typography
+            variant="h5"
+            sx={{
+              textAlign: "left",
+              color: "text.secondary",
+              fontWeight: 500,
+              maxWidth: 800,
+              mb: 4,
+              fontSize: { xs: '1.1rem', md: '1.5rem' },
+            }}
+          >
+            Bem-vindo ao Pipocando, um fórum de filmes onde os usuários podem discutir sobre os lançamentos, comentar suas opiniões, e compartilhar recomendações.
           </Typography>
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={1}
             useFlexGap
             sx={{ pt: 2, width: { xs: "100%", sm: "350px" } }}
-          ></Stack>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ textAlign: "center" }}
-          >
-            Leia nossos termos&nbsp;
-            <Button onClick={handleOpenTerms} color="primary">
+          ></Stack>          <Box sx={{ mt: 4, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography
+              variant="subtitle1"
+              sx={(theme) => ({
+                fontWeight: 500,
+                letterSpacing: 1,
+                fontSize: { xs: '1.1rem', md: '1.2rem' },
+                textShadow: '0 1px 8px rgba(128,0,32,0.10)',
+                color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.primary.main,
+              })}
+            >
+              Leia nossos termos
+            </Typography>
+            <Button
+              variant="outlined"
+              sx={(theme) => ({
+                fontWeight: 500,
+                textTransform: 'none',
+                fontSize: { xs: '1rem', md: '1.1rem' },
+                px: 2,
+                py: 0.5,
+                borderRadius: 2,
+                boxShadow: '0 2px 8px 0 rgba(128,0,32,0.08)',
+                borderWidth: 2,
+                ml: 1,
+                transition: 'all 0.2s',
+                ...(theme.palette.mode === 'dark' ? {
+                  color: '#fff',
+                  borderColor: '#fff',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                    borderColor: '#fff',
+                    color:'black'
+                  },
+                } : {
+                  color: theme.palette.primary.main,
+                  borderColor: theme.palette.primary.main,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderColor: theme.palette.primary.main,
+                  },
+                }),
+              })}
+              onClick={handleOpenTerms}
+            >
               Termos de uso
             </Button>
             <Terms open={openTerms} onClose={handleCloseTerms} />
-
-            
-          </Typography>
+          </Box>
         </Stack>
         <StyledBox id="image" />
       </Container>

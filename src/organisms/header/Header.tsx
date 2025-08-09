@@ -15,6 +15,13 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Logout from '@mui/icons-material/Logout';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import Divider from '@mui/material/Divider';
+import CloseIcon from '@mui/icons-material/Close';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
@@ -26,31 +33,48 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   border: "1px solid",
   borderColor: theme.palette.divider,
   backgroundColor: alpha(theme.palette.background.default, 0.4),
-  boxShadow: theme.shadows[1],
   padding: "8px 12px",
 }));
 
 function Header() {
   const [userName, setUserName] = React.useState<string | null>(null);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const open = Boolean(anchorEl);
 
   React.useEffect(() => {
-    setUserName(localStorage.getItem('username'));
+    // Obter nome do usuário do objeto 'user' no localStorage
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setUserName(userData.name);
+      } catch (e) {
+        console.error('Erro ao recuperar dados do usuário:', e);
+        setUserName(null);
+      }
+    }
   }, []);
-
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const handleMobileMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+  const handleMobileMenuClose = () => {
+    setMobileMenuOpen(false);
+  };
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('username');
+    localStorage.removeItem('user');
+    // Remova esta linha se estiver usando a opção 2
+    // localStorage.removeItem('username');
     setUserName(null);
     handleClose();
-    window.location.reload();
+    window.location.href = "/";
   };
 
   return (
@@ -69,23 +93,38 @@ function Header() {
           <Box
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
           >
-            <Sitemark />
-            <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              <Button
+            <Sitemark />            <Box sx={{ display: { xs: "none", md: "flex" } }}>
+                <Button
                 component={Link}
                 to="/"
                 variant="text"
                 color="info"
-                size="small"
-              >
+                size="medium"
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
+                  '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                })}
+                >
                 Home
-              </Button>
+                </Button>
               <Button
                 component={Link}
                 to="/blog"
                 variant="text"
                 color="info"
-                size="small"
+                size="medium"
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                })}
               >
                 Blog
               </Button>
@@ -94,7 +133,15 @@ function Header() {
                 to="/filmes"
                 variant="text"
                 color="info"
-                size="small"
+                size="medium"
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                })}
               >
                 Filmes
               </Button>
@@ -103,7 +150,15 @@ function Header() {
                 to="/series"
                 variant="text"
                 color="info"
-                size="small"
+                size="medium"
+                sx={(theme) => ({
+                  color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                })}
               >
                 Séries
               </Button>
@@ -112,8 +167,16 @@ function Header() {
                 to="/faq"
                 variant="text"
                 color="info"
-                size="small"
-                sx={{ minWidth: 0 }}
+                size="medium"
+                sx={{ 
+                  minWidth: 0,
+                  textTransform: 'none',
+                  fontSize: '1rem', // aumenta o tamanho da fonte
+                  color: (theme) => theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                  '&:hover': {
+                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                  },
+                }}
               >
                 FAQ
               </Button>
@@ -127,19 +190,22 @@ function Header() {
             }}
           >
             {userName ? (
-              <>
-                <Button
+              <>                <Button
                   color="primary"
                   variant="text"
                   size="small"
                   onClick={handleMenu}
                   sx={(theme) => ({
                     fontWeight: 700,
-                    color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+                    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                     background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                     borderRadius: 2,
                     px: 2,
                     textTransform: 'none',
+                    fontSize: '1rem', // aumenta o tamanho da fonte
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
+                    },
                   })}
                 >
                   {userName}
@@ -165,14 +231,20 @@ function Header() {
                   </MenuItem>
                 </Menu>
               </>
-            ) : (
-              <>
+            ) : (              <>
                 <Button 
                   component={Link}
                   to="/login"
                   color="primary" 
                   variant="text" 
                   size="small"
+                  sx={(theme) => ({
+                    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                    textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                    },
+                  })}
                 >
                   Entrar
                 </Button>
@@ -182,24 +254,165 @@ function Header() {
                   color="primary" 
                   variant="contained" 
                   size="small"
+                  sx={(theme) => ({
+                    color: theme.palette.mode === 'dark' ? '#000' : '#fff',
+                    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.primary.main,
+                    textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.dark,
+                    },
+                  })}
                 >
                   Cadastrar
                 </Button>
               </>
             )}
             <ColorModeIconDropdown />
-          </Box>
-
-          <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
+          </Box>          <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
             <ColorModeIconDropdown />
-            <IconButton aria-label="Menu button">
+            <IconButton 
+              aria-label="Menu button"
+              onClick={handleMobileMenuToggle}
+              sx={(theme) => ({
+                color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+              })}
+            >
               <MenuIcon />
             </IconButton>
-          </Box>
-        </StyledToolbar>
+          </Box>        </StyledToolbar>
       </Container>
+
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={handleMobileMenuClose}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: 280,
+            boxSizing: 'border-box',
+          },
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Sitemark />
+          <IconButton onClick={handleMobileMenuClose}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Divider />
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="Home" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/blog" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="Blog" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/filmes" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="Filmes" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/series" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="Séries" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={Link} 
+              to="/faq" 
+              onClick={handleMobileMenuClose}
+              sx={{ textTransform: 'none' }}
+            >
+              <ListItemText primary="FAQ" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+        <Divider />
+        <Box sx={{ p: 2 }}>
+          {userName ? (
+            <List>
+              <ListItem disablePadding>
+                <ListItemButton 
+                  component={Link} 
+                  to="/perfil" 
+                  onClick={handleMobileMenuClose}
+                  sx={{ textTransform: 'none' }}
+                >
+                  <ListItemIcon>
+                    <AccountCircle />
+                  </ListItemIcon>
+                  <ListItemText primary={`Olá, ${userName}`} />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton 
+                  onClick={() => {
+                    handleLogout();
+                    handleMobileMenuClose();
+                  }}
+                  sx={{ textTransform: 'none' }}
+                >
+                  <ListItemIcon>
+                    <Logout />
+                  </ListItemIcon>
+                  <ListItemText primary="Logout" />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Button 
+                component={Link}
+                to="/login"
+                variant="text"
+                fullWidth
+                onClick={handleMobileMenuClose}
+                sx={{ textTransform: 'none' }}
+              >
+                Entrar
+              </Button>
+              <Button 
+                component={Link}
+                to="/signup"
+                variant="contained"
+                fullWidth
+                onClick={handleMobileMenuClose}
+                sx={{ textTransform: 'none' }}
+              >
+                Cadastrar
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Drawer>
     </AppBar>
   );
 }
 
-export default Header;
+export default Header;
